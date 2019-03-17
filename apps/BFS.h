@@ -4,11 +4,11 @@
 #include "kernel.h"
 using namespace std;
 
-class BFS: public Task
+class BFS: public UnweightedTask
 {
 public:
 	BFS(long _n):
-		Task(_n), parents(NULL){}; // call parent class constructor
+		UnweightedTask(_n), parents(NULL){}; // call parent class constructor
 	inline bool update(uintE s, uintE d){
 		if (parents[d] == UINT_E_MAX){
 			parents[d] = s;
@@ -19,8 +19,7 @@ public:
 	inline bool updateAtomic(uintE s, uintE d){
 		return (CAS(&parents[d],UINT_E_MAX,s));
 	}
-	// cond function checks if vertex has been visited yet
-	inline bool cond(uintE d){
+	inline bool cond(uintE d){ // cond function checks if vertex has been visited yet
 		return (parents[d] == UINT_E_MAX); // since CAS cannot pass negtive num
 	}
 	inline bool finished(){
@@ -36,11 +35,9 @@ public:
 		parents[start] = start;
 		setFrontier(n,start);
 	}
-	void clear(){
+	void clear(){ // only need to free members in child class
 		if (parents != NULL)
 			free(parents);
-		if (nextFrontier != NULL)
-			free(nextFrontier);
 	}
 	uintE* parents;
 };

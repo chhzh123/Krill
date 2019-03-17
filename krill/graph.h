@@ -25,17 +25,21 @@ public:
 };
 
 template <class vertex>
-struct graph {
+struct graph
+{
     vertex* V;
     long n; // # of vertices
     long m; // # of edges
     bool transposed;
+    bool isWeighted; // weighted graph?
     uintE* flags;
     Deletable *D;
-    graph(vertex* VV, long nn, long mm, Deletable* DD):
-        V(VV), n(nn), m(mm), D(DD), flags(NULL), transposed(0) {}
-    graph(vertex* VV, long nn, long mm, Deletable* DD, uintE* _flags):
-        V(VV), n(nn), m(mm), D(DD), flags(_flags), transposed(0) {}
+    graph(vertex* VV, long nn, long mm, bool _isWeighted, Deletable* DD):
+        V(VV), n(nn), m(mm), isWeighted(_isWeighted),
+        D(DD), flags(NULL), transposed(0) {}
+    graph(vertex* VV, long nn, long mm, bool _isWeighted, Deletable* DD, uintE* _flags):
+        V(VV), n(nn), m(mm), isWeighted(_isWeighted),
+        D(DD), flags(_flags), transposed(0) {}
 
     void del() {
         D->del();

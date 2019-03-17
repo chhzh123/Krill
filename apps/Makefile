@@ -11,7 +11,7 @@ PD = -DPD
 endif
 
 ifdef DEBUG
-DEBUG = -g
+DEBUGFLAG = -g
 endif
 
 # compilers
@@ -37,14 +37,14 @@ COMMON := krill.h kernel.h graph.h vertex.h utils.h IO.h
 COMMON += parallel.h gettime.h transpose.h parseCommandLine.h vertexSubset.h
 COMMON += blockRadixSort.h
 
-KERNEL= BFS.h
+KERNEL= BFS.h SSSP.h
 
 ALL= batch
 
 all: $(ALL)
 
 % : %.cpp $(COMMON) $(KERNEL)
-	$(PCC) $(PCFLAGS) $(DEBUG) $< -o $@
+	$(PCC) $(PCFLAGS) $(DEBUGFLAG) $< -o $@
 
 $(COMMON):
 	ln -s ../krill/$@ .

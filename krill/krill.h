@@ -31,13 +31,6 @@ inline bool inFrontierQ(vertexSubset& frontier, const long vSrc)
         return false;
 }
 
-inline void condQ(const bool taskValid, Task& task, const long vSrc, const long vDst)
-{
-    if (taskValid && task.cond(vDst) && task.updateAtomic(vSrc,vDst))
-        task.nextFrontier[vDst] = 1;
-    // DO NOT SET ELSE! some memory may be accessed several times
-}
-
 // Compute one iteration, push-based
 template <class vertex>
 void pushEngine(graph<vertex>& G, Kernels& K)
@@ -61,7 +54,7 @@ void pushEngine(graph<vertex>& G, Kernels& K)
         vertex src = V[vSrc]; // get src vertex info
         parallel_for (long vDstOffset = 0; vDstOffset < src.getOutDegree(); ++vDstOffset){ // inner parallel
             for (int i = 0; i < nTasks; ++i)
-                condQ(taskmask[i],*(task[i]),vSrc,src.getOutNeighbor(vDstOffset));
+                task[i]->condQ(taskmask[i],vSrc,src.getOutNeighbor(vDstOffset),src.getOutWeight(vDstOffset));
         }
     }
     // finish one iteration
@@ -75,8 +68,10 @@ void scheduleTask(Task** task, int& n)
     while (i < n){
         if (task[i]->active && task[i]->finished()){
             cout << "Finished task " << i << "!" << endl;
-            task[i]->clear();
-            for (int j = i; j < n-1; ++j)
+            task[i]->clear(); // child
+            task[i]->clearAll(); // parent
+            delete task[i];
+            for (int j = i; j < n-1; ++j) // simple schedule
                 task[j] = task[j+1];
             n--;
         }
@@ -87,35 +82,49 @@ void scheduleTask(Task** task, int& n)
 template <class vertex>
 void Compute(graph<vertex>& G, Kernels& K, commandLine P)
 {
-    int nTask = K.nTask;
+    // int nTask = K.nTask;
     Task** task = K.task;
-    for (int i = 0; i < nTask; ++i){
+    for (int i = 0; i < K.nTask; ++i){
         task[i]->active = true;
         (task[i])->initialize();
     }
     int cnt = 0;
-    while (nTask > 0){
+    while (K.nTask > 0){ // One iteration
+        cnt++;
+        cout << cnt << ": There are " << K.nTask << " tasks!" << endl;
         pushEngine(G,K);
-        scheduleTask(task,nTask);
+        scheduleTask(task,K.nTask);
     }
 }
 
 template <class vertex>
 void setKernels(graph<vertex>&G, Kernels& K, commandLine P); // first declare
 
-int main(int argc, char* argv[]){
-    commandLine P(argc,argv," [-s] <inFile>");
-    char* iFile = P.getArgument(0);
-    bool symmetric = P.getOptionValue("-s");
-    bool compressed = P.getOptionValue("-c");
-    bool binary = P.getOptionValue("-b");
-    long rounds = P.getOptionLongValue("-rounds",1);
+template <class vertex>
+bool checkGraphKernelsValid(graph<vertex>&G, Kernels& K)
+{
+    bool flag = false;
+    for (int i = 0; i < K.nTask; ++i)
+        if ((K.task[i])->isWeighted){
+            flag = true;
+            break;
+        }
+    if (flag && !G.isWeighted) // graph is unweighted, but there are weighted tasks
+        return false;
+    else
+        return true;
+}
 
-    graph<asymmetricVertex> G =
-        readGraph<asymmetricVertex>(iFile,compressed,symmetric,binary);
-
+template <class vertex>
+void framework(graph<vertex>& G, commandLine P)
+{
     Kernels K;
     setKernels(G,K,P);
+
+    if (!checkGraphKernelsValid(G,K)){
+        cerr << "Error: Unweighted graph with weighted tasks!" << endl;
+        abort();
+    }
 
     startTime();
     Compute(G,K,P);
@@ -123,6 +132,53 @@ int main(int argc, char* argv[]){
     if(G.transposed)
         G.transpose();
     G.del();
+}
+
+int main(int argc, char* argv[]){
+    commandLine P(argc,argv," [-s] <inFile>");
+    char* iFile = P.getArgument(0);
+    bool symmetric = P.getOptionValue("-s");
+    bool weighted = P.getOptionValue("-w");
+    bool compressed = P.getOptionValue("-c");
+    bool binary = P.getOptionValue("-b");
+    long rounds = P.getOptionLongValue("-rounds",1);
+
+    if (!weighted) {
+        if (!symmetric) {
+            graph<asymmetricUnweightedVertex> G =
+                readGraphFromFile<asymmetricUnweightedVertex>(iFile);
+            framework(G,P);
+        } else {
+            graph<symmetricUnweightedVertex> G =
+                readGraphFromFile<symmetricUnweightedVertex>(iFile);
+            framework(G,P);
+        }
+    } else {
+        if (!symmetric) {
+            graph<asymmetricWeightedVertex> G =
+                readGraphFromFile<asymmetricWeightedVertex>(iFile);
+            framework(G,P);
+        } else {
+            graph<symmetricWeightedVertex> G =
+                readGraphFromFile<symmetricWeightedVertex>(iFile);
+            framework(G,P);
+        }
+    }
+}
+
+template <class F>
+void vertexMap(vertexSubset V, F f) {
+    long n = V.n;
+    long m = V.m;
+    if (V.isDense){
+        parallel_for (long i = 0; i < n; ++i)
+            if (V.d[i])
+                f(i);
+    } else {
+        parallel_for (long i = 0; i < m; ++i)
+            if (V.s[i])
+                f(V.s[i]);
+    }
 }
 
 #endif
