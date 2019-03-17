@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <typeinfo> // class name
 #include "kernel.h"
 #include "graph.h"
 #include "vertex.h"
@@ -67,15 +68,15 @@ void scheduleTask(Task** task, int& n)
     int i = 0;
     while (i < n){
         if (task[i]->active && task[i]->finished()){
-            cout << "Finished task " << i << "!" << endl;
+            cout << "Finished task " << typeid(*(task[i])).name() << endl;
             task[i]->clear(); // child
             task[i]->clearAll(); // parent
             delete task[i];
             for (int j = i; j < n-1; ++j) // simple schedule
                 task[j] = task[j+1];
-            n--;
-        }
-        i++;
+            task[--n] = NULL;
+        } else
+            i++;
     }
 }
 

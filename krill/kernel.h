@@ -4,6 +4,7 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
+#include <initializer_list> // variadic arguments
 #include "utils.h"
 #include "vertexSubset.h"
 using namespace std;
@@ -37,8 +38,8 @@ public:
     void clearAll(){
         active = false;
         frontier.del();
-        if (nextFrontier != NULL)
-            free(nextFrontier);
+        // if (nextFrontier != NULL) // free may have something wrong...
+        //     free(nextFrontier);
     }
     inline void setFrontier(long _n, intE v){
         frontier = vertexSubset(_n,v);
@@ -99,9 +100,14 @@ public:
         task = new Task*[MAX_TASK_NUM]; // polymorphism, using `new' may be easier for deletion
     };
     ~Kernels() = default;
-    void appendTask(Task* tsk) // maybe add a list
+    void appendTask(Task* tsk)
     {
         task[nTask++] = tsk;
+    }
+    void appendTask(initializer_list<Task*> list)
+    {
+        for (auto tsk : list)
+            task[nTask++] = tsk;
     }
     int nTask;
     Task** task; // 1D array to store pointers of the tasks

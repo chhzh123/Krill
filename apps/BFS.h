@@ -7,8 +7,8 @@ using namespace std;
 class BFS: public UnweightedTask
 {
 public:
-	BFS(long _n):
-		UnweightedTask(_n), parents(NULL){}; // call parent class constructor
+	BFS(long _n, long _start = 0):
+		UnweightedTask(_n), parents(NULL), start(_start){}; // call parent class constructor
 	inline bool update(uintE s, uintE d){
 		if (parents[d] == UINT_E_MAX){
 			parents[d] = s;
@@ -30,8 +30,6 @@ public:
 		parents = newA(uintE,n); // dynamically allocate memory
 		parallel_for(long i = 0; i < n; ++i)
 			parents[i] = UINT_E_MAX; // unexplored
-		// pass in 'start' from cmd?
-		long start = 0;
 		parents[start] = start;
 		setFrontier(n,start);
 	}
@@ -39,5 +37,6 @@ public:
 		if (parents != NULL)
 			free(parents);
 	}
+	long start;
 	uintE* parents;
 };

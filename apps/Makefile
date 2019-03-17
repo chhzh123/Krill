@@ -37,9 +37,9 @@ COMMON := krill.h kernel.h graph.h vertex.h utils.h IO.h
 COMMON += parallel.h gettime.h transpose.h parseCommandLine.h vertexSubset.h
 COMMON += blockRadixSort.h
 
-KERNEL= BFS.h SSSP.h
+KERNEL = BFS.h SSSP.h PageRank.h
 
-ALL= batch
+ALL = batch
 
 all: $(ALL)
 

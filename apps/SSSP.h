@@ -21,8 +21,8 @@ public:
 class SSSP: public WeightedTask
 {
 public:
-	SSSP(long _n):
-		WeightedTask(_n), shortestPathLen(NULL), changed(NULL){}; // call parent class constructor
+	SSSP(long _n, long _start = 0):
+		WeightedTask(_n), shortestPathLen(NULL), changed(NULL), start(_start){}; // call parent class constructor
 	inline bool update(uintE s, uintE d, intE edgeLen){ // relax, edgeLen(s,d)
 		intE newDist = shortestPathLen[s] + edgeLen;
 		if (shortestPathLen[d] > newDist) { // Update shortestPathLen if found a shorter path
@@ -53,7 +53,6 @@ public:
 		}
 	}
 	void initialize(){
-		long start = 0;
 		// initialize shortestPathLen to "infinity"
 		shortestPathLen = newA(intE,n);
 		parallel_for(long i = 0; i < n; ++i)
@@ -66,7 +65,7 @@ public:
 		// pass in 'start' from cmd?
 		setFrontier(n,start);
 	}
-	void finishOneIter(){
+	void finishOneIter(){ // overload
         frontier.del();
         // set new frontier
         setFrontier(n,nextFrontier);
@@ -82,4 +81,5 @@ public:
 	long round;
 	intE* shortestPathLen;
 	int* changed; // int for CAS
+	long start;
 };
