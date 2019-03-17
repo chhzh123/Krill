@@ -177,8 +177,7 @@ void vertexMap(vertexSubset V, F f) {
                 f(i);
     } else {
         parallel_for (long i = 0; i < m; ++i)
-            if (V.s[i])
-                f(V.s[i]);
+            f(V.s[i]);
     }
 }
 

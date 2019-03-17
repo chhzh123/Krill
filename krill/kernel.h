@@ -24,7 +24,7 @@ public:
     virtual void initialize() = 0;
     virtual void clear() = 0;
     virtual void condQ(const bool taskValid, const long vSrc, const long vDst, const intE edgeVal) = 0;
-    void iniOneIter(){
+    virtual void iniOneIter(){
         nextFrontier = newA(bool,n);
         parallel_for (long i = 0; i < n; ++i) // remember to initialize!
             nextFrontier[i] = 0;
