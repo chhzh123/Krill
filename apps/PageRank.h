@@ -57,16 +57,9 @@ public:
 	}
 	void initialize(){
 		double one_over_n = 1/(double)n;
-		p_curr = newA(double,n);
-		parallel_for(long i = 0; i < n; i++)
-			p_curr[i] = one_over_n;
-		p_next = newA(double,n);
-		parallel_for(long i = 0; i < n; i++)
-			p_next[i] = 0; // 0 if unchanged
-		bool* allVert = newA(bool,n);
-		parallel_for(long i = 0; i < n; i++)
-			allVert[i] = 1; // select all vertices
-		setFrontier(n,n,allVert);
+		setAll<double>(p_curr,one_over_n);
+		setAll<double>(p_next,0); // 0 if unchanged
+		setFrontierAll();
 	}
 	void finishOneIter(){ // overload
 		vertexMap(frontier,Update_PR(p_curr,p_next,damping,n));
@@ -86,10 +79,8 @@ public:
         iter++;
     }
 	void clear(){
-		if (p_curr != NULL)
-			free(p_curr);
-		if (p_next != NULL)
-			free(p_next);
+		freeMem<double>(p_curr);
+		freeMem<double>(p_next);
 	}
 	long iter;
 	long maxIters;

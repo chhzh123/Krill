@@ -11,7 +11,7 @@ PD = -DPD
 endif
 
 ifdef DEBUG
-DEBUGFLAG = -g
+DEBUGFLAG = -g -DDEBUG
 endif
 
 # compilers
@@ -33,27 +33,20 @@ PCC = g++
 PCFLAGS = -O3 $(INTT) $(INTE) $(CODE) $(PD)
 endif
 
+# make sure modifying header files will lead to recompilation 
 COMMON := krill.h kernel.h graph.h vertex.h utils.h IO.h
 COMMON += parallel.h gettime.h transpose.h parseCommandLine.h vertexSubset.h
 COMMON += blockRadixSort.h
 
-KERNEL = BFS.h SSSP.h PageRank.h CC.h
+KERNEL = BFS.h SSSP.h PageRank.h CC.h KCore.h
 
 ALL = batch
 
 all: $(ALL)
 
-% : %.cpp $(COMMON) $(KERNEL)
-	$(PCC) $(PCFLAGS) $(DEBUGFLAG) $< -o $@
-
-$(COMMON):
-	ln -s ../krill/$@ .
+% : %.cpp
+	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $< -o $@
 
 .PHONY : clean
-
 clean :
 	rm -f *.o $(ALL)
-
-cleansrc :
-	rm -f *.o $(ALL)
-	rm $(COMMON)

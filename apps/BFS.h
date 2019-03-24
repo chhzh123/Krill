@@ -27,15 +27,12 @@ public:
 	}
 	void initialize(){
 		// creates Parents array, initialized to all UINT_E_MAX (or -1), except for start
-		parents = newA(uintE,n); // dynamically allocate memory
-		parallel_for(long i = 0; i < n; ++i)
-			parents[i] = UINT_E_MAX; // unexplored
+		setAll<uintE>(parents,UINT_E_MAX); // unexplored
 		parents[start] = start;
 		setFrontier(n,start);
 	}
 	void clear(){ // only need to free members in child class
-		if (parents != NULL)
-			free(parents);
+		freeMem<uintE>(parents);
 	}
 	long start;
 	uintE* parents;

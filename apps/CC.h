@@ -41,28 +41,20 @@ public:
 	}
 	void initialize(){
 		IDs = newA(uintE,n);
-		prevIDs = newA(uintE,n);
 		parallel_for(long i = 0; i < n; i++){
 			IDs[i] = i; // initialize unique IDs
 		}
+		setAll<uintE>(prevIDs,(uintE)0);
 
-		bool* allVert = newA(bool,n);
-		parallel_for(long i = 0; i < n; i++)
-			allVert[i] = 1;
-		setFrontier(n,n,allVert);
+		setFrontierAll();
 	}
 	void iniOneIter(){
-        nextFrontier = newA(bool,n);
-        parallel_for (long i = 0; i < n; ++i) // remember to initialize!
-            nextFrontier[i] = 0;
+		setAll<bool>(nextFrontier,0);
 		vertexMap(frontier,Update_F(IDs,prevIDs));
-		frontier.print();
     }
 	void clear(){
-		if (IDs != NULL)
-			free(IDs);
-		if (prevIDs != NULL)
-			free(prevIDs);
+		freeMem<uintE>(IDs);
+		freeMem<uintE>(prevIDs);
 	}
 	uintE* IDs;
 	uintE* prevIDs;

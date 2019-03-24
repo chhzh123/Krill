@@ -53,6 +53,7 @@ void pushEngine(graph<vertex>& G, Kernels& K)
         // at this time, all the task should get into inner loop
         // get vSrc's ngh and degree
         vertex src = V[vSrc]; // get src vertex info
+        // cout << vSrc << ": ";
         parallel_for (long vDstOffset = 0; vDstOffset < src.getOutDegree(); ++vDstOffset){ // inner parallel
             for (int i = 0; i < nTasks; ++i)
                 task[i]->condQ(taskmask[i],vSrc,src.getOutNeighbor(vDstOffset),src.getOutWeight(vDstOffset));
@@ -92,7 +93,9 @@ void Compute(graph<vertex>& G, Kernels& K, commandLine P)
     int cnt = 0;
     while (K.nTask > 0){ // One iteration
         cnt++;
+#ifdef DEBUG
         cout << cnt << ": There are " << K.nTask << " tasks!" << endl;
+#endif
         pushEngine(G,K);
         scheduleTask(task,K.nTask);
     }
@@ -179,6 +182,34 @@ void vertexMap(vertexSubset V, F f) {
         parallel_for (long i = 0; i < m; ++i)
             f(V.s[i]);
     }
+}
+
+template <class F>
+vertexSubset vertexFilter(vertexSubset V, F filter) {
+    long n = V.n;
+    long m = V.m;
+    V.toDense();
+    bool* d_out = newA(bool,n);
+    parallel_for (long i = 0; i < n; i++)
+        d_out[i] = 0;
+    parallel_for (long i = 0; i < n; i++)
+        if (V.d[i])
+            d_out[i] = filter(i);
+    return vertexSubset(n,d_out);
+}
+
+template <class F>
+bool* vertexFilter(vertexSubset V, F filter, int x) {
+    long n = V.n;
+    long m = V.m;
+    V.toDense();
+    bool* d_out = newA(bool,n);
+    parallel_for (long i = 0; i < n; i++)
+        d_out[i] = 0;
+    parallel_for (long i = 0; i < n; i++)
+        if (V.d[i])
+            d_out[i] = filter(i);
+    return d_out;
 }
 
 #endif

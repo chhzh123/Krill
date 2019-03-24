@@ -45,8 +45,7 @@ public:
 		if (round == n) {
 		// if the relax procedure has been executed for more than N times
 		// there must exist negative weight cycle
-			parallel_for (long i = 0; i < n; ++i)
-				shortestPathLen[i] = -(INT_E_MAX/2);
+			setAll<intE>(shortestPathLen,-(INT_MAX/2));
 			return true;
 		} else {
 			return frontier.isEmpty();
@@ -54,15 +53,9 @@ public:
 	}
 	void initialize(){
 		// initialize shortestPathLen to "infinity"
-		shortestPathLen = newA(intE,n);
-		parallel_for(long i = 0; i < n; ++i)
-			shortestPathLen[i] = INT_MAX / 2; // avoid overflow
+		setAll<intE>(shortestPathLen,INT_MAX/2); // avoid overflow
 		shortestPathLen[start] = 0; // except for the source vertex
-
-		changed = newA(int,n);
-		parallel_for(long i = 0; i < n; ++i)
-			changed[i] = 0;
-		// pass in 'start' from cmd?
+		setAll<int>(changed,0);
 		setFrontier(n,start);
 	}
 	void finishOneIter(){ // overload
@@ -73,10 +66,8 @@ public:
         round++;
     }
 	void clear(){
-		if (shortestPathLen != NULL)
-			free(shortestPathLen);
-		if (changed != NULL)
-			free(changed);
+		freeMem<intE>(shortestPathLen);
+		freeMem<int>(changed);
 	}
 	long round;
 	intE* shortestPathLen;

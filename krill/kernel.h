@@ -28,18 +28,38 @@ public:
         nextFrontier = newA(bool,n);
         parallel_for (long i = 0; i < n; ++i) // remember to initialize!
             nextFrontier[i] = 0;
+#ifdef DEBUG
         frontier.print();
+#endif
     }
     virtual void finishOneIter(){
         frontier.del();
         // set new frontier
         setFrontier(n,nextFrontier);
     }
-    void clearAll(){
+    inline void clearAll(){
         active = false;
-        frontier.del();
-        // if (nextFrontier != NULL) // free may have something wrong...
+        // frontier.del(); // free may have something wrong...
+        // if (nextFrontier != NULL)
         //     free(nextFrontier);
+    }
+    template<class T>
+    inline void freeMem(T* ptr){
+        if (ptr != NULL)
+            free(ptr);
+    }
+    template<class T>
+    inline void setAll(T*& ptr, T val){ // pass reference!
+        if (ptr == NULL)
+            ptr = newA(T,n);
+        parallel_for(long i = 0; i < n; ++i)
+             ptr[i] = val;
+    }
+    inline void setFrontierAll(){ // select all vertices
+        bool* allVert = newA(bool,n);
+        parallel_for(long i = 0; i < n; i++)
+            allVert[i] = 1;
+        setFrontier(n,n,allVert);
     }
     inline void setFrontier(long _n, intE v){
         frontier = vertexSubset(_n,v);
