@@ -37,20 +37,41 @@ public:
 		return cond_true(d);
 	}
 	inline bool finished(){
+#ifndef DEBUG
 		return frontier.isEmpty();
+#else
+		if (frontier.isEmpty()){
+			bool* res;
+			setAll<bool>(res,0);
+			for (int i = 0; i < n; ++i)
+				res[IDs[i]] = 1;
+  			int cnt = 0;
+  			for (int i = 0; i < n; ++i)
+				if (res[i])
+      				cnt++;
+  			cout << "CC: " << cnt << endl;
+  			return true;
+		} else
+			return false;
+#endif
 	}
 	void initialize(){
 		IDs = newA(uintE,n);
+		prevIDs = newA(uintE,n); // initialize later
 		parallel_for(long i = 0; i < n; i++){
 			IDs[i] = i; // initialize unique IDs
 		}
-		setAll<uintE>(prevIDs,(uintE)0);
-
 		setFrontierAll();
 	}
 	void iniOneIter(){
-		setAll<bool>(nextFrontier,0);
+		nextFrontier = newA(bool,n); // DO NOT FREE nextFrontier
+        parallel_for (long i = 0; i < n; ++i) // remember to initialize!
+            nextFrontier[i] = 0;
+        frontier.toDense();
 		vertexMap(frontier,Update_F(IDs,prevIDs));
+#ifdef DEBUG
+        frontier.print();
+#endif
     }
 	void clear(){
 		freeMem<uintE>(IDs);

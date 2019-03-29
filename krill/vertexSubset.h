@@ -52,8 +52,8 @@ struct vertexSubset {
 
     // delete the contents
     void del(){
-        if (d != NULL) free(d);
-        if (s != NULL) free(s);
+        if (d != NULL) {free(d); d = NULL;}
+        if (s != NULL) {free(s); s = NULL;}
     }
     inline long numRows() { return n; }
     inline long numNonzeros() { return m; }

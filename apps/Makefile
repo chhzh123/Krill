@@ -40,7 +40,7 @@ COMMON += blockRadixSort.h
 
 KERNEL = BFS.h SSSP.h PageRank.h CC.h KCore.h
 
-ALL = batch
+ALL = batch batch_u
 
 all: $(ALL)
 

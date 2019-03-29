@@ -22,7 +22,7 @@ class SSSP: public WeightedTask
 {
 public:
 	SSSP(long _n, long _start = 0):
-		WeightedTask(_n), shortestPathLen(NULL), changed(NULL), start(_start){}; // call parent class constructor
+		WeightedTask(_n), shortestPathLen(NULL), changed(NULL), start(_start), round(0){}; // call parent class constructor
 	inline bool update(uintE s, uintE d, intE edgeLen){ // relax, edgeLen(s,d)
 		intE newDist = shortestPathLen[s] + edgeLen;
 		if (shortestPathLen[d] > newDist) { // Update shortestPathLen if found a shorter path
@@ -48,7 +48,17 @@ public:
 			setAll<intE>(shortestPathLen,-(INT_MAX/2));
 			return true;
 		} else {
+#ifndef DEBUG
 			return frontier.isEmpty();
+#else
+			if (frontier.isEmpty()){
+				for (int i = 0; i < n; ++i)
+					cout << shortestPathLen[i] << " ";
+				cout << endl;
+				return true;
+			} else
+				return false;
+#endif
 		}
 	}
 	void initialize(){

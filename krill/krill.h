@@ -23,9 +23,8 @@ using namespace std;
 // cond function that always returns true
 inline bool cond_true (intT d) { return 1; }
 
-inline bool inFrontierQ(vertexSubset& frontier, const long vSrc)
+inline bool inFrontierQ(const vertexSubset& frontier, const long vSrc)
 {
-    frontier.toDense();
     if (frontier.d[vSrc]) // if vSrc in frontier
         return true;
     else
@@ -43,21 +42,23 @@ void pushEngine(graph<vertex>& G, Kernels& K)
     int nTasks = K.nTask;
     long n = G.n; // # of vertices
     Task** task = K.task;
-    bool* taskmask = newA(bool,nTasks); // bitmap for tasks
     for (int i = 0; i < nTasks; ++i)
         // task[i]->iniOneIter(V);
         task[i]->iniOneIter();
     parallel_for (long vSrc = 0; vSrc < n; ++vSrc){ // outer parallel
+        bool* taskmask = newA(bool,nTasks); // bitmap for tasks
         for (int i = 0; i < nTasks; ++i) // needn't parallel
             taskmask[i] = inFrontierQ(task[i]->frontier,vSrc) ? 1 : 0; // pass reference!
         // at this time, all the task should get into inner loop
         // get vSrc's ngh and degree
         vertex src = V[vSrc]; // get src vertex info
         // cout << vSrc << ": ";
-        parallel_for (long vDstOffset = 0; vDstOffset < src.getOutDegree(); ++vDstOffset){ // inner parallel
+        uintE outDegree = src.getOutDegree();
+        parallel_for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset){ // inner parallel
             for (int i = 0; i < nTasks; ++i)
                 task[i]->condQ(taskmask[i],vSrc,src.getOutNeighbor(vDstOffset),src.getOutWeight(vDstOffset));
         }
+        free(taskmask);
     }
     // finish one iteration
     for (int i = 0; i < nTasks; ++i)
@@ -70,8 +71,8 @@ void scheduleTask(Task** task, int& n)
     while (i < n){
         if (task[i]->active && task[i]->finished()){
             cout << "Finished task " << typeid(*(task[i])).name() << endl;
-            task[i]->clear(); // child
-            task[i]->clearAll(); // parent
+            // task[i]->clear(); // child
+            // task[i]->clearAll(); // parent
             delete task[i];
             for (int j = i; j < n-1; ++j) // simple schedule
                 task[j] = task[j+1];

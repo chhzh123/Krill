@@ -25,9 +25,10 @@ public:
     virtual void clear() = 0;
     virtual void condQ(const bool taskValid, const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void iniOneIter(){
-        nextFrontier = newA(bool,n);
+        nextFrontier = newA(bool,n); // DO NOT FREE nextFrontier
         parallel_for (long i = 0; i < n; ++i) // remember to initialize!
             nextFrontier[i] = 0;
+        frontier.toDense();
 #ifdef DEBUG
         frontier.print();
 #endif
@@ -44,14 +45,15 @@ public:
         //     free(nextFrontier);
     }
     template<class T>
-    inline void freeMem(T* ptr){
-        if (ptr != NULL)
-            free(ptr);
+    inline void freeMem(T*& ptr){
+        if (ptr != NULL){
+            free(ptr); ptr = NULL;
+        }
     }
     template<class T>
     inline void setAll(T*& ptr, T val){ // pass reference!
-        if (ptr == NULL)
-            ptr = newA(T,n);
+        // DO NOT FREE PTR!
+        ptr = newA(T,n);
         parallel_for(long i = 0; i < n; ++i)
              ptr[i] = val;
     }
