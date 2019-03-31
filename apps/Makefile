@@ -40,7 +40,7 @@ COMMON += blockRadixSort.h
 
 KERNEL = BFS.h SSSP.h PageRank.h CC.h KCore.h
 
-ALL = batch batch_u
+ALL = Homo1 Homo2 Heter M-BFS M-SSSP Singleton
 
 all: $(ALL)
 

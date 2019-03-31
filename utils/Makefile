@@ -6,10 +6,14 @@ ifdef EDGELONG
 INTE = -DEDGELONG
 endif
 
+ifdef DEBUG
+DEBUGFLAG = -g -DDEBUG
+endif
+
 #compilers
 ifdef CILK
 PCC = g++
-PCFLAGS = -fcilkplus -lcilkrts -O2 -DCILK $(INTT) $(INTE)
+PCFLAGS = -fcilkplus -lcilkrts -O3 -DCILK $(INTT) $(INTE)
 PLFLAGS = -fcilkplus -lcilkrts
 
 else ifdef MKLROOT
@@ -22,7 +26,7 @@ PCFLAGS = -fopenmp -O3 -DOPENMP $(INTT) $(INTE)
 
 else
 PCC = g++
-PCFLAGS = -O2 $(INTT) $(INTE)
+PCFLAGS = -O3 $(INTT) $(INTE)
 endif
 
 COMMON = utils.h parseCommandLine.h parallel.h quickSort.h blockRadixSort.h transpose.h
@@ -36,7 +40,7 @@ $(COMMON):
 	ln -s ../krill/$@ .
 
 % : %.C $(COMMON) $(LOCAL_COMMON)
-	$(PCC) $(PCFLAGS) -o $@ $<
+	$(PCC) $(PCFLAGS) $(DEBUGFLAG) -o $@ $<
 
 clean :
 	rm -f *.o $(GENERATORS)

@@ -59,9 +59,7 @@ public:
 	}
 	inline bool finished(){
 		if (frontier.isEmpty()){ // no new vertices are added to frontier, meaning all the vertices' degree are less than k
-#ifdef DEBUG
 			cout << "Largest core is " << k-1 << endl;
-#endif
 			return true;
 		} else {
 			if (!flag) // found k-core

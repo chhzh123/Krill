@@ -26,7 +26,8 @@
 #include <stdint.h>
 #include <cstring>
 #include "parallel.h"
-#include "blockRadixSort.h"
+#include "utils.h"
+#include "../krill/blockRadixSort.h"
 #include "quickSort.h"
 using namespace std;
 
@@ -480,8 +481,14 @@ namespace benchIO {
       }
       if(k >= S.n || S.A[k] != '#') break; 
     }
-    parallel_for(long i=0;i<S.n-k;i++) S2[i] = S.A[k+i];
-    S.del();
+    parallel_for(long i=0;i<S.n-k;i++) {
+      if(i>=S.n-k-1)
+        cout<<i<<endl;
+      S2[i] = S.A[k+i];
+      if(i>=S.n-k-1)
+        cout<<i<<endl;
+    }
+    // S.del();
 
     words W = stringToWords(S2, S.n-k);
     long n = W.m/2;
@@ -489,7 +496,7 @@ namespace benchIO {
     {parallel_for(long i=0; i < n; i++)
       E[i] = edge<intT>(atol(W.Strings[2*i]), 
 		  atol(W.Strings[2*i + 1]));}
-    W.del();
+    // W.del();
 
     long maxR = 0;
     long maxC = 0;

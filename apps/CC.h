@@ -37,9 +37,7 @@ public:
 		return cond_true(d);
 	}
 	inline bool finished(){
-#ifndef DEBUG
-		return frontier.isEmpty();
-#else
+		// return frontier.isEmpty();
 		if (frontier.isEmpty()){
 			bool* res;
 			setAll<bool>(res,0);
@@ -53,7 +51,6 @@ public:
   			return true;
 		} else
 			return false;
-#endif
 	}
 	void initialize(){
 		IDs = newA(uintE,n);
