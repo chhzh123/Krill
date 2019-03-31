@@ -23,7 +23,7 @@ public:
     virtual bool finished() = 0;
     virtual void initialize() = 0;
     virtual void clear() = 0;
-    virtual void condQ(const bool taskValid, const long vSrc, const long vDst, const intE edgeVal) = 0;
+    virtual void condQ(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void iniOneIter(){
         nextFrontier = newA(bool,n); // DO NOT FREE nextFrontier
         parallel_for (long i = 0; i < n; ++i) // remember to initialize!
@@ -93,10 +93,12 @@ public:
         Task(_nVertex, false){};
     virtual bool update(uintE s, uintE d) = 0;
     virtual bool updateAtomic(uintE s, uintE d) = 0;
-    void condQ(const bool taskValid, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    void condQ(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
     {
-        if (taskValid && cond(vDst) && updateAtomic(vSrc,vDst))
-            nextFrontier[vDst] = 1;
+        if (frontier.d[vSrc] && cond(vDst) && updateAtomic(vSrc,vDst)){
+            nextFrontier[vDst] = 1; // need not atomic
+            nextUni[vDst] = 1;
+        }
         // DO NOT SET ELSE! some memory may be accessed several times
     }
 };
@@ -108,10 +110,12 @@ public:
         Task(_nVertex, true){};
     virtual bool update(uintE s, uintE d, intE edgeVal) = 0;
     virtual bool updateAtomic(uintE s, uintE d, intE edgeVal) = 0;
-    void condQ(const bool taskValid, const long vSrc, const long vDst, const intE edgeVal)
+    void condQ(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal)
     {
-        if (taskValid && cond(vDst) && updateAtomic(vSrc,vDst,edgeVal))
+        if (frontier.d[vSrc] && cond(vDst) && updateAtomic(vSrc,vDst,edgeVal)){
             nextFrontier[vDst] = 1;
+            nextUni[vDst] = 1;
+        }
     }
 };
 
@@ -131,8 +135,52 @@ public:
         for (auto tsk : list)
             task[nTask++] = tsk;
     }
+    void initialize(const long nVert_, const bool isWeightedGraph){
+        nVert = nVert_;
+        for (int i = 0; i < nTask; ++i){
+            if (task[i]->isWeighted && !isWeightedGraph){ // graph is unweighted, but there are weighted tasks
+                cerr << "Error: Unweighted graph with weighted tasks!" << endl;
+                abort();
+            }
+            if (task[i]->n != nVert){
+                cerr << "Error: Inconsistent number of vertices." << endl;
+                abort();
+            }
+        }
+        bool* originalUni = newA(bool,nVert);
+        for (int i = 0; i < nVert; ++i)
+            originalUni[i] = 0;
+        for (int i = 0; i < nTask; ++i){
+            Task* t = task[i];
+            t->active = true;
+            t->initialize();
+            vertexSubset f = t->frontier;
+            uintE* s = f.toSparse();
+            long m = f.m;
+            for (long j = 0; j < m; ++j)
+                originalUni[s[j]] = 1;
+        }
+        UniFrontier = vertexSubset(nVert,originalUni);
+    }
+    void iniOneIter(){
+        for (int i = 0; i < nTask; ++i)
+            task[i]->iniOneIter();
+        nextUni = newA(bool,nVert); // DO NOT FREE nextFrontier
+        parallel_for (long i = 0; i < nVert; ++i) // remember to initialize!
+            nextUni[i] = 0;
+    }
+    void finishOneIter(){
+        for (int i = 0; i < nTask; ++i)
+            task[i]->finishOneIter();
+        UniFrontier.del();
+        // set new frontier
+        UniFrontier = vertexSubset(nVert,nextUni);
+    }
+    int nVert;
     int nTask;
     Task** task; // 1D array to store pointers of the tasks
+    bool* nextUni;
+    vertexSubset UniFrontier;
 };
 
 class Function // used for vertexMap

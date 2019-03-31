@@ -20,7 +20,7 @@ struct vertexSubset {
     vertexSubset(const vertexSubset& other):
         n(other.n), m(other.m), isDense(other.isDense), d(other.d), s(other.s){}
 
-    // new: overload =, ensure other != (*this)
+    // new: overload =, ensure other != (*this) SHALLOW COPY!
     vertexSubset& operator=(const vertexSubset& other){
         n = other.n; m = other.m; isDense = other.isDense;
         d = other.d; s = other.s;
@@ -77,7 +77,8 @@ struct vertexSubset {
         if (s == NULL) {
             _seq<uintE> R = sequence::packIndex<uintE>(d,n);
             if (m != R.n) {
-                cout << "bad stored value of m" << endl;
+                cerr << "Error: Expected stored value m = " << m << ", "
+                     << "but get R.n = " << R.n << "!" << endl;
                 abort();
             }
             s = R.A;

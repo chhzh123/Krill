@@ -76,7 +76,7 @@ struct timer {
   }
 
   void reportT(double time) {
-    std::cout << setiosflags(ios::fixed) << setprecision(4) << time << "s" << std::endl;;
+    std::cout << setiosflags(ios::fixed) << setprecision(4) << time << "s" << std::endl;
   }
 
   void reportTime(double time) {

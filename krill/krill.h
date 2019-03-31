@@ -35,41 +35,30 @@ inline bool inFrontierQ(const vertexSubset& frontier, const long vSrc)
 template <class vertex>
 void pushEngine(graph<vertex>& G, Kernels& K)
 {
-    // asymmetricVertex(vertex)
-    //   uintE *inNeighbors, *outNeighbors;
-    //   uintT inDegree, outDegree;
     vertex* V = G.V; // list of vertices, graph structure, only one copy
     int nTasks = K.nTask;
     long n = G.n; // # of vertices
     Task** task = K.task;
-    for (int i = 0; i < nTasks; ++i)
-        // task[i]->iniOneIter(V);
-        task[i]->iniOneIter();
-    parallel_for (long vSrc = 0; vSrc < n; ++vSrc){ // outer parallel
-        bool* taskmask = newA(bool,nTasks); // bitmap for tasks
-        for (int i = 0; i < nTasks; ++i) // needn't parallel
-            taskmask[i] = inFrontierQ(task[i]->frontier,vSrc) ? 1 : 0; // pass reference!
-        // at this time, all the task should get into inner loop
-        // get vSrc's ngh and degree
-        vertex src = V[vSrc]; // get src vertex info
-        // cout << vSrc << ": ";
+    K.iniOneIter();
+    uintE* index = K.UniFrontier.toSparse();
+    long m = K.UniFrontier.m;
+    parallel_for (long j = 0; j < m; ++j){ // outer parallel
+        long vSrc = index[j];
+        vertex src = V[vSrc];
         uintE outDegree = src.getOutDegree();
         parallel_for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset){ // inner parallel
             for (int i = 0; i < nTasks; ++i)
-                task[i]->condQ(taskmask[i],vSrc,src.getOutNeighbor(vDstOffset),src.getOutWeight(vDstOffset));
+                task[i]->condQ(K.nextUni,vSrc,src.getOutNeighbor(vDstOffset),src.getOutWeight(vDstOffset));
         }
-        free(taskmask);
     }
-    // finish one iteration
-    for (int i = 0; i < nTasks; ++i)
-        task[i]->finishOneIter();
+    K.finishOneIter();
 }
 
 void scheduleTask(Task** task, int& n)
 {
     int i = 0;
     while (i < n){
-        if (task[i]->active && task[i]->finished()){
+        if (task[i]->finished()){
             cout << "Finished task " << typeid(*(task[i])).name() << endl;
             // task[i]->clear(); // child
             // task[i]->clearAll(); // parent
@@ -85,17 +74,12 @@ void scheduleTask(Task** task, int& n)
 template <class vertex>
 void Compute(graph<vertex>& G, Kernels& K, commandLine P)
 {
-    // int nTask = K.nTask;
-    Task** task = K.task;
-    for (int i = 0; i < K.nTask; ++i){
-        task[i]->active = true;
-        (task[i])->initialize();
-    }
+    Task** task = K.task; // used for passing reference
     int cnt = 0;
-    while (K.nTask > 0){ // One iteration
+    while (K.nTask > 0){ // one iteration
         cnt++;
 #ifdef DEBUG
-        cout << cnt << ": There are " << K.nTask << " tasks!" << endl;
+        cout << cnt << ": # of tasks: " << K.nTask << endl;
 #endif
         pushEngine(G,K);
         scheduleTask(task,K.nTask);
@@ -106,30 +90,13 @@ template <class vertex>
 void setKernels(graph<vertex>&G, Kernels& K, commandLine P); // first declare
 
 template <class vertex>
-bool checkGraphKernelsValid(graph<vertex>&G, Kernels& K)
-{
-    bool flag = false;
-    for (int i = 0; i < K.nTask; ++i)
-        if ((K.task[i])->isWeighted){
-            flag = true;
-            break;
-        }
-    if (flag && !G.isWeighted) // graph is unweighted, but there are weighted tasks
-        return false;
-    else
-        return true;
-}
-
-template <class vertex>
 void framework(graph<vertex>& G, commandLine P)
 {
     Kernels K;
     setKernels(G,K,P);
 
-    if (!checkGraphKernelsValid(G,K)){
-        cerr << "Error: Unweighted graph with weighted tasks!" << endl;
-        abort();
-    }
+    // check validity
+    K.initialize(G.n,G.isWeighted);
 
     startTime();
     Compute(G,K,P);
