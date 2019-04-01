@@ -23,14 +23,6 @@ using namespace std;
 // cond function that always returns true
 inline bool cond_true (intT d) { return 1; }
 
-inline bool inFrontierQ(const vertexSubset& frontier, const long vSrc)
-{
-    if (frontier.d[vSrc]) // if vSrc in frontier
-        return true;
-    else
-        return false;
-}
-
 // Compute one iteration, push-based
 template <class vertex>
 void pushEngine(graph<vertex>& G, Kernels& K)
@@ -48,8 +40,31 @@ void pushEngine(graph<vertex>& G, Kernels& K)
         uintE outDegree = src.getOutDegree();
         parallel_for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset){ // inner parallel
             for (int i = 0; i < nTasks; ++i)
-                task[i]->condQ(K.nextUni,vSrc,src.getOutNeighbor(vDstOffset),src.getOutWeight(vDstOffset));
+                task[i]->condPush(K.nextUni,vSrc,src.getOutNeighbor(vDstOffset),src.getOutWeight(vDstOffset));
         }
+    }
+    K.finishOneIter();
+}
+
+// Compute one iteration, pull-based
+template <class vertex>
+void pullEngine(graph<vertex>& G, Kernels& K)
+{
+    vertex* V = G.V; // list of vertices, graph structure, only one copy
+    int nTasks = K.nTask;
+    long n = G.n; // # of vertices
+    Task** task = K.task;
+    K.iniOneIter();
+    K.UniFrontier.toDense();
+    parallel_for (long vDst = 0; vDst < n; ++vDst){
+        for (int i = 0; i < nTasks; ++i)
+            if (task[i]->cond(vDst)){
+                vertex dst = V[vDst];
+                uintE inDegree = dst.getInDegree();
+                parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
+                    task[i]->condPull(K.nextUni,dst.getInNeighbor(vSrcOffset),vDst,dst.getInWeight(vSrcOffset));
+                }
+            }
     }
     K.finishOneIter();
 }
@@ -81,7 +96,8 @@ void Compute(graph<vertex>& G, Kernels& K, commandLine P)
 #ifdef DEBUG
         cout << cnt << ": # of tasks: " << K.nTask << endl;
 #endif
-        pushEngine(G,K);
+        // pushEngine(G,K);
+        pullEngine(G,K);
         scheduleTask(task,K.nTask);
     }
 }

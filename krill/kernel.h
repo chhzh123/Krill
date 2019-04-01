@@ -23,7 +23,8 @@ public:
     virtual bool finished() = 0;
     virtual void initialize() = 0;
     virtual void clear() = 0;
-    virtual void condQ(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
+    virtual void condPush(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
+    virtual void condPull(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void iniOneIter(){
         nextFrontier = newA(bool,n); // DO NOT FREE nextFrontier
         parallel_for (long i = 0; i < n; ++i) // remember to initialize!
@@ -93,9 +94,17 @@ public:
         Task(_nVertex, false){};
     virtual bool update(uintE s, uintE d) = 0;
     virtual bool updateAtomic(uintE s, uintE d) = 0;
-    void condQ(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    void condPush(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
     {
         if (frontier.d[vSrc] && cond(vDst) && updateAtomic(vSrc,vDst)){
+            nextFrontier[vDst] = 1; // need not atomic
+            nextUni[vDst] = 1;
+        }
+        // DO NOT SET ELSE! some memory may be accessed several times
+    }
+    void condPull(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    {
+        if (frontier.d[vSrc] && updateAtomic(vSrc,vDst)){
             nextFrontier[vDst] = 1; // need not atomic
             nextUni[vDst] = 1;
         }
@@ -110,9 +119,16 @@ public:
         Task(_nVertex, true){};
     virtual bool update(uintE s, uintE d, intE edgeVal) = 0;
     virtual bool updateAtomic(uintE s, uintE d, intE edgeVal) = 0;
-    void condQ(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal)
+    void condPush(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal)
     {
         if (frontier.d[vSrc] && cond(vDst) && updateAtomic(vSrc,vDst,edgeVal)){
+            nextFrontier[vDst] = 1;
+            nextUni[vDst] = 1;
+        }
+    }
+    void condPull(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal)
+    {
+        if (frontier.d[vSrc] && updateAtomic(vSrc,vDst,edgeVal)){
             nextFrontier[vDst] = 1;
             nextUni[vDst] = 1;
         }
