@@ -20,53 +20,71 @@
 #include "IO.h"
 using namespace std;
 
+#define SEQ_THRESHOLD 1000
+
 // cond function that always returns true
 inline bool cond_true (intT d) { return 1; }
 
 // Compute one iteration, push-based
 template <class vertex>
-void pushEngine(graph<vertex>& G, Kernels& K)
+void pushEngine(vertex*& V, Kernels& K)
 {
-    vertex* V = G.V; // list of vertices, graph structure, only one copy
     int nTasks = K.nTask;
-    long n = G.n; // # of vertices
     Task** task = K.task;
-    K.iniOneIter();
     uintE* index = K.UniFrontier.toSparse();
     long m = K.UniFrontier.m;
     parallel_for (long j = 0; j < m; ++j){ // outer parallel
         long vSrc = index[j];
         vertex src = V[vSrc];
         uintE outDegree = src.getOutDegree();
-        parallel_for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset){ // inner parallel
-            for (int i = 0; i < nTasks; ++i)
-                task[i]->condPush(K.nextUni,vSrc,src.getOutNeighbor(vDstOffset),src.getOutWeight(vDstOffset));
+        if (outDegree < SEQ_THRESHOLD){
+            for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset){ // inner parallel
+                for (int i = 0; i < nTasks; ++i)
+                    task[i]->condPush(K.nextUni,
+                        vSrc,src.getOutNeighbor(vDstOffset),
+                        src.getOutWeight(vDstOffset));
+            }
+        } else {
+            parallel_for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset){ // inner parallel
+                for (int i = 0; i < nTasks; ++i)
+                    task[i]->condPush(K.nextUni,
+                        vSrc,src.getOutNeighbor(vDstOffset),
+                        src.getOutWeight(vDstOffset));
+            }
         }
     }
-    K.finishOneIter();
 }
 
 // Compute one iteration, pull-based
 template <class vertex>
-void pullEngine(graph<vertex>& G, Kernels& K)
+void pullEngine(vertex*& V, Kernels& K)
 {
-    vertex* V = G.V; // list of vertices, graph structure, only one copy
     int nTasks = K.nTask;
-    long n = G.n; // # of vertices
+    long n = K.nVert; // # of vertices
     Task** task = K.task;
-    K.iniOneIter();
     K.UniFrontier.toDense();
     parallel_for (long vDst = 0; vDst < n; ++vDst){
         for (int i = 0; i < nTasks; ++i)
             if (task[i]->cond(vDst)){
                 vertex dst = V[vDst];
                 uintE inDegree = dst.getInDegree();
-                parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
-                    task[i]->condPull(K.nextUni,dst.getInNeighbor(vSrcOffset),vDst,dst.getInWeight(vSrcOffset));
+                if (inDegree < SEQ_THRESHOLD){
+                    for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
+                        task[i]->condPull(K.nextUni,
+                            dst.getInNeighbor(vSrcOffset),vDst,
+                            dst.getInWeight(vSrcOffset));
+                        if (!task[i]->cond(vDst)) // early break!
+                            break;
+                    }
+                } else {
+                    parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
+                        task[i]->condPull(K.nextUni,
+                            dst.getInNeighbor(vSrcOffset),vDst,
+                            dst.getInWeight(vSrcOffset));
+                    }
                 }
             }
     }
-    K.finishOneIter();
 }
 
 void scheduleTask(Task** task, int& n)
@@ -87,7 +105,35 @@ void scheduleTask(Task** task, int& n)
 }
 
 template <class vertex>
-void Compute(graph<vertex>& G, Kernels& K, commandLine P)
+void Compute(graph<vertex>& G, Kernels& K)
+{
+    vertex* V = G.V; // list of vertices, graph structure, only one copy
+    int nTasks = K.nTask;
+    Task** task = K.task;
+    long n = G.n; // # of vertices
+    long m = G.m; // # of edges
+
+    K.iniOneIter();
+
+    uintT* UniFrontier = K.UniFrontier.toSparse();
+    long mFront = K.UniFrontier.m; // # of edges
+    intT threshold = m / 20;
+    uintT* degrees = newA(uintT, m);
+    parallel_for (long i = 0; i < mFront; ++i)
+        degrees[i] = V[UniFrontier[i]].getOutDegree();
+    uintT outDegrees = sequence::plusReduce(degrees,m);
+    if (outDegrees == 0)
+        return;
+    else if (mFront + outDegrees > threshold)
+        pullEngine(V,K);
+    else
+        pushEngine(V,K);
+
+    K.finishOneIter();
+}
+
+template <class vertex>
+void Execute(graph<vertex>& G, Kernels& K, commandLine P)
 {
     Task** task = K.task; // used for passing reference
     int cnt = 0;
@@ -96,8 +142,7 @@ void Compute(graph<vertex>& G, Kernels& K, commandLine P)
 #ifdef DEBUG
         cout << cnt << ": # of tasks: " << K.nTask << endl;
 #endif
-        // pushEngine(G,K);
-        pullEngine(G,K);
+        Compute(G,K);
         scheduleTask(task,K.nTask);
     }
 }
@@ -115,7 +160,7 @@ void framework(graph<vertex>& G, commandLine P)
     K.initialize(G.n,G.isWeighted);
 
     startTime();
-    Compute(G,K,P);
+    Execute(G,K,P);
     nextTime("Running time");
     if(G.transposed)
         G.transpose();
