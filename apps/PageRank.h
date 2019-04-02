@@ -9,8 +9,8 @@ using namespace std;
 struct Update_PR : public Function
 {
 	Update_PR(double* _p_curr, double* _p_next, double _damping, intE n):
-		p_curr(_p_curr), p_next(_p_next), damping(_damping),
-		addedConstant((1 - damping) * (1 / (double)n)){}
+		p_curr(_p_curr), p_next(_p_next), damping(_damping), // be carful of underline!
+		addedConstant((1 - _damping) * (1 / (double)n)){}
 	inline bool operator () (uintE i) {
 		p_next[i] = damping * p_next[i] + addedConstant;
 		return true;
@@ -50,8 +50,14 @@ public:
 		return cond_true(d);
 	}
 	inline bool finished(){
-		if (iter > maxIters || L1_norm < epsilon)
+		if (iter > maxIters || L1_norm < epsilon){
+#ifdef DEBUG
+    	for (long i = 0; i < n; ++i)
+    		cout << p_curr[i] << " ";
+    	cout << endl;
+#endif
 			return true;
+		}
 		else
 			return false;
 	}

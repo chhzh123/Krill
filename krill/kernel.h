@@ -9,7 +9,9 @@
 #include "vertexSubset.h"
 using namespace std;
 
-#define MAX_TASK_NUM 20 // predefined max task num in the waiting list
+// predefined max task num in the waiting list
+// determined by the width of CPU register
+#define MAX_TASK_NUM 64
 
 class Task // base class (abstract class)
 {
@@ -81,6 +83,7 @@ public:
             cout << nextFrontier[i] << ((i != n-1) ? " " : "\n");
     }
     bool active; // be careful of the struct member order
+    int ID;
     long n; // # of vertices
     vertexSubset frontier;
     bool* nextFrontier;
@@ -166,9 +169,10 @@ public:
         bool* originalUni = newA(bool,nVert);
         for (int i = 0; i < nVert; ++i)
             originalUni[i] = 0;
-        for (int i = 0; i < nTask; ++i){
+        parallel_for (int i = 0; i < nTask; ++i){
             Task* t = task[i];
             t->active = true;
+            t->ID = i;
             t->initialize();
             vertexSubset f = t->frontier;
             uintE* s = f.toSparse();
@@ -179,14 +183,14 @@ public:
         UniFrontier = vertexSubset(nVert,originalUni);
     }
     void iniOneIter(){
-        for (int i = 0; i < nTask; ++i)
+        parallel_for (int i = 0; i < nTask; ++i)
             task[i]->iniOneIter();
         nextUni = newA(bool,nVert); // DO NOT FREE nextFrontier
         parallel_for (long i = 0; i < nVert; ++i) // remember to initialize!
             nextUni[i] = 0;
     }
     void finishOneIter(){
-        for (int i = 0; i < nTask; ++i)
+        parallel_for (int i = 0; i < nTask; ++i)
             task[i]->finishOneIter();
         UniFrontier.del();
         // set new frontier
@@ -194,6 +198,8 @@ public:
     }
     int nVert;
     int nTask;
+    int countPush = 0;
+    int countPull = 0;
     Task** task; // 1D array to store pointers of the tasks
     bool* nextUni;
     vertexSubset UniFrontier;

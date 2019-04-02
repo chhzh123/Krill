@@ -25,10 +25,11 @@ using namespace std;
 // cond function that always returns true
 inline bool cond_true (intT d) { return 1; }
 
-// Compute one iteration, push-based
+// Compute one iteration, push-based (sparse)
 template <class vertex>
 void pushEngine(vertex*& V, Kernels& K)
 {
+    K.countPush++;
     int nTasks = K.nTask;
     Task** task = K.task;
     uintE* index = K.UniFrontier.toSparse();
@@ -55,10 +56,11 @@ void pushEngine(vertex*& V, Kernels& K)
     }
 }
 
-// Compute one iteration, pull-based
+// Compute one iteration, pull-based (dense)
 template <class vertex>
 void pullEngine(vertex*& V, Kernels& K)
 {
+    K.countPull++;
     int nTasks = K.nTask;
     long n = K.nVert; // # of vertices
     Task** task = K.task;
@@ -122,12 +124,13 @@ void Compute(graph<vertex>& G, Kernels& K)
     parallel_for (long i = 0; i < mFront; ++i)
         degrees[i] = V[UniFrontier[i]].getOutDegree();
     uintT outDegrees = sequence::plusReduce(degrees,m);
+    // for each iteration, select which engine to use
     if (outDegrees == 0)
         return;
     else if (mFront + outDegrees > threshold)
-        pullEngine(V,K);
+        pullEngine(V,K); // dense
     else
-        pushEngine(V,K);
+        pushEngine(V,K); // sparse
 
     K.finishOneIter();
 }
@@ -161,6 +164,8 @@ void framework(graph<vertex>& G, commandLine P)
 
     startTime();
     Execute(G,K,P);
+    cout << "Push: " << K.countPush << endl;
+    cout << "Pull: " << K.countPull << endl;
     nextTime("Running time");
     if(G.transposed)
         G.transpose();

@@ -150,4 +150,26 @@ struct TraitsHelper<symmetricWeightedVertex> {
     static const bool isWeighted = true;
 };
 
+template <bool T, class vertex>
+struct Get {
+    inline static intE InWeight (vertex& dst, long vSrcOffset){
+        return INVALID_WEIGHT;
+    }
+    inline static intE OutWeight (vertex& dst, long vSrcOffset){
+        return INVALID_WEIGHT;
+    }
+};
+
+template <class vertex> // template partial specializations
+struct Get<true,vertex> {
+    // Get<TraitsHelper<vertex>::isWeighted,vertex>::InWeight(dst,vSrcOffset)
+    inline static intE InWeight (vertex& dst, long vSrcOffset){
+        return dst.getInWeight(vSrcOffset);
+    }
+    // Get<TraitsHelper<vertex>::isWeighted,vertex>::OutWeight(src,vDstOffset)
+    inline static intE OutWeight (vertex& src, long vDstOffset){
+        return src.getOutWeight(vDstOffset);
+    }
+};
+
 #endif
