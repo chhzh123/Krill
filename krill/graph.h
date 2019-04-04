@@ -68,6 +68,19 @@ struct graph
             cout << endl;
         }
     }
+
+    void printIn(int k = 10) {
+        cout << "# of vertices: " << endl;
+        cout << "# of edges: " << endl;
+        cout << "In Neighbors:" << endl;
+        for (long i = 0; i < k; ++i) {
+            cout << "Vertex " << i << "(" << V[i].getInDegree() << "): ";
+            for (long j = 0; j < V[i].getInDegree(); ++j)
+                if (j < 20)
+                    cout << V[i].getInNeighbor(j) << " ";
+            cout << endl;
+        }
+    }
 };
 
 #endif

@@ -10,6 +10,7 @@
 #include <cstring>
 #include <string>
 #include <typeinfo> // class name
+#include <chrono>
 #include "kernel.h"
 #include "graph.h"
 #include "vertex.h"
@@ -19,6 +20,7 @@
 #include "parseCommandLine.h"
 #include "IO.h"
 using namespace std;
+using Clock = std::chrono::high_resolution_clock;
 
 #define SEQ_THRESHOLD 1000
 
@@ -60,33 +62,42 @@ void pushEngine(vertex*& V, Kernels& K)
 template <class vertex>
 void pullEngine(vertex*& V, Kernels& K)
 {
+#ifdef DEBUG
+    auto t1 = Clock::now();
+#endif
     K.countPull++;
     int nTasks = K.nTask;
     long n = K.nVert; // # of vertices
     Task** task = K.task;
     K.UniFrontier.toDense();
     parallel_for (long vDst = 0; vDst < n; ++vDst){
-        for (int i = 0; i < nTasks; ++i)
-            if (task[i]->cond(vDst)){
+        for (int i = 0; i < nTasks; ++i){
+            Task* tsk = task[i];
+            if (tsk->cond(vDst)){
                 vertex dst = V[vDst];
                 uintE inDegree = dst.getInDegree();
                 if (inDegree < SEQ_THRESHOLD){
                     for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
-                        task[i]->condPull(K.nextUni,
+                        tsk->condPull(K.nextUni,
                             dst.getInNeighbor(vSrcOffset),vDst,
                             dst.getInWeight(vSrcOffset));
-                        if (!task[i]->cond(vDst)) // early break!
+                        if (!tsk->cond(vDst)) // early break!
                             break;
                     }
                 } else {
                     parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
-                        task[i]->condPull(K.nextUni,
+                        tsk->condPull(K.nextUni,
                             dst.getInNeighbor(vSrcOffset),vDst,
                             dst.getInWeight(vSrcOffset));
                     }
                 }
             }
+        }
     }
+#ifdef DEBUG
+    auto t2 = Clock::now();
+    cout << "pull time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
+#endif
 }
 
 void scheduleTask(Task** task, int& n)
@@ -125,12 +136,12 @@ void Compute(graph<vertex>& G, Kernels& K)
         degrees[i] = V[UniFrontier[i]].getOutDegree();
     uintT outDegrees = sequence::plusReduce(degrees,m);
     // for each iteration, select which engine to use
-    if (outDegrees == 0)
-        return;
-    else if (mFront + outDegrees > threshold)
-        pullEngine(V,K); // dense
-    else
-        pushEngine(V,K); // sparse
+    if (outDegrees != 0){
+        if (mFront + outDegrees > threshold)
+            pullEngine(V,K); // dense
+        else
+            pushEngine(V,K); // sparse
+    }
 
     K.finishOneIter();
 }

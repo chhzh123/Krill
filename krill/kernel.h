@@ -33,7 +33,7 @@ public:
             nextFrontier[i] = 0;
         frontier.toDense();
 #ifdef DEBUG
-        frontier.print();
+        frontier.print(20);
 #endif
     }
     virtual void finishOneIter(){
@@ -107,7 +107,7 @@ public:
     }
     void condPull(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
     {
-        if (frontier.d[vSrc] && updateAtomic(vSrc,vDst)){
+        if (frontier.d[vSrc] && update(vSrc,vDst)){
             nextFrontier[vDst] = 1; // need not atomic
             nextUni[vDst] = 1;
         }
@@ -131,7 +131,7 @@ public:
     }
     void condPull(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal)
     {
-        if (frontier.d[vSrc] && updateAtomic(vSrc,vDst,edgeVal)){
+        if (frontier.d[vSrc] && update(vSrc,vDst,edgeVal)){
             nextFrontier[vDst] = 1;
             nextUni[vDst] = 1;
         }
@@ -167,7 +167,7 @@ public:
             }
         }
         bool* originalUni = newA(bool,nVert);
-        for (int i = 0; i < nVert; ++i)
+        parallel_for (int i = 0; i < nVert; ++i)
             originalUni[i] = 0;
         parallel_for (int i = 0; i < nTask; ++i){
             Task* t = task[i];
@@ -177,7 +177,7 @@ public:
             vertexSubset f = t->frontier;
             uintE* s = f.toSparse();
             long m = f.m;
-            for (long j = 0; j < m; ++j)
+            parallel_for (long j = 0; j < m; ++j)
                 originalUni[s[j]] = 1;
         }
         UniFrontier = vertexSubset(nVert,originalUni);

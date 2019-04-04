@@ -11,9 +11,11 @@ using namespace std;
 template <class vertex>
 void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
-	BFS* bfs = new BFS(G.n); // remember to dynamically allocate memory
-	Components* cc = new Components(G.n);
-	PageRank<vertex>* pr = new PageRank<vertex>(G.n,G.V);
-	SSSP* sssp = new SSSP(G.n);
-	K.appendTask({bfs,cc,pr,sssp});
+	for (int i = 0; i < 2; ++i){
+		BFS* bfs = new BFS(G.n); // remember to dynamically allocate memory
+		Components* cc = new Components(G.n);
+		PageRank<vertex>* pr = new PageRank<vertex>(G.n,G.V);
+		SSSP* sssp = new SSSP(G.n);
+		K.appendTask({bfs,cc,pr,sssp});
+	}
 }

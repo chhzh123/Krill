@@ -14,6 +14,10 @@ ifdef DEBUG
 DEBUGFLAG = -g -DDEBUG
 endif
 
+ifdef PROFILE
+PROFILEFLAG = -pg -fprofile-arcs -ftest-coverage --coverage 
+endif
+
 # compilers
 ifdef CILK
 PCC = g++
@@ -30,7 +34,7 @@ PCFLAGS = -fopenmp -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
 
 else
 PCC = g++
-PCFLAGS = -O3 $(INTT) $(INTE) $(CODE) $(PD)
+PCFLAGS = -O2 $(INTT) $(INTE) $(CODE) $(PD)
 endif
 
 # make sure modifying header files will lead to recompilation 
@@ -45,8 +49,8 @@ ALL = Homo1 Homo2 Heter M-BFS M-SSSP Singleton
 all: $(ALL)
 
 % : %.cpp
-	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $< -o $@
+	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $< -o $@
 
 .PHONY : clean
 clean :
-	rm -f *.o $(ALL)
+	rm -f *.o $(ALL) *.gcov *.gcno *.gcda *.out.* *.out

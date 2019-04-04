@@ -99,17 +99,23 @@ struct vertexSubset {
         return equal;
     }
 
-    void print() {
+    void print(int show_num = -1) {
+        if (show_num == -1)
+            show_num = n;
+        int cnt = 0;
         if (isDense) {
-            cout << "D:";
+            cout << "D (" << m << "):";
             for (long i = 0; i < n; i++)
-                if (d[i])
+                if (d[i] && cnt < show_num){
+                    cnt++;
                     cout << i << " ";
+                }
             cout << endl;
         } else {
-            cout << "S:";
+            cout << "S (" << m << "):";
             for (long i = 0; i < m; i++)
-                cout << s[i] << " ";
+                if (++cnt < show_num)
+                    cout << s[i] << " ";
             cout << endl;
         }
     }

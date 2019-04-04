@@ -12,8 +12,9 @@ template <class vertex>
 void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
 	string task_name = P.getOptionValue("-task","pr");
+	long start = P.getOptionLongValue("-r",0);
 	if (task_name == "bfs"){
-		BFS* bfs = new BFS(G.n);
+		BFS* bfs = new BFS(G.n,start);
 		K.appendTask(bfs);
 	} else if (task_name == "cc"){
 		Components* cc = new Components(G.n);
@@ -22,7 +23,7 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 		PageRank<vertex>* pr = new PageRank<vertex>(G.n,G.V);
 		K.appendTask(pr);
 	} else if (task_name == "sssp"){
-		SSSP* sssp = new SSSP(G.n);
+		SSSP* sssp = new SSSP(G.n,start);
 		K.appendTask(sssp);
 	} else {
 		cerr << "Error: No this task!" << endl;
