@@ -10,7 +10,7 @@
 #include <cstring>
 #include <string>
 #include <typeinfo> // class name
-#include <chrono>
+#include <chrono> // timing
 #include "kernel.h"
 #include "graph.h"
 #include "vertex.h"
@@ -20,6 +20,7 @@
 #include "parseCommandLine.h"
 #include "IO.h"
 using namespace std;
+
 using Clock = std::chrono::high_resolution_clock;
 
 #define SEQ_THRESHOLD 1000
@@ -31,6 +32,9 @@ inline bool cond_true (intT d) { return 1; }
 template <class vertex>
 void pushEngine(vertex*& V, Kernels& K)
 {
+#ifdef DEBUG
+    auto t1 = Clock::now();
+#endif
     K.countPush++;
     int nTasks = K.nTask;
     Task** task = K.task;
@@ -56,6 +60,10 @@ void pushEngine(vertex*& V, Kernels& K)
             }
         }
     }
+#ifdef DEBUG
+    auto t2 = Clock::now();
+    cout << "push time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
+#endif
 }
 
 // Compute one iteration, pull-based (dense)
@@ -71,32 +79,72 @@ void pullEngine(vertex*& V, Kernels& K)
     Task** task = K.task;
     K.UniFrontier.toDense();
     parallel_for (long vDst = 0; vDst < n; ++vDst){
-        for (int i = 0; i < nTasks; ++i){
-            Task* tsk = task[i];
-            if (tsk->cond(vDst)){
-                vertex dst = V[vDst];
-                uintE inDegree = dst.getInDegree();
-                if (inDegree < SEQ_THRESHOLD){
-                    for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
-                        tsk->condPull(K.nextUni,
-                            dst.getInNeighbor(vSrcOffset),vDst,
-                            dst.getInWeight(vSrcOffset));
-                        if (!tsk->cond(vDst)) // early break!
-                            break;
-                    }
-                } else {
-                    parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
-                        tsk->condPull(K.nextUni,
-                            dst.getInNeighbor(vSrcOffset),vDst,
-                            dst.getInWeight(vSrcOffset));
+        int cntTasks = 0;
+        Task** currTask = newA(Task*,nTasks);
+        for (int i = 0; i < nTasks; ++i)
+            if (task[i]->cond(vDst))
+                currTask[cntTasks++] = task[i];
+        vertex dst = V[vDst];
+        uintE inDegree = dst.getInDegree();
+        if (inDegree < SEQ_THRESHOLD){
+            for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
+                for (int i = 0; i < cntTasks; ++i){
+                    currTask[i]->condPull(K.nextUni,
+                        dst.getInNeighbor(vSrcOffset),vDst,
+                        dst.getInWeight(vSrcOffset));
+                    if (!currTask[i]->cond(vDst)){ // early break!
+                        cntTasks--;
+                        for (int j = i; j < cntTasks; ++j)
+                            currTask[j] = currTask[j+1];
+                        continue;
                     }
                 }
+            }
+        } else {
+            parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
+                for (int i = 0; i < cntTasks; ++i)
+                    currTask[i]->condPull(K.nextUni,
+                        dst.getInNeighbor(vSrcOffset),vDst,
+                        dst.getInWeight(vSrcOffset));
             }
         }
     }
 #ifdef DEBUG
     auto t2 = Clock::now();
     cout << "pull time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
+#endif
+}
+
+// Compute one iteration, pull-based (dense)
+template <class vertex>
+void pullSingle(vertex*& V, Task*& tsk, bool*& nextUni)
+{
+#ifdef DEBUG
+    auto t1 = Clock::now();
+#endif
+    long n = tsk->n; // # of vertices
+    parallel_for (long vDst = 0; vDst < n; ++vDst){
+        vertex dst = V[vDst];
+        uintE inDegree = dst.getInDegree();
+        if (inDegree < SEQ_THRESHOLD){
+            for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
+                tsk->condPull(nextUni,
+                        dst.getInNeighbor(vSrcOffset),vDst,
+                        dst.getInWeight(vSrcOffset));
+                if (!tsk->cond(vDst)) // early break!
+                    break;
+            }
+        } else {
+            parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
+                tsk->condPull(nextUni,
+                    dst.getInNeighbor(vSrcOffset),vDst,
+                    dst.getInWeight(vSrcOffset));
+            }
+        }
+    }
+#ifdef DEBUG
+    auto t2 = Clock::now();
+    cout << "pullSingle time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
 #endif
 }
 
@@ -142,6 +190,8 @@ void Compute(graph<vertex>& G, Kernels& K)
         else
             pushEngine(V,K); // sparse
     }
+    // parallel_for (int i = 0; i < nTasks; ++i)
+    //     pullSingle(V,K.task[i],K.nextUni);
 
     K.finishOneIter();
 }
