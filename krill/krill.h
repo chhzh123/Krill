@@ -178,6 +178,7 @@ void pullSingle(vertex*& V, Task*& tsk)
     parallel_for (long vDst = 0; vDst < n; ++vDst){
         vertex dst = V[vDst];
         uintE inDegree = dst.getInDegree();
+        if (!tsk->cond(vDst)) continue;
         if (inDegree < SEQ_THRESHOLD){
             for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
                 tsk->condPullSingle(dst.getInNeighbor(vSrcOffset),vDst,
@@ -195,6 +196,40 @@ void pullSingle(vertex*& V, Task*& tsk)
 #ifdef DEBUG
     auto t2 = Clock::now();
     cout << "pull single time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
+#endif
+}
+
+// Compute one iteration, pull-based (dense)
+template <class vertex>
+void pullAll(vertex*& V, Task**& tsk, int nVert, int nTasks)
+{
+#ifdef DEBUG
+    auto t1 = Clock::now();
+#endif
+    parallel_for (long vDst = 0; vDst < nVert; ++vDst){
+        for (int i = 0; i < nTasks; ++i){
+            Task* task = tsk[i];
+            if (!task->cond(vDst)) continue;
+            vertex dst = V[vDst];
+            uintE inDegree = dst.getInDegree();
+            if (inDegree < SEQ_THRESHOLD){
+                for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
+                    task->condPullSingle(dst.getInNeighbor(vSrcOffset),vDst,
+                                dst.getInWeight(vSrcOffset));
+                    if (!task->cond(vDst)) // early break!
+                        break;
+                }
+            } else {
+                parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
+                    task->condPullSingle(dst.getInNeighbor(vSrcOffset),vDst,
+                        dst.getInWeight(vSrcOffset));
+                }
+            }
+        }
+    }
+#ifdef DEBUG
+    auto t2 = Clock::now();
+    cout << "pull all time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
 #endif
 }
 
@@ -251,15 +286,17 @@ void Execute(graph<vertex>& G, Kernels& K, commandLine P)
         } else {
             K.iniOneIter();
 
-            thread singleTaskThreads[K.nSTask];
-            for (int i = 0; i < K.nSTask; ++i)
-                singleTaskThreads[i] = thread(pullSingle<vertex>,ref(G.V),ref(K.sTask[i]));
+            // thread singleTaskThreads[K.nSTask];
+            // for (int i = 0; i < K.nSTask; ++i)
+            //     singleTaskThreads[i] = thread(pullSingle<vertex>,ref(G.V),ref(K.sTask[i]));
+            thread singleTaskAll = thread(pullAll<vertex>,ref(G.V),ref(K.sTask),K.nVert,K.nSTask);
 
             if (K.nCTask != 0)
                 Compute(G,K);
 
-            for (int i = 0; i < K.nSTask; ++i)
-                singleTaskThreads[i].join();
+            singleTaskAll.join();
+            // for (int i = 0; i < K.nSTask; ++i)
+            //     singleTaskThreads[i].join();
 
             K.finishOneIter();
             scheduleTask(K.cTask,K.nCTask);

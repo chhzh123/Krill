@@ -37,6 +37,14 @@ PCC = g++
 PCFLAGS = -O2 $(INTT) $(INTE) $(CODE) $(PD)
 endif
 
+ifdef LJ
+DATASET = ~/Dataset/soc-LiveJournal1
+DATASETW = ~/Dataset/soc-LiveJournal1-w
+else
+DATASET = ../inputs/rMatGraph_J_5_100
+DATASETW = ../inputs/rMatGraph_WJ_5_100
+endif
+
 # make sure modifying header files will lead to recompilation 
 COMMON := krill.h kernel.h graph.h vertex.h utils.h IO.h
 COMMON += parallel.h gettime.h transpose.h parseCommandLine.h vertexSubset.h
@@ -51,6 +59,33 @@ all: $(ALL)
 % : %.cpp
 	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) -pthread $< -o $@
 
-.PHONY : clean
+.PHONY : clean bfs pr sssp cc homo1 homo2 heter mbfs msssp
 clean :
 	rm -f *.o $(ALL) *.gcov *.gcno *.gcda *.out.* *.out
+
+bfs:
+	./Singleton -task bfs $(DATASET)
+
+pr:
+	./Singleton -task pr $(DATASET)
+
+sssp:
+	./Singleton -task sssp -w $(DATASETW)
+
+cc:
+	./Singleton -task cc $(DATASET)
+
+homo1:
+	./Homo1 $(DATASET)
+
+homo2:
+	./Homo2 -w $(DATASETW)
+
+heter:
+	./Heter -w $(DATASETW)
+
+mbfs:
+	./M-BFS $(DATASET)
+
+msssp:
+	./M-SSSP -w $(DATASETW)
