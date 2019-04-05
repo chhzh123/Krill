@@ -60,7 +60,7 @@ struct vertexSubset {
     inline bool isEmpty() { return m == 0; }
 
     // converts to dense but keeps sparse representation if there
-    bool* toDense() { // 01
+    bool* toDense() { // 01, needn't check validity since there may exist duplicated indices
         if (d == NULL) {
             d = newA(bool,n);
             {parallel_for (long i = 0; i < n; i++)

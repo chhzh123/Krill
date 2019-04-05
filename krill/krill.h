@@ -28,9 +28,9 @@ using Clock = std::chrono::high_resolution_clock;
 // cond function that always returns true
 inline bool cond_true (intT d) { return 1; }
 
-// Compute one iteration, push-based (sparse)
+// Compute one iteration, push-based (sparse, indices)
 template <class vertex>
-void pushEngine(vertex*& V, Kernels& K)
+void pushSparse(vertex*& V, Kernels& K, uintT* degrees, bool remDups = false)
 {
 #ifdef DEBUG
     auto t1 = Clock::now();
@@ -38,10 +38,61 @@ void pushEngine(vertex*& V, Kernels& K)
     K.countPush++;
     int nTasks = K.nTask;
     Task** task = K.task;
-    uintE* index = K.UniFrontier.toSparse();
+    uintE* indices = K.UniFrontier.toSparse();
     long m = K.UniFrontier.m;
+    K.flagSparse = true;
+
+    uintT* offsets = degrees;
+    long nOutEdges = sequence::plusScan(offsets,degrees,m); // accumulate offsets
+    uintE* outEdges = newA(uintE,nOutEdges);
     parallel_for (long j = 0; j < m; ++j){ // outer parallel
-        long vSrc = index[j];
+        long vSrc = indices[j];
+        uintT os = offsets[j];
+        vertex src = V[vSrc];
+        uintE outDegree = src.getOutDegree();
+        if (outDegree < SEQ_THRESHOLD){
+            for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset){ // inner parallel
+                for (int i = 0; i < nTasks; ++i)
+                    task[i]->condPush(outEdges[os+vDstOffset],
+                        vSrc,src.getOutNeighbor(vDstOffset),
+                        src.getOutWeight(vDstOffset));
+            }
+        } else {
+            parallel_for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset){ // inner parallel
+                for (int i = 0; i < nTasks; ++i)
+                    task[i]->condPush(outEdges[os+vDstOffset],
+                        vSrc,src.getOutNeighbor(vDstOffset),
+                        src.getOutWeight(vDstOffset));
+            }
+        }
+    }
+    uintE* nextIndices = newA(uintE, nOutEdges);
+    if (remDups)
+        remDuplicates(outEdges,NULL,nOutEdges,K.nVert);
+    // Filter out the empty slots (marked with -1)
+    long nextM = sequence::filter(outEdges,nextIndices,nOutEdges,nonMaxF());
+    K.nextSpUni = nextIndices;
+    K.nextM = nextM;
+
+    free(outEdges);
+#ifdef DEBUG
+    auto t2 = Clock::now();
+    cout << "push sparse time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
+#endif
+}
+
+template <class vertex>
+void pushDense(vertex*& V, Kernels& K)
+{
+#ifdef DEBUG
+    auto t1 = Clock::now();
+#endif
+    K.countPush++;
+    int nTasks = K.nTask;
+    long n = K.nVert; // # of vertices
+    Task** task = K.task;
+    K.UniFrontier.toDense();
+    parallel_for (long vSrc = 0; vSrc < n; ++vSrc){ // outer parallel
         vertex src = V[vSrc];
         uintE outDegree = src.getOutDegree();
         if (outDegree < SEQ_THRESHOLD){
@@ -62,13 +113,13 @@ void pushEngine(vertex*& V, Kernels& K)
     }
 #ifdef DEBUG
     auto t2 = Clock::now();
-    cout << "push time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
+    cout << "push dense time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
 #endif
 }
 
-// Compute one iteration, pull-based (dense)
+// Compute one iteration, pull-based (dense, 0-1)
 template <class vertex>
-void pullEngine(vertex*& V, Kernels& K)
+void pullDense(vertex*& V, Kernels& K)
 {
 #ifdef DEBUG
     auto t1 = Clock::now();
@@ -111,7 +162,7 @@ void pullEngine(vertex*& V, Kernels& K)
     }
 #ifdef DEBUG
     auto t2 = Clock::now();
-    cout << "pull time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
+    cout << "pull dense time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
 #endif
 }
 
@@ -169,30 +220,29 @@ template <class vertex>
 void Compute(graph<vertex>& G, Kernels& K)
 {
     vertex* V = G.V; // list of vertices, graph structure, only one copy
-    int nTasks = K.nTask;
-    Task** task = K.task;
-    long n = G.n; // # of vertices
-    long m = G.m; // # of edges
-
     K.iniOneIter();
 
     uintT* UniFrontier = K.UniFrontier.toSparse();
-    long mFront = K.UniFrontier.m; // # of edges
-    intT threshold = m / 20;
+    long m = K.UniFrontier.m;
     uintT* degrees = newA(uintT, m);
-    parallel_for (long i = 0; i < mFront; ++i)
+    parallel_for (long i = 0; i < m; ++i)
         degrees[i] = V[UniFrontier[i]].getOutDegree();
-    uintT outDegrees = sequence::plusReduce(degrees,m);
     // for each iteration, select which engine to use
+    uintT outDegrees = sequence::plusReduce(degrees,m);
     if (outDegrees != 0){
-        if (mFront + outDegrees > threshold)
-            pullEngine(V,K); // dense
+        intT threshold = G.m / 20; // # of edges / 20
+        if (m + outDegrees > threshold)
+            pushDense(V,K);
         else
-            pushEngine(V,K); // sparse
+            pushSparse(V,K,degrees); // sparse index
     }
+    //// single task
+    // int nTasks = K.nTask;
+    // Task** task = K.task;
     // parallel_for (int i = 0; i < nTasks; ++i)
     //     pullSingle(V,K.task[i],K.nextUni);
 
+    free(degrees);
     K.finishOneIter();
 }
 
@@ -225,9 +275,9 @@ void framework(graph<vertex>& G, commandLine P)
 
     startTime();
     Execute(G,K,P);
+    nextTime("Running time");
     cout << "Push: " << K.countPush << endl;
     cout << "Pull: " << K.countPull << endl;
-    nextTime("Running time");
     if(G.transposed)
         G.transpose();
     G.del();

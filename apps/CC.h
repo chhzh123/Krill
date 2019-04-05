@@ -67,7 +67,7 @@ public:
         frontier.toDense();
 		vertexMap(frontier,Update_F(IDs,prevIDs));
 #ifdef DEBUG
-        frontier.print();
+        frontier.print(20);
 #endif
     }
 	void clear(){

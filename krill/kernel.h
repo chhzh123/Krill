@@ -25,6 +25,7 @@ public:
     virtual bool finished() = 0;
     virtual void initialize() = 0;
     virtual void clear() = 0;
+    virtual void condPush(uintE& out, const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void condPush(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void condPull(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void iniOneIter(){
@@ -97,6 +98,15 @@ public:
         Task(_nVertex, false){};
     virtual bool update(uintE s, uintE d) = 0;
     virtual bool updateAtomic(uintE s, uintE d) = 0;
+    void condPush(uintE& out, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    {
+        if (frontier.d[vSrc] && cond(vDst) && updateAtomic(vSrc,vDst)){
+            nextFrontier[vDst] = 1; // need not atomic
+            out = vDst;
+        } else
+            out = UINT_E_MAX;
+        // DO NOT SET ELSE! some memory may be accessed several times
+    }
     void condPush(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
     {
         if (frontier.d[vSrc] && cond(vDst) && updateAtomic(vSrc,vDst)){
@@ -122,6 +132,15 @@ public:
         Task(_nVertex, true){};
     virtual bool update(uintE s, uintE d, intE edgeVal) = 0;
     virtual bool updateAtomic(uintE s, uintE d, intE edgeVal) = 0;
+    void condPush(uintE& out, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    {
+        if (frontier.d[vSrc] && cond(vDst) && updateAtomic(vSrc,vDst,edgeVal)){
+            nextFrontier[vDst] = 1; // need not atomic
+            out = vDst;
+        } else
+            out = UINT_E_MAX;
+        // DO NOT SET ELSE! some memory may be accessed several times
+    }
     void condPush(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal)
     {
         if (frontier.d[vSrc] && cond(vDst) && updateAtomic(vSrc,vDst,edgeVal)){
@@ -185,6 +204,8 @@ public:
     void iniOneIter(){
         parallel_for (int i = 0; i < nTask; ++i)
             task[i]->iniOneIter();
+        flagSparse = false;
+        nextM = 0;
         nextUni = newA(bool,nVert); // DO NOT FREE nextFrontier
         parallel_for (long i = 0; i < nVert; ++i) // remember to initialize!
             nextUni[i] = 0;
@@ -194,14 +215,20 @@ public:
             task[i]->finishOneIter();
         UniFrontier.del();
         // set new frontier
-        UniFrontier = vertexSubset(nVert,nextUni);
+        if (!flagSparse)
+            UniFrontier = vertexSubset(nVert,nextUni);
+        else
+            UniFrontier = vertexSubset(nVert,nextM,nextSpUni);
     }
-    int nVert;
+    long nVert;
     int nTask;
     int countPush = 0;
     int countPull = 0;
     Task** task; // 1D array to store pointers of the tasks
+    bool flagSparse;
     bool* nextUni;
+    long nextM;
+    uintE* nextSpUni;
     vertexSubset UniFrontier;
 };
 

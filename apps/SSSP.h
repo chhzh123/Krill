@@ -52,7 +52,7 @@ public:
 			return frontier.isEmpty();
 #else
 			if (frontier.isEmpty()){
-				for (int i = 0; i < n; ++i)
+				for (int i = 0; i < 20; ++i)
 					cout << shortestPathLen[i] << " ";
 				cout << endl;
 				return true;
