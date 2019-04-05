@@ -36,7 +36,7 @@ class PageRank : public UnweightedTask
 {
 public:
 	PageRank(long _n, vertex* _V, long _maxIters = 100):
-		UnweightedTask(_n), p_curr(NULL), p_next(NULL), V(_V),
+		UnweightedTask(_n, true), p_curr(NULL), p_next(NULL), V(_V),
 		iter(0), maxIters(_maxIters){}; // call parent class constructor
 	inline bool update(uintE s, uintE d){ // update function applies PageRank equation
 		p_next[d] += p_curr[s] / V[s].getOutDegree();

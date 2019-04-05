@@ -49,7 +49,7 @@ ALL = Homo1 Homo2 Heter M-BFS M-SSSP Singleton
 all: $(ALL)
 
 % : %.cpp
-	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $< -o $@
+	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) -pthread $< -o $@
 
 .PHONY : clean
 clean :

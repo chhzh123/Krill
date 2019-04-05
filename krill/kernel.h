@@ -16,8 +16,9 @@ using namespace std;
 class Task // base class (abstract class)
 {
 public:
-    Task(long _nVertex, bool _isWeighted):
-        n(_nVertex), active(false), nextFrontier(NULL), isWeighted(_isWeighted){};
+    Task(long _nVertex, bool _isWeighted, bool _isSingleton = false):
+        n(_nVertex), active(false), nextFrontier(NULL),
+        isWeighted(_isWeighted), isSingleton(_isSingleton){};
     ~Task() = default;
 
     // *pure* virtual function used for correct function call
@@ -28,6 +29,7 @@ public:
     virtual void condPush(uintE& out, const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void condPush(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void condPull(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
+    virtual void condPullSingle(const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void iniOneIter(){
         nextFrontier = newA(bool,n); // DO NOT FREE nextFrontier
         parallel_for (long i = 0; i < n; ++i) // remember to initialize!
@@ -89,13 +91,14 @@ public:
     vertexSubset frontier;
     bool* nextFrontier;
     bool isWeighted;
+    bool isSingleton;
 };
 
 class UnweightedTask : public Task
 {
 public:
-    UnweightedTask(long _nVertex):
-        Task(_nVertex, false){};
+    UnweightedTask(long _nVertex, bool _isSingleton = false):
+        Task(_nVertex, false, _isSingleton){};
     virtual bool update(uintE s, uintE d) = 0;
     virtual bool updateAtomic(uintE s, uintE d) = 0;
     void condPush(uintE& out, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
@@ -123,13 +126,19 @@ public:
         }
         // DO NOT SET ELSE! some memory may be accessed several times
     }
+    void condPullSingle(const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    {
+        if (frontier.d[vSrc] && update(vSrc,vDst))
+            nextFrontier[vDst] = 1; // need not atomic
+        // DO NOT SET ELSE! some memory may be accessed several times
+    }
 };
 
 class WeightedTask : public Task
 {
 public:
-    WeightedTask(long _nVertex):
-        Task(_nVertex, true){};
+    WeightedTask(long _nVertex, bool _isSingleton = false):
+        Task(_nVertex, true, _isSingleton){};
     virtual bool update(uintE s, uintE d, intE edgeVal) = 0;
     virtual bool updateAtomic(uintE s, uintE d, intE edgeVal) = 0;
     void condPush(uintE& out, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
@@ -155,23 +164,34 @@ public:
             nextUni[vDst] = 1;
         }
     }
+    void condPullSingle(const long vSrc, const long vDst, const intE edgeVal)
+    {
+        if (frontier.d[vSrc] && update(vSrc,vDst,edgeVal))
+            nextFrontier[vDst] = 1;
+    }
 };
 
 class Kernels
 {
 public:
-    Kernels(): nTask(0){
+    Kernels(): nTask(0),nCTask(0),nSTask(0){
         task = new Task*[MAX_TASK_NUM]; // polymorphism, using `new' may be easier for deletion
+        cTask = new Task*[MAX_TASK_NUM];
+        sTask = new Task*[MAX_TASK_NUM];
     };
     ~Kernels() = default;
     void appendTask(Task* tsk)
     {
         task[nTask++] = tsk;
+        if (!tsk->isSingleton)
+            cTask[nCTask++] = tsk;
+        else
+            sTask[nSTask++] = tsk;
     }
     void appendTask(initializer_list<Task*> list)
     {
         for (auto tsk : list)
-            task[nTask++] = tsk;
+            appendTask(tsk);
     }
     void initialize(const long nVert_, const bool isWeightedGraph){
         nVert = nVert_;
@@ -196,14 +216,17 @@ public:
             vertexSubset f = t->frontier;
             uintE* s = f.toSparse();
             long m = f.m;
-            parallel_for (long j = 0; j < m; ++j)
-                originalUni[s[j]] = 1;
+            if (!t->isSingleton)
+                parallel_for (long j = 0; j < m; ++j)
+                    originalUni[s[j]] = 1;
         }
         UniFrontier = vertexSubset(nVert,originalUni);
     }
     void iniOneIter(){
-        parallel_for (int i = 0; i < nTask; ++i)
-            task[i]->iniOneIter();
+        parallel_for (int i = 0; i < nCTask; ++i)
+            cTask[i]->iniOneIter();
+        parallel_for (int i = 0; i < nSTask; ++i)
+            sTask[i]->iniOneIter();
         flagSparse = false;
         nextM = 0;
         nextUni = newA(bool,nVert); // DO NOT FREE nextFrontier
@@ -211,8 +234,10 @@ public:
             nextUni[i] = 0;
     }
     void finishOneIter(){
-        parallel_for (int i = 0; i < nTask; ++i)
-            task[i]->finishOneIter();
+        parallel_for (int i = 0; i < nCTask; ++i)
+            cTask[i]->finishOneIter();
+        parallel_for (int i = 0; i < nSTask; ++i)
+            sTask[i]->finishOneIter();
         UniFrontier.del();
         // set new frontier
         if (!flagSparse)
@@ -221,10 +246,16 @@ public:
             UniFrontier = vertexSubset(nVert,nextM,nextSpUni);
     }
     long nVert;
+    int pushDenseCnt = 0;
+    int pushSparseCnt = 0;
+    int pullDenseCnt = 0;
+    int pullSparseCnt = 0;
     int nTask;
-    int countPush = 0;
-    int countPull = 0;
     Task** task; // 1D array to store pointers of the tasks
+    int nCTask;
+    int nSTask;
+    Task** cTask; // concurrent tasks
+    Task** sTask; // singleton tasks
     bool flagSparse;
     bool* nextUni;
     long nextM;
