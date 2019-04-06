@@ -43,7 +43,7 @@ struct graph
 
     void del() {
         D->del();
-        free(D);
+        delete D;
     }
 
     void transpose() {

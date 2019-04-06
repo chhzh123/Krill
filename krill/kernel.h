@@ -36,7 +36,7 @@ public:
             nextFrontier[i] = 0;
         frontier.toDense();
 #ifdef DEBUG
-        frontier.print(20);
+        frontier.print(2);
 #endif
     }
     virtual void finishOneIter(){
@@ -174,7 +174,7 @@ public:
 class Kernels
 {
 public:
-    Kernels(): nTask(0),nCTask(0),nSTask(0){
+    Kernels(): nTask(0),nCTask(0),nSTask(0),nextUni(NULL),nextSpUni(NULL){
         task = new Task*[MAX_TASK_NUM]; // polymorphism, using `new' may be easier for deletion
         cTask = new Task*[MAX_TASK_NUM];
         sTask = new Task*[MAX_TASK_NUM];
@@ -229,9 +229,6 @@ public:
             sTask[i]->iniOneIter();
         flagSparse = false;
         nextM = 0;
-        nextUni = newA(bool,nVert); // DO NOT FREE nextFrontier
-        parallel_for (long i = 0; i < nVert; ++i) // remember to initialize!
-            nextUni[i] = 0;
     }
     void finishOneIter(){
         parallel_for (int i = 0; i < nCTask; ++i)
@@ -240,10 +237,32 @@ public:
             sTask[i]->finishOneIter();
         UniFrontier.del();
         // set new frontier
-        if (!flagSparse)
-            UniFrontier = vertexSubset(nVert,nextUni);
-        else
-            UniFrontier = vertexSubset(nVert,nextM,nextSpUni);
+        if (!flagSparse){
+            UniFrontier = ((nextUni != NULL) ?
+                vertexSubset(nVert,nextUni) :
+                vertexSubset(nVert));
+            nextUni = NULL; nextSpUni = NULL;
+        } else {
+            UniFrontier = ((nextSpUni != NULL) ?
+                vertexSubset(nVert,nextM,nextSpUni) :
+                vertexSubset(nVert));
+            nextUni = NULL; nextSpUni = NULL;
+        }
+    }
+    void finish(){
+        if (nextSpUni != NULL)
+            free(nextSpUni);
+        delete [] task;
+        // delete [] cTask;
+        // delete [] sTask;
+    }
+    inline bool* denseMode(){
+        flagSparse = false;
+        nextUni = newA(bool,nVert); // DO NOT FREE nextFrontier
+        parallel_for (long i = 0; i < nVert; ++i) // remember to initialize!
+            nextUni[i] = 0;
+        UniFrontier.toDense();
+        return nextUni;
     }
     long nVert;
     int pushDenseCnt = 0;

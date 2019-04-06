@@ -92,7 +92,7 @@ void pushDense(vertex*& V, Kernels& K)
     int nCTasks = K.nCTask;
     long n = K.nVert; // # of vertices
     Task** task = K.cTask;
-    K.UniFrontier.toDense();
+    K.denseMode();
     parallel_for (long vSrc = 0; vSrc < n; ++vSrc){ // outer parallel
         vertex src = V[vSrc];
         uintE outDegree = src.getOutDegree();
@@ -129,7 +129,7 @@ void pullDense(vertex*& V, Kernels& K)
     int nCTasks = K.nCTask;
     long n = K.nVert; // # of vertices
     Task** task = K.cTask;
-    K.UniFrontier.toDense();
+    K.denseMode();
     parallel_for (long vDst = 0; vDst < n; ++vDst){
         int cntTasks = 0;
         Task** currTask = newA(Task*,nCTasks);
@@ -260,12 +260,23 @@ void Compute(graph<vertex>& G, Kernels& K)
     parallel_for (long i = 0; i < m; ++i)
         degrees[i] = V[UniFrontier[i]].getOutDegree();
     // for each iteration, select which engine to use
-    intT threshold = G.n * 0.6; // f(# of vertices)
-    if (m > threshold)
+    uintT outDegrees = sequence::plusReduce(degrees, m);
+    intT threshold = G.m / 2; // f(# of vertices)
+    if (outDegrees == 0) {
+        K.denseMode();
+        free(degrees);
+        return;
+    }
+    if (m + outDegrees > threshold){
+        free(degrees);
         pushDense(V,K);
-    else
-        pushSparse(V,K,degrees); // sparse index
-    free(degrees);
+    } else {
+        if (m + outDegrees > G.m / 5)
+            pushSparse(V,K,degrees,true);
+        else
+            pushSparse(V,K,degrees); // sparse index
+        free(degrees);
+    }
 }
 
 template <class vertex>
@@ -302,9 +313,8 @@ void Execute(graph<vertex>& G, Kernels& K, commandLine P)
             scheduleTask(K.cTask,K.nCTask);
             scheduleTask(K.sTask,K.nSTask);
         }
-
-        
     }
+    K.finish();
 }
 
 template <class vertex>

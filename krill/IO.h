@@ -195,6 +195,7 @@ readGraphFromFile(char* fname) { // Graph<asymmetricUnweighted>
         v[i].setInNeighbors(inEdges+o);
     }
     free(tOffsets);
+    W.del();
     Uncompressed_Mem<vertex>* mem = new Uncompressed_Mem<vertex>(v,n,m,edges,inEdges);
     return graph<vertex>(v,n,m,false,mem);
 }
