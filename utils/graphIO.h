@@ -27,7 +27,7 @@
 #include <cstring>
 #include "parallel.h"
 #include "utils.h"
-#include "../krill/blockRadixSort.h"
+#include "blockRadixSort.h"
 #include "quickSort.h"
 using namespace std;
 
@@ -475,6 +475,11 @@ namespace benchIO {
     char* S2 = newA(char,S.n);
     //ignore starting lines with '#' and find where to start in file 
     long k=0;
+#ifdef DEBUG
+    cout << S.n << endl;
+    if (S.A == NULL)
+      cerr << "Error: NULL Pointer!" << endl;
+#endif
     while(1) {
       if(S.A[k] == '#') {
 	while(S.A[k++] != '\n') continue;
@@ -496,6 +501,52 @@ namespace benchIO {
     {parallel_for(long i=0; i < n; i++)
       E[i] = edge<intT>(atol(W.Strings[2*i]), 
 		  atol(W.Strings[2*i + 1]));}
+    // W.del();
+
+    long maxR = 0;
+    long maxC = 0;
+    for (long i=0; i < n; i++) {
+      maxR = max<intT>(maxR, E[i].u);
+      maxC = max<intT>(maxC, E[i].v);
+    }
+    long maxrc = max<intT>(maxR,maxC) + 1;
+    return edgeArray<intT>(E, maxrc, maxrc, n);
+  }
+
+  template <class intT>
+  edgeArray<intT> readMTX(char* fname) {
+    _seq<char> S = readStringFromFile(fname);
+    char* S2 = newA(char,S.n);
+    //ignore starting lines with '%' and find where to start in file 
+    long k=0;
+#ifdef DEBUG
+    cout << S.n << endl;
+    if (S.A == NULL)
+      cerr << "Error: NULL Pointer!" << endl;
+#endif
+    while(1) {
+      if(S.A[k] == '%') {
+        while(S.A[k++] != '\n') continue;
+      }
+      if(k >= S.n || S.A[k] != '%') break;
+    }
+    // read one more line (m*n numNonZeros)
+    while (S.A[k++] != '\n') continue;
+    parallel_for(long i=0;i<S.n-k;i++) {
+      if(i>=S.n-k-1)
+        cout<<i<<endl;
+      S2[i] = S.A[k+i];
+      if(i>=S.n-k-1)
+        cout<<i<<endl;
+    }
+    // S.del();
+
+    words W = stringToWords(S2, S.n-k);
+    long n = W.m/2;
+    edge<intT> *E = newA(edge<intT>,n);
+    {parallel_for(long i=0; i < n; i++)
+      E[i] = edge<intT>(atol(W.Strings[2*i]), 
+      atol(W.Strings[2*i + 1]));}
     // W.del();
 
     long maxR = 0;

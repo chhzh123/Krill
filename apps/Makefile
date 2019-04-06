@@ -40,10 +40,15 @@ endif
 ifdef LJ
 DATASET = ~/Dataset/soc-LiveJournal1
 DATASETW = ~/Dataset/soc-LiveJournal1-w
+else ifdef USA
+DATASET = ~/Dataset/road_usa
+DATASETW = ~/Dataset/road_usa-w
 else
 DATASET = ../inputs/rMatGraph_J_5_100
 DATASETW = ../inputs/rMatGraph_WJ_5_100
 endif
+
+TIME = time -p
 
 # make sure modifying header files will lead to recompilation 
 COMMON := krill.h kernel.h graph.h vertex.h utils.h IO.h
@@ -63,29 +68,29 @@ all: $(ALL)
 clean :
 	rm -f *.o $(ALL) *.gcov *.gcno *.gcda *.out.* *.out
 
-bfs:
-	./Singleton -task bfs $(DATASET)
+bfs: Singleton
+	$(TIME) ./Singleton -task bfs $(DATASET)
 
-pr:
-	./Singleton -task pr $(DATASET)
+pr: Singleton
+	$(TIME) ./Singleton -task pr $(DATASET)
 
-sssp:
-	./Singleton -task sssp -w $(DATASETW)
+sssp: Singleton
+	$(TIME) ./Singleton -task sssp -w $(DATASETW)
 
-cc:
-	./Singleton -task cc $(DATASET)
+cc: Singleton
+	$(TIME) ./Singleton -task cc $(DATASET)
 
-homo1:
-	./Homo1 $(DATASET)
+homo1: Homo1
+	$(TIME) ./Homo1 $(DATASET)
 
-homo2:
-	./Homo2 -w $(DATASETW)
+homo2: Homo2
+	$(TIME) ./Homo2 -w $(DATASETW)
 
-heter:
-	./Heter -w $(DATASETW)
+heter: Heter
+	$(TIME) ./Heter -w $(DATASETW)
 
-mbfs:
-	./M-BFS $(DATASET)
+mbfs: M-BFS
+	$(TIME) ./M-BFS $(DATASET)
 
-msssp:
-	./M-SSSP -w $(DATASETW)
+msssp: M-SSSP
+	$(TIME) ./M-SSSP -w $(DATASETW)
