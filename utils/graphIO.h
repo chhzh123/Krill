@@ -272,6 +272,11 @@ namespace benchIO {
 
     // mark start of words
     bool *FL = newA(bool,n);
+    cout << n << endl;
+    if (FL == NULL){
+      cerr << "Error: NULL Pointer!" << endl;
+      abort();
+    }
     FL[0] = Str[0];
     parallel_for (long i=1; i < n; i++) FL[i] = Str[i] && !Str[i-1];
     
@@ -482,9 +487,9 @@ namespace benchIO {
 #endif
     while(1) {
       if(S.A[k] == '#') {
-	while(S.A[k++] != '\n') continue;
+        while(S.A[k++] != '\n') continue;
       }
-      if(k >= S.n || S.A[k] != '#') break; 
+      if(k >= S.n || S.A[k] != '#') break;
     }
     parallel_for(long i=0;i<S.n-k;i++) {
       if(i>=S.n-k-1)
@@ -493,7 +498,7 @@ namespace benchIO {
       if(i>=S.n-k-1)
         cout<<i<<endl;
     }
-    // S.del();
+    S.del();
 
     words W = stringToWords(S2, S.n-k);
     long n = W.m/2;
@@ -501,7 +506,7 @@ namespace benchIO {
     {parallel_for(long i=0; i < n; i++)
       E[i] = edge<intT>(atol(W.Strings[2*i]), 
 		  atol(W.Strings[2*i + 1]));}
-    // W.del();
+    W.del();
 
     long maxR = 0;
     long maxC = 0;
@@ -532,14 +537,8 @@ namespace benchIO {
     }
     // read one more line (m*n numNonZeros)
     while (S.A[k++] != '\n') continue;
-    parallel_for(long i=0;i<S.n-k;i++) {
-      if(i>=S.n-k-1)
-        cout<<i<<endl;
-      S2[i] = S.A[k+i];
-      if(i>=S.n-k-1)
-        cout<<i<<endl;
-    }
-    // S.del();
+    parallel_for(long i=0;i<S.n-k;i++) S2[i] = S.A[k+i];
+    S.del(); // remember to free memory
 
     words W = stringToWords(S2, S.n-k);
     long n = W.m/2;
@@ -547,7 +546,7 @@ namespace benchIO {
     {parallel_for(long i=0; i < n; i++)
       E[i] = edge<intT>(atol(W.Strings[2*i]), 
       atol(W.Strings[2*i + 1]));}
-    // W.del();
+    W.del();
 
     long maxR = 0;
     long maxC = 0;

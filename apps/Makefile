@@ -37,12 +37,19 @@ PCC = g++
 PCFLAGS = -O2 $(INTT) $(INTE) $(CODE) $(PD)
 endif
 
-ifdef LJ
-DATASET = ~/Dataset/soc-LiveJournal1
-DATASETW = ~/Dataset/soc-LiveJournal1-w
+COMMON_FLAGS = -std=c++11 -pthread
+
+DATASET_PATH = ~/Dataset
+
+ifdef CP
+DATASET = $(DATASET_PATH)/cit-Patents
+DATASETW = $(DATASET_PATH)/cit-Patents-w
+else ifdef LJ
+DATASET = $(DATASET_PATH)/soc-LiveJournal1
+DATASETW = $(DATASET_PATH)/soc-LiveJournal1-w
 else ifdef USA
-DATASET = ~/Dataset/road_usa
-DATASETW = ~/Dataset/road_usa-w
+DATASET = $(DATASET_PATH)/road_usa
+DATASETW = $(DATASET_PATH)/road_usa-w
 else
 DATASET = ../inputs/rMatGraph_J_5_100
 DATASETW = ../inputs/rMatGraph_WJ_5_100
@@ -62,7 +69,7 @@ ALL = Homo1 Homo2 Heter M-BFS M-SSSP Singleton
 all: $(ALL)
 
 % : %.cpp
-	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) -pthread $< -o $@
+	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $(COMMON_FLAGS) $< -o $@
 
 .PHONY : clean bfs pr sssp cc homo1 homo2 heter mbfs msssp
 clean :
