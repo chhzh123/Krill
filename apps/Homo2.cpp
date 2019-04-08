@@ -13,8 +13,8 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 		PageRank<vertex>* pr = new PageRank<vertex>(G.n,G.V); // remember to dynamically allocate memory
 		K.appendTask(pr);
 	}
-	for (int i = 0; i < 4; ++i){
-		SSSP* sssp = new SSSP(G.n,10*i+2);
+	for (int i = 1; i < 5; ++i){
+		SSSP* sssp = new SSSP(G.n,71*i+2);
 		K.appendTask(sssp);
 	}
 }

@@ -8,8 +8,8 @@ using namespace std;
 template <class vertex>
 void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
-	for (int i = 0; i < 8; ++i){
-		BFS* bfs = new BFS(G.n,10*i); // remember to dynamically allocate memory
+	for (int i = 1; i < 9; ++i){
+		BFS* bfs = new BFS(G.n,91*i); // remember to dynamically allocate memory
 		K.appendTask(bfs);
 	}
 }

@@ -8,8 +8,8 @@ using namespace std;
 template <class vertex>
 void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
-	for (int i = 0; i < 8; ++i){
-		SSSP* sssp = new SSSP(G.n,10*i);
+	for (int i = 1; i < 9; ++i){
+		SSSP* sssp = new SSSP(G.n,211*i);
 		K.appendTask(sssp);
 	}
 }

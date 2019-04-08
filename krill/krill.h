@@ -332,12 +332,12 @@ void framework(graph<vertex>& G, commandLine P)
     startTime();
     Execute(G,K,P);
     nextTime("Running time");
+#ifdef DEBUG
     cout << "Push-Dense: " << K.pushDenseCnt << endl;
     cout << "Push-Sparse: " << K.pushSparseCnt << endl;
     cout << "Pull-Dense: " << K.pullDenseCnt << endl;
     cout << "Pull-Sparse: " << K.pullSparseCnt << endl;
-    if(G.transposed)
-        G.transpose();
+#endif
     G.del();
 }
 
@@ -352,22 +352,30 @@ int main(int argc, char* argv[]){
 
     if (!weighted) {
         if (!symmetric) {
+            startTime();
             graph<asymmetricUnweightedVertex> G =
                 readGraphFromFile<asymmetricUnweightedVertex>(iFile);
+            nextTime("Graph IO time");
             framework(G,P);
         } else {
+            startTime();
             graph<symmetricUnweightedVertex> G =
                 readGraphFromFile<symmetricUnweightedVertex>(iFile);
+            nextTime("Graph IO time");
             framework(G,P);
         }
     } else {
         if (!symmetric) {
+            startTime();
             graph<asymmetricWeightedVertex> G =
                 readGraphFromFile<asymmetricWeightedVertex>(iFile);
+            nextTime("Graph IO time");
             framework(G,P);
         } else {
+            startTime();
             graph<symmetricWeightedVertex> G =
                 readGraphFromFile<symmetricWeightedVertex>(iFile);
+            nextTime("Graph IO time");
             framework(G,P);
         }
     }

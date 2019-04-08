@@ -39,23 +39,8 @@ endif
 
 COMMON_FLAGS = -std=c++11 -pthread
 
-DATASET_PATH = ~/Dataset
-
-ifdef CP
-DATASET = $(DATASET_PATH)/cit-Patents
-DATASETW = $(DATASET_PATH)/cit-Patents-w
-else ifdef LJ
-DATASET = $(DATASET_PATH)/soc-LiveJournal1
-DATASETW = $(DATASET_PATH)/soc-LiveJournal1-w
-else ifdef USA
-DATASET = $(DATASET_PATH)/road_usa
-DATASETW = $(DATASET_PATH)/road_usa-w
-else
-DATASET = ../inputs/rMatGraph_J_5_100
-DATASETW = ../inputs/rMatGraph_WJ_5_100
-endif
-
-TIME = time -p
+# to clear the cache
+#sudo sh -c 'echo 1 >/proc/sys/vm/drop_caches'
 
 # make sure modifying header files will lead to recompilation 
 COMMON := krill.h kernel.h graph.h vertex.h utils.h IO.h
@@ -71,33 +56,6 @@ all: $(ALL)
 % : %.cpp
 	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $(COMMON_FLAGS) $< -o $@
 
-.PHONY : clean bfs pr sssp cc homo1 homo2 heter mbfs msssp
-clean :
-	rm -f *.o $(ALL) *.gcov *.gcno *.gcda *.out.* *.out
-
-bfs: Singleton
-	$(TIME) ./Singleton -task bfs $(DATASET)
-
-pr: Singleton
-	$(TIME) ./Singleton -task pr $(DATASET)
-
-sssp: Singleton
-	$(TIME) ./Singleton -task sssp -w $(DATASETW)
-
-cc: Singleton
-	$(TIME) ./Singleton -task cc $(DATASET)
-
-homo1: Homo1
-	$(TIME) ./Homo1 $(DATASET)
-
-homo2: Homo2
-	$(TIME) ./Homo2 -w $(DATASETW)
-
-heter: Heter
-	$(TIME) ./Heter -w $(DATASETW)
-
-mbfs: M-BFS
-	$(TIME) ./M-BFS $(DATASET)
-
-msssp: M-SSSP
-	$(TIME) ./M-SSSP -w $(DATASETW)
+.PHONY: clean
+clean:
+	-rm -f *.o $(ALL) *.gcov *.gcno *.gcda *.out.* *.out
