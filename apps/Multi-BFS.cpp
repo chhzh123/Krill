@@ -3,18 +3,15 @@
 
 #include "krill.h"
 #include "BFS.h"
-#include "CC.h"
 using namespace std;
 
 template <class vertex>
 void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
-	for (int i = 1; i < 5; ++i){
+	long cnt = P.getOptionLongValue("-n",1);
+	cout << cnt << " BFSs" << endl;
+	for (int i = 1; i < cnt+1; ++i){
 		BFS* bfs = new BFS(G.n,10*i); // remember to dynamically allocate memory
 		K.appendTask(bfs);
-	}
-	for (int i = 0; i < 4; ++i){
-		Components* cc = new Components(G.n);
-		K.appendTask(cc);
 	}
 }

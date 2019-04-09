@@ -30,7 +30,7 @@ def write_table(lst,head):
 
 print("Extracting profiling results from {} ...".format(data_path))
 
-usertime = {'s':{},'p':{},'k':{}}
+realtime = {'s':{},'p':{},'k':{}}
 peakmem = {'s':{},'p':{},'k':{}}
 llc_load = {'s':{},'p':{},'k':{}}
 llc_miss = {'s':{},'p':{},'k':{}}
@@ -41,8 +41,8 @@ for filename in os.listdir(data_path):
 		with open(data_path + "/" + filename,"r") as file:
 			for line in file:
 				name = filename.split('.')[0]
-				if "User time" in line:
-					usertime[name[-1]][name[:-1]] = line.split()[-1]
+				if "wall clock" in line: # not user time!
+					realtime[name[-1]][name[:-1]] = line.split()[-1]
 				elif "Maximum resident set size" in line:
 					peakmem[name[-1]][name[:-1]] = line.split()[-1]
 	elif ".perf" in filename:
@@ -55,7 +55,7 @@ for filename in os.listdir(data_path):
 					llc_miss[name[-1]][name[:-1]] = line.split("#")[1].lstrip().split()[0]
 				elif "instructions" in line:
 					instructions[name[-1]][name[:-1]] = line.lstrip().split()[0]
-write_table(usertime,"User time (s)")
+write_table(realtime,"Real time / Wall clock time (s)")
 write_table(peakmem,"Peak memory (KB)")
 write_table(llc_load,"Memory access")
 write_table(llc_miss,"LLC Hits rate")

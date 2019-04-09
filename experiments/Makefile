@@ -43,7 +43,7 @@ PCM = sudo ./$(PCM_PATH)/pcm-memory.x 0.01 -csv=$(PCM_OUTPUT_PATH)/$@.csv --exte
 # to clear the cache
 #sudo sh -c 'echo 1 >/proc/sys/vm/drop_caches'
 
-.PHONY: clean cleanpcm exp build bfs pr sssp cc homo1 homo2 heter mbfs msssp pcm bfspcm prpcm ccpcm sssppcm
+.PHONY: clean cleanpcm exp build bfs pr sssp cc homo1 homo2 heter mbfs msssp pcm bfspcm prpcm ccpcm sssppcm multibfs multicore
 
 exp: build homo1 homo2 heter mbfs msssp
 	python profiling.py $(PROFILE_PATH)/$(DATA)
@@ -72,13 +72,13 @@ cc: build
 sssp: build
 	$(TIMEK) "./$(KRILL_PATH)/Singleton -task sssp -w $(DATASETW)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -task sssp -w $(DATASETW)"
-	$(TIME) './$(LIGRA_PATH)/BellmanFord $(DATASET)'
-	$(PERF) './$(LIGRA_PATH)/BellmanFord $(DATASET)'
+	$(TIME) './$(LIGRA_PATH)/BellmanFord $(DATASETW)'
+	$(PERF) './$(LIGRA_PATH)/BellmanFord $(DATASETW)'
 
-HOMO1S = ./$(LIGRA_PATH)/BFS -r 311 $(DATASET); \
-	./$(LIGRA_PATH)/BFS -r 622 $(DATASET); \
-	./$(LIGRA_PATH)/BFS -r 933 $(DATASET); \
-	./$(LIGRA_PATH)/BFS -r 1244 $(DATASET); \
+HOMO1S = ./$(LIGRA_PATH)/BFS -r 10 $(DATASET); \
+	./$(LIGRA_PATH)/BFS -r 20 $(DATASET); \
+	./$(LIGRA_PATH)/BFS -r 30 $(DATASET); \
+	./$(LIGRA_PATH)/BFS -r 40 $(DATASET); \
 	./$(LIGRA_PATH)/Components $(DATASET); \
 	./$(LIGRA_PATH)/Components $(DATASET); \
 	./$(LIGRA_PATH)/Components $(DATASET); \
@@ -189,6 +189,38 @@ ccpcm: buildpcm
 	$(PCM) ./$(LIGRA_PATH)/Components $(DATASET)
 sssppcm: buildpcm
 	$(PCM) ./$(LIGRA_PATH)/BellmanFord $(DATASETW)
+
+TIMEBFS = /usr/bin/time -v -o $(PROFILE_PATH)/$(DATA)/$@
+multibfs: multibfsk
+multibfsk: build
+	$(TIMEBFS)1.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 1 $(DATASET)"
+	$(TIMEBFS)2.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 2 $(DATASET)"
+	$(TIMEBFS)4.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 4 $(DATASET)"
+	$(TIMEBFS)8.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 8 $(DATASET)"
+	$(TIMEBFS)16.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 16 $(DATASET)"
+	$(TIMEBFS)32.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 32 $(DATASET)"
+	$(TIMEBFS)64.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 64 $(DATASET)"
+	$(TIMEBFS)128.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 128 $(DATASET)"
+
+# multibfss:
+# 	 for i in 1 2 4 8 16 32 64 128 ; do \
+# 	 	src=1 ;
+# 		$(TIMEBFS) sh -c "while [[ $$src -le $$i ]] ; do \
+# 			./$(LIGRA_PATH)/BFS -r 10*$$i $(DATASET) ; \
+# 			$$((src = src +1)) ; \
+# 		done"
+# 	done
+
+TIMEMULTICORE = /usr/bin/time -v -o $(PROFILE_PATH)/$(DATA)/$@
+# or env CILK_NWORKERS
+multicore:
+	export CILK_NWORKERS=1 && $(TIMEMULTICORE)1.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+	export CILK_NWORKERS=2 && $(TIMEMULTICORE)2.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+	export CILK_NWORKERS=4 && $(TIMEMULTICORE)4.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+	export CILK_NWORKERS=8 && $(TIMEMULTICORE)8.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+	export CILK_NWORKERS=16 && $(TIMEMULTICORE)16.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+	export CILK_NWORKERS=32 && $(TIMEMULTICORE)32.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+	export CILK_NWORKERS=40 && $(TIMEMULTICORE)40.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 
 clean:
 	-rm -rf $(PROFILE_PATH) *.prof

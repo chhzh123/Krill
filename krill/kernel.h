@@ -11,7 +11,7 @@ using namespace std;
 
 // predefined max task num in the waiting list
 // determined by the width of CPU register
-#define MAX_TASK_NUM 64
+#define MAX_TASK_NUM 128
 
 class Task // base class (abstract class)
 {
