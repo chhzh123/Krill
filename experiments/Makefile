@@ -191,7 +191,7 @@ sssppcm: buildpcm
 	$(PCM) ./$(LIGRA_PATH)/BellmanFord $(DATASETW)
 
 TIMEBFS = /usr/bin/time -v -o $(PROFILE_PATH)/$(DATA)/$@
-multibfs: multibfsk
+multibfs: build multibfsk multibfss multibfsp
 multibfsk: build
 	$(TIMEBFS)1.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 1 $(DATASET)"
 	$(TIMEBFS)2.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 2 $(DATASET)"
@@ -201,19 +201,35 @@ multibfsk: build
 	$(TIMEBFS)32.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 32 $(DATASET)"
 	$(TIMEBFS)64.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 64 $(DATASET)"
 	$(TIMEBFS)128.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 128 $(DATASET)"
-
-# multibfss:
-# 	 for i in 1 2 4 8 16 32 64 128 ; do \
-# 	 	src=1 ;
-# 		$(TIMEBFS) sh -c "while [[ $$src -le $$i ]] ; do \
-# 			./$(LIGRA_PATH)/BFS -r 10*$$i $(DATASET) ; \
-# 			$$((src = src +1)) ; \
-# 		done"
-# 	done
+multibfss: build
+	-mkdir multibfs
+	-python write_sh.py
+	chmod u+x multibfs/multibfss1.sh multibfs/multibfss2.sh multibfs/multibfss4.sh multibfs/multibfss8.sh multibfs/multibfss16.sh multibfs/multibfss32.sh multibfs/multibfss64.sh multibfs/multibfss128.sh
+	$(TIMEBFS)1.time sh -c "./multibfs/multibfss1.sh $(LIGRA_PATH) $(DATASET)"
+	$(TIMEBFS)2.time sh -c "./multibfs/multibfss2.sh $(LIGRA_PATH) $(DATASET)"
+	$(TIMEBFS)4.time sh -c "./multibfs/multibfss4.sh $(LIGRA_PATH) $(DATASET)"
+	$(TIMEBFS)8.time sh -c "./multibfs/multibfss8.sh $(LIGRA_PATH) $(DATASET)"
+	$(TIMEBFS)16.time sh -c "./multibfs/multibfss16.sh $(LIGRA_PATH) $(DATASET)"
+	$(TIMEBFS)32.time sh -c "./multibfs/multibfss32.sh $(LIGRA_PATH) $(DATASET)"
+	$(TIMEBFS)64.time sh -c "./multibfs/multibfss64.sh $(LIGRA_PATH) $(DATASET)"
+	$(TIMEBFS)128.time sh -c "./multibfs/multibfss128.sh $(LIGRA_PATH) $(DATASET)"
+multibfsp: build
+	-mkdir multibfs
+	-python write_sh.py
+	chmod u+x multibfs/multibfsp1.sh multibfs/multibfsp2.sh multibfs/multibfsp4.sh multibfs/multibfsp8.sh multibfs/multibfsp16.sh multibfs/multibfsp32.sh multibfs/multibfsp64.sh multibfs/multibfsp128.sh
+	$(TIMEBFS)1.time sh -c "./multibfs/multibfsp1.sh $(LIGRA_PATH) $(DATASET)"
+	$(TIMEBFS)2.time sh -c "./multibfs/multibfsp2.sh $(LIGRA_PATH) $(DATASET)"
+	$(TIMEBFS)4.time sh -c "./multibfs/multibfsp4.sh $(LIGRA_PATH) $(DATASET)"
+	$(TIMEBFS)8.time sh -c "./multibfs/multibfsp8.sh $(LIGRA_PATH) $(DATASET)"
+	$(TIMEBFS)16.time sh -c "./multibfs/multibfsp16.sh $(LIGRA_PATH) $(DATASET)"
+	$(TIMEBFS)32.time sh -c "./multibfs/multibfsp32.sh $(LIGRA_PATH) $(DATASET)"
+	$(TIMEBFS)64.time sh -c "./multibfs/multibfsp64.sh $(LIGRA_PATH) $(DATASET)"
+	$(TIMEBFS)128.time sh -c "./multibfs/multibfsp128.sh $(LIGRA_PATH) $(DATASET)"
 
 TIMEMULTICORE = /usr/bin/time -v -o $(PROFILE_PATH)/$(DATA)/$@
 # or env CILK_NWORKERS
-multicore:
+multicore: build multicorek multicores multicorep
+multicorek: build
 	export CILK_NWORKERS=1 && $(TIMEMULTICORE)1.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 	export CILK_NWORKERS=2 && $(TIMEMULTICORE)2.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 	export CILK_NWORKERS=4 && $(TIMEMULTICORE)4.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
@@ -221,6 +237,22 @@ multicore:
 	export CILK_NWORKERS=16 && $(TIMEMULTICORE)16.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 	export CILK_NWORKERS=32 && $(TIMEMULTICORE)32.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 	export CILK_NWORKERS=40 && $(TIMEMULTICORE)40.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+multicores: build
+	env CILK_NWORKERS=1 $(TIMEMULTICORE)1.time sh -c '$(HETERS)'
+	env CILK_NWORKERS=2 $(TIMEMULTICORE)2.time sh -c '$(HETERS)'
+	env CILK_NWORKERS=4 $(TIMEMULTICORE)4.time sh -c '$(HETERS)'
+	env CILK_NWORKERS=8 $(TIMEMULTICORE)8.time sh -c '$(HETERS)'
+	env CILK_NWORKERS=16 $(TIMEMULTICORE)16.time sh -c '$(HETERS)'
+	env CILK_NWORKERS=32 $(TIMEMULTICORE)32.time sh -c '$(HETERS)'
+	env CILK_NWORKERS=40 $(TIMEMULTICORE)40.time sh -c '$(HETERS)'
+multicorep: build
+	env CILK_NWORKERS=1 $(TIMEMULTICORE)1.time sh -c '$(HETERP)'
+	env CILK_NWORKERS=2 $(TIMEMULTICORE)2.time sh -c '$(HETERP)'
+	env CILK_NWORKERS=4 $(TIMEMULTICORE)4.time sh -c '$(HETERP)'
+	env CILK_NWORKERS=8 $(TIMEMULTICORE)8.time sh -c '$(HETERP)'
+	env CILK_NWORKERS=16 $(TIMEMULTICORE)16.time sh -c '$(HETERP)'
+	env CILK_NWORKERS=32 $(TIMEMULTICORE)32.time sh -c '$(HETERP)'
+	env CILK_NWORKERS=40 $(TIMEMULTICORE)40.time sh -c '$(HETERP)'
 
 clean:
 	-rm -rf $(PROFILE_PATH) *.prof
