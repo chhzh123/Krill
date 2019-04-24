@@ -13,7 +13,7 @@ else ifdef LJ
 DATA = soc-LiveJournal1
 DATASET = $(DATASET_PATH)/$(DATA)
 DATASETW = $(DATASET_PATH)/$(DATA)-w
-else ifdef USA
+else ifdef RD
 DATA = road_usa
 DATASET = $(DATASET_PATH)/$(DATA)
 DATASETW = $(DATASET_PATH)/$(DATA)-w
@@ -256,6 +256,4 @@ multicorep: build
 
 clean:
 	-rm -rf $(PROFILE_PATH) *.prof
-
-cleanpcm:
 	-rm -rf $(PCM_OUTPUT_PATH) *.pcm
