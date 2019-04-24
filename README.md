@@ -1,11 +1,13 @@
-Krill: A Concurrent Graph Processing System
+Krill: An Efficient Concurrent Graph Processing System
 ======================
 
-Krill is an efficient graph system for processing **concurrent graph tasks**, which equips with **graph kernel fusion** and greatly reduces the number of memory accesses. Currently, we select [Ligra](https://github.com/jshun/ligra), a state-of-the-art shared-memory single graph processing framework, as our underlying infrastructure.
+Krill is an efficient graph system for processing **concurrent graph tasks**, which equips with **graph kernel fusion** and greatly reduces the number of memory accesses.
+
+Currently, we select [Ligra](https://github.com/jshun/ligra), a state-of-the-art shared-memory single graph processing framework, as our underlying infrastructure.
 
 ## Getting Started
---------
-To write a program to process concurrent graph tasks, you should follow the two steps below.
+
+To write a program to process concurrent graph tasks, you should follow the three steps below.
 
 ### Write each graph task in a class
 We provide two base classes named `UnweightedTask` and `WeightedTask`, and your custom graph task should be encapsulated in a class and inherit from these two bases.
@@ -62,7 +64,7 @@ To make the compiler recognize your programs, you should modify the `Makefile`.
 Please append your task header file in `KERNEL` variable, and the main program should be added in the `ALL` target.
 
 ## Compilation
---------
+
 After organizing your tasks and modifying the makefile, you can compile the program and run for it!
 
 Just type `make` or `make -j` for compilation in the `apps` folder.
@@ -78,7 +80,7 @@ To compile with g++ using Cilk Plus, define the environment variable `CILK`. To 
 Notice the system has not been thoroughly tested in other compiler settings except for Intel icpc. Please commit a issue if some bugs you have found.
 
 ## Execution
---------
+
 To execute the compiled program, you can run the following commands (support the program named `concurrent`):
 
 ```bash
@@ -91,9 +93,9 @@ The command line arguments used in our system include:
 * `-b`: if the input graph is stored in binary
 * `-rounds`: specify the number of rounds the program to run
 
-## Dataset
---------
-The dataset used in our experiments can be found in the following links.
+## Datasets
+
+The datasets used in our experiments can be found in the following links.
 
 | Abbr. | Dataset | # of vertices | # of edges | source |
 | :---: | :---:   | :---:         | :---:      | :---:  |
@@ -108,7 +110,7 @@ Notice the graph data needs to be transformed into the format of [Problem Based 
 Similarly, you need to type `make` in the `utils` folder to compile the facilities first.
 
 ## Experiments
---------
+
 To reproduce the experiments in our paper, you should make sure
 1. Ligra has been compiled in another folder at first.
 2. Python 3 is installed in your system, which is needed for bash script writing and result extraction.
