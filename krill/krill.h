@@ -155,7 +155,7 @@ void pullDense(vertex*& V, Kernels& K)
         } else {
             parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
                 for (int i = 0; i < cntTasks; ++i)
-                    currTask[i]->condPull(K.nextUni,
+                    currTask[i]->condPullAtomic(K.nextUni,
                         dst.getInNeighbor(vSrcOffset),vDst,
                         dst.getInWeight(vSrcOffset));
             }
@@ -188,7 +188,7 @@ void pullSingle(vertex*& V, Task*& tsk)
             }
         } else {
             parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
-                tsk->condPullSingle(dst.getInNeighbor(vSrcOffset),vDst,
+                tsk->condPullSingleAtomic(dst.getInNeighbor(vSrcOffset),vDst,
                     dst.getInWeight(vSrcOffset));
             }
         }
@@ -221,7 +221,7 @@ void pullAll(vertex*& V, Task**& tsk, int nVert, int nTasks)
                 }
             } else {
                 parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
-                    task->condPullSingle(dst.getInNeighbor(vSrcOffset),vDst,
+                    task->condPullSingleAtomic(dst.getInNeighbor(vSrcOffset),vDst,
                         dst.getInWeight(vSrcOffset));
                 }
             }
