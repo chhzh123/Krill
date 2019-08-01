@@ -2,7 +2,7 @@
 
 KRILL_PATH = ../apps
 LIGRA_PATH = ../../ligra/apps
-DATASET_PATH = ../../../Dataset
+DATASET_PATH = ../../Dataset
 PCM_PATH = ../../../Tools/pcm
 
 ifdef CP
@@ -246,13 +246,13 @@ multicores: build
 	env CILK_NWORKERS=32 $(TIMEMULTICORE)32.time sh -c '$(HETERS)'
 	env CILK_NWORKERS=40 $(TIMEMULTICORE)40.time sh -c '$(HETERS)'
 multicorep: build
-	env CILK_NWORKERS=1 $(TIMEMULTICORE)1.time sh -c '$(HETERP)'
-	env CILK_NWORKERS=2 $(TIMEMULTICORE)2.time sh -c '$(HETERP)'
-	env CILK_NWORKERS=4 $(TIMEMULTICORE)4.time sh -c '$(HETERP)'
-	env CILK_NWORKERS=8 $(TIMEMULTICORE)8.time sh -c '$(HETERP)'
-	env CILK_NWORKERS=16 $(TIMEMULTICORE)16.time sh -c '$(HETERP)'
-	env CILK_NWORKERS=32 $(TIMEMULTICORE)32.time sh -c '$(HETERP)'
-	env CILK_NWORKERS=40 $(TIMEMULTICORE)40.time sh -c '$(HETERP)'
+	taskset -c 0 env CILK_NWORKERS=1 $(TIMEMULTICORE)1.time sh -c '$(HETERP)'
+	taskset -c 0-1 env CILK_NWORKERS=2 $(TIMEMULTICORE)2.time sh -c '$(HETERP)'
+	taskset -c 0-3 env CILK_NWORKERS=4 $(TIMEMULTICORE)4.time sh -c '$(HETERP)'
+	taskset -c 0-7 env CILK_NWORKERS=8 $(TIMEMULTICORE)8.time sh -c '$(HETERP)'
+	taskset -c 0-15 env CILK_NWORKERS=16 $(TIMEMULTICORE)16.time sh -c '$(HETERP)'
+	taskset -c 0-31 env CILK_NWORKERS=32 $(TIMEMULTICORE)32.time sh -c '$(HETERP)'
+	taskset -c 0-39 env CILK_NWORKERS=40 $(TIMEMULTICORE)40.time sh -c '$(HETERP)'
 
 clean:
 	-rm -rf $(PROFILE_PATH) *.prof
