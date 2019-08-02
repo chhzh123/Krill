@@ -11,22 +11,22 @@ using namespace std;
 template <class vertex>
 void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
-	string task_name = P.getOptionValue("-task","pr");
+	string job_name = P.getOptionValue("-job","pr");
 	long start = P.getOptionLongValue("-r",0);
-	if (task_name == "bfs"){
+	if (job_name == "bfs"){
 		BFS* bfs = new BFS(G.n,start);
-		K.appendTask(bfs);
-	} else if (task_name == "cc"){
+		K.appendJob(bfs);
+	} else if (job_name == "cc"){
 		Components* cc = new Components(G.n);
-		K.appendTask(cc);
-	} else if (task_name == "pr"){
+		K.appendJob(cc);
+	} else if (job_name == "pr"){
 		PageRank<vertex>* pr = new PageRank<vertex>(G.n,G.V);
-		K.appendTask(pr);
-	} else if (task_name == "sssp"){
+		K.appendJob(pr);
+	} else if (job_name == "sssp"){
 		SSSP* sssp = new SSSP(G.n,start);
-		K.appendTask(sssp);
+		K.appendJob(sssp);
 	} else {
-		cerr << "Error: No this task!" << endl;
+		cerr << "Error: No this job!" << endl;
 		abort();
 	}
 }

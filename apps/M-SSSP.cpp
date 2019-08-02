@@ -10,6 +10,6 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
 	for (int i = 1; i < 9; ++i){
 		SSSP* sssp = new SSSP(G.n,211*i);
-		K.appendTask(sssp);
+		K.appendJob(sssp);
 	}
 }

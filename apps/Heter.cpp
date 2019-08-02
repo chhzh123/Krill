@@ -16,6 +16,6 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 		Components* cc = new Components(G.n);
 		PageRank<vertex>* pr = new PageRank<vertex>(G.n,G.V);
 		SSSP* sssp = new SSSP(G.n,101*i+1);
-		K.appendTask({bfs,cc,pr,sssp});
+		K.appendJob({bfs,cc,pr,sssp});
 	}
 }

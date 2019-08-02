@@ -1,33 +1,33 @@
 // This code is part of the project "Krill"
 // Copyright (c) 2019 Hongzheng Chen
 
-#include "kernel.h" // base task class
+#include "kernel.h" // base job class
 using namespace std;
 
 /**
- * Write your own task class below,
- * which should be inherent from two base task classes,
- * i.e. `UnweightedTask` or `WeightedTask`.
+ * Write your own job class below,
+ * which should be inherent from two base job classes,
+ * i.e. `UnweightedJob` or `WeightedJob`.
 
- * For weighted tasks, you should comment the previous line
+ * For weighted jobs, you should comment the previous line
  * and uncomment the following line.
  */
-class MyTask: public UnweightedTask
-// class MyTask: public WeightedTask
+class MyJob: public UnweightedJob
+// class MyJob: public WeightedJob
 {
 public:
 	/**
-	 * The constructor of this task.
-	 * Notice the first argument of the task should be `_n`,
+	 * The constructor of this job.
+	 * Notice the first argument of the job should be `_n`,
 	 * i.e. the number of vertices of the input graph.
 	 * Parent constructor should be called at first.
 	 * Other initialization facility can be defined by yourself.
-	 * Also, for weighted tasks, you should delete the `UnweightedTask`
-	 * and uncomment the `WeightedTask` line.
+	 * Also, for weighted jobs, you should delete the `UnweightedJob`
+	 * and uncomment the `WeightedJob` line.
 	 */
-	MyTask(long _n):
-		UnweightedTask(_n){};
-		// WeightedTask(_n){};
+	MyJob(long _n):
+		UnweightedJob(_n){};
+		// WeightedJob(_n){};
 
 	/**
 	 * Input:
@@ -65,8 +65,8 @@ public:
 		// write your atomic update function here
 	}
 
-	/** 
-	 * This function justifies whether your task is finished and also should be overridden.
+	/**
+	 * This function justifies whether your job is finished and also should be overridden.
 	 * The default implementation returns whether the frontier set is empty.
 	 */
 	inline bool finished(){
@@ -106,7 +106,7 @@ public:
 	/**
 	 * `iniOneIter` is a virtual function but is not a pure virtual function,
 	 * meaning you DO NOT NECESSARILY need to specify it.
-	 * But for some specific tasks, operations like `vertexMap`
+	 * But for some specific jobs, operations like `vertexMap`
 	 * need to be done before the core computation part,
 	 * thus this kind of operations can be implemented in this function.
 	 *
@@ -125,7 +125,7 @@ public:
 
 	/**
 	 * Similar to `iniOneIter`, `finishOneIter` is also a virtual function
-	 * used for some specific tasks,
+	 * used for some specific jobs,
 	 * and you DO NOT NECESSARILY need to specify it.
 	 *
 	 * You can overload the function by uncommenting the following part
@@ -142,6 +142,6 @@ public:
 
 private:
 	/**
-	 * Specify your task property values here
+	 * Specify your job property values here
 	 */
 };

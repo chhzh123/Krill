@@ -11,10 +11,10 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
 	for (int i = 1; i < 5; ++i){
 		BFS* bfs = new BFS(G.n,10*i); // remember to dynamically allocate memory
-		K.appendTask(bfs);
+		K.appendJob(bfs);
 	}
 	for (int i = 0; i < 4; ++i){
 		Components* cc = new Components(G.n);
-		K.appendTask(cc);
+		K.appendJob(cc);
 	}
 }

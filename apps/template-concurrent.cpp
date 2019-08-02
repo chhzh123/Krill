@@ -2,7 +2,7 @@
 // Copyright (c) 2019 Hongzheng Chen
 
 #include "krill.h" // the underlying facility of krill
-// include the singleton tasks you have written below
+// include the singleton jobs you have written below
 #include "template-singleton.h"
 using namespace std;
 
@@ -12,23 +12,23 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 	/**
 	 * This function inputs three arguments, including
 	 ** G: The graph class encapsulates the input graph
-	 ** K: The container manages all the graph tasks
+	 ** K: The container manages all the graph jobs
 	 ** P: The command line manager
 	 *
-	 * Firstly, you should create an instance for each of your tasks
+	 * Firstly, you should create an instance for each of your jobs
 	 * by using the `new` method.
 	 * Notice you need to pass `G.n` as the first argument
-	 * of your task class, or some errors may occur.
+	 * of your job class, or some errors may occur.
 	 *
-	 * You can create your task instance and append them into the
-	 * kernel container `K` via `appendTask`.
-	 * You can append the task one at a time, or append them
+	 * You can create your job instance and append them into the
+	 * kernel container `K` via `appendJob`.
+	 * You can append the job one at a time, or append them
 	 * using the initialized list in C++.
 	 * The following two methods are valid.
 	 *
-	 * > K.appendTask(task1);
-	 * > K.appendTask({task1,task2,task3});
-	 * 
+	 * > K.appendJob(job1);
+	 * > K.appendJob({job1,job2,job3});
+	 *
 	 * For command line options, you can read them from `P`
 	 * For example, to read the source vertex index of BFS,
 	 * you can write
@@ -41,6 +41,6 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 	 * with `-s`, `-w`, `-c`, `-b`, and `-rounds`,
 	 * all of which have special meaning in Krill.
 	 */
-	MyTask* mytask = new MyTask(G.n);
-	K.appendTask(mytask);
+	MyJob* myjob = new MyJob(G.n);
+	K.appendJob(myjob);
 }

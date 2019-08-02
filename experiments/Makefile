@@ -52,26 +52,26 @@ build:
 	-mkdir -p $(PROFILE_PATH)/$(DATA)
 
 bfs: build
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -task bfs $(DATASET)"
-	$(PERFK) "./$(KRILL_PATH)/Singleton -task bfs $(DATASET)"
+	$(TIMEK) "./$(KRILL_PATH)/Singleton -job bfs $(DATASET)"
+	$(PERFK) "./$(KRILL_PATH)/Singleton -job bfs $(DATASET)"
 	$(TIME) './$(LIGRA_PATH)/BFS $(DATASET)'
 	$(PERF) './$(LIGRA_PATH)/BFS $(DATASET)'
 
 pr: build
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -task pr $(DATASET)"
-	$(PERFK) "./$(KRILL_PATH)/Singleton -task pr $(DATASET)"
+	$(TIMEK) "./$(KRILL_PATH)/Singleton -job pr $(DATASET)"
+	$(PERFK) "./$(KRILL_PATH)/Singleton -job pr $(DATASET)"
 	$(TIME) './$(LIGRA_PATH)/PageRank $(DATASET)'
 	$(PERF) './$(LIGRA_PATH)/PageRank $(DATASET)'
 
 cc: build
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -task cc $(DATASET)"
-	$(PERFK) "./$(KRILL_PATH)/Singleton -task cc $(DATASET)"
+	$(TIMEK) "./$(KRILL_PATH)/Singleton -job cc $(DATASET)"
+	$(PERFK) "./$(KRILL_PATH)/Singleton -job cc $(DATASET)"
 	$(TIME) './$(LIGRA_PATH)/Components $(DATASET)'
 	$(PERF) './$(LIGRA_PATH)/Components $(DATASET)'
 
 sssp: build
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -task sssp -w $(DATASETW)"
-	$(PERFK) "./$(KRILL_PATH)/Singleton -task sssp -w $(DATASETW)"
+	$(TIMEK) "./$(KRILL_PATH)/Singleton -job sssp -w $(DATASETW)"
+	$(PERFK) "./$(KRILL_PATH)/Singleton -job sssp -w $(DATASETW)"
 	$(TIME) './$(LIGRA_PATH)/BellmanFord $(DATASETW)'
 	$(PERF) './$(LIGRA_PATH)/BellmanFord $(DATASETW)'
 

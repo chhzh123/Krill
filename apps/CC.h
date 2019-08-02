@@ -15,11 +15,11 @@ struct Update_F : public Function
 	uintE* IDs, *prevIDs;
 };
 
-class Components : public UnweightedTask
+class Components : public UnweightedJob
 {
 public:
 	Components(long _n):
-		UnweightedTask(_n), IDs(NULL), prevIDs(NULL){}
+		UnweightedJob(_n), IDs(NULL), prevIDs(NULL){}
 	inline bool update(uintE s, uintE d){ // Update function writes min ID
 		uintE origID = IDs[d];
     	if (IDs[s] < origID) {

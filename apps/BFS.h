@@ -4,11 +4,11 @@
 #include "kernel.h"
 using namespace std;
 
-class BFS: public UnweightedTask
+class BFS: public UnweightedJob
 {
 public:
 	BFS(long _n, long _start = 0):
-		UnweightedTask(_n), parents(NULL), start(_start){}; // call parent class constructor
+		UnweightedJob(_n), parents(NULL), start(_start){}; // call parent class constructor
 	inline bool update(uintE s, uintE d){
 		if (parents[d] == UINT_E_MAX){
 			parents[d] = s;

@@ -32,11 +32,11 @@ struct Reset_PR : public Function
 };
 
 template <class vertex>
-class PageRank : public UnweightedTask
+class PageRank : public UnweightedJob
 {
 public:
 	PageRank(long _n, vertex* _V, long _maxIters = 100):
-		UnweightedTask(_n, true), p_curr(NULL), p_next(NULL), V(_V),
+		UnweightedJob(_n, true), p_curr(NULL), p_next(NULL), V(_V),
 		iter(0), maxIters(_maxIters){}; // call parent class constructor
 	inline bool update(uintE s, uintE d){ // update function applies PageRank equation
 		p_next[d] += p_curr[s] / V[s].getOutDegree();

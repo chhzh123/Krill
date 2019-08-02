@@ -12,6 +12,6 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 	cout << cnt << " BFSs" << endl;
 	for (int i = 1; i < cnt+1; ++i){
 		BFS* bfs = new BFS(G.n,10*i); // remember to dynamically allocate memory
-		K.appendTask(bfs);
+		K.appendJob(bfs);
 	}
 }

@@ -9,17 +9,17 @@
 #include "vertexSubset.h"
 using namespace std;
 
-// predefined max task num in the waiting list
+// predefined max job num in the waiting list
 // determined by the width of CPU register
-#define MAX_TASK_NUM 128
+#define MAX_JOB_NUM 128
 
-class Task // base class (abstract class)
+class Job // base class (abstract class)
 {
 public:
-    Task(long _nVertex, bool _isWeighted, bool _isSingleton = false):
+    Job(long _nVertex, bool _isWeighted, bool _isSingleton = false):
         n(_nVertex), active(false), nextFrontier(NULL),
         isWeighted(_isWeighted), isSingleton(_isSingleton){};
-    ~Task() = default;
+    ~Job() = default;
 
     // *pure* virtual function used for correct function call
     virtual bool cond(uintE d) = 0;
@@ -96,11 +96,11 @@ public:
     bool isSingleton;
 };
 
-class UnweightedTask : public Task
+class UnweightedJob : public Job
 {
 public:
-    UnweightedTask(long _nVertex, bool _isSingleton = false):
-        Task(_nVertex, false, _isSingleton){};
+    UnweightedJob(long _nVertex, bool _isSingleton = false):
+        Job(_nVertex, false, _isSingleton){};
     virtual bool update(uintE s, uintE d) = 0;
     virtual bool updateAtomic(uintE s, uintE d) = 0;
     // sparse
@@ -151,11 +151,11 @@ public:
     }
 };
 
-class WeightedTask : public Task
+class WeightedJob : public Job
 {
 public:
-    WeightedTask(long _nVertex, bool _isSingleton = false):
-        Task(_nVertex, true, _isSingleton){};
+    WeightedJob(long _nVertex, bool _isSingleton = false):
+        Job(_nVertex, true, _isSingleton){};
     virtual bool update(uintE s, uintE d, intE edgeVal) = 0;
     virtual bool updateAtomic(uintE s, uintE d, intE edgeVal) = 0;
     // sparse
@@ -204,33 +204,33 @@ public:
 class Kernels
 {
 public:
-    Kernels(): nTask(0),nCTask(0),nSTask(0),nextUni(NULL),nextSpUni(NULL){
-        task = new Task*[MAX_TASK_NUM]; // polymorphism, using `new' may be easier for deletion
-        cTask = new Task*[MAX_TASK_NUM];
-        sTask = new Task*[MAX_TASK_NUM];
+    Kernels(): nJob(0),nCJob(0),nSJob(0),nextUni(NULL),nextSpUni(NULL){
+        job = new Job*[MAX_JOB_NUM]; // polymorphism, using `new' may be easier for deletion
+        cJob = new Job*[MAX_JOB_NUM];
+        sJob = new Job*[MAX_JOB_NUM];
     };
     ~Kernels() = default;
-    void appendTask(Task* tsk)
+    void appendJob(Job* tsk)
     {
-        task[nTask++] = tsk;
+        job[nJob++] = tsk;
         if (!tsk->isSingleton)
-            cTask[nCTask++] = tsk;
+            cJob[nCJob++] = tsk;
         else
-            sTask[nSTask++] = tsk;
+            sJob[nSJob++] = tsk;
     }
-    void appendTask(initializer_list<Task*> list)
+    void appendJob(initializer_list<Job*> list)
     {
         for (auto tsk : list)
-            appendTask(tsk);
+            appendJob(tsk);
     }
     void initialize(const long nVert_, const bool isWeightedGraph){
         nVert = nVert_;
-        for (int i = 0; i < nTask; ++i){
-            if (task[i]->isWeighted && !isWeightedGraph){ // graph is unweighted, but there are weighted tasks
-                cerr << "Error: Unweighted graph with weighted tasks!" << endl;
+        for (int i = 0; i < nJob; ++i){
+            if (job[i]->isWeighted && !isWeightedGraph){ // graph is unweighted, but there are weighted jobs
+                cerr << "Error: Unweighted graph with weighted jobs!" << endl;
                 abort();
             }
-            if (task[i]->n != nVert){
+            if (job[i]->n != nVert){
                 cerr << "Error: Inconsistent number of vertices." << endl;
                 abort();
             }
@@ -238,8 +238,8 @@ public:
         bool* originalUni = newA(bool,nVert);
         parallel_for (int i = 0; i < nVert; ++i)
             originalUni[i] = 0;
-        parallel_for (int i = 0; i < nTask; ++i){
-            Task* t = task[i];
+        parallel_for (int i = 0; i < nJob; ++i){
+            Job* t = job[i];
             t->active = true;
             t->ID = i;
             t->initialize();
@@ -253,18 +253,18 @@ public:
         UniFrontier = vertexSubset(nVert,originalUni);
     }
     void iniOneIter(){
-        parallel_for (int i = 0; i < nCTask; ++i)
-            cTask[i]->iniOneIter();
-        parallel_for (int i = 0; i < nSTask; ++i)
-            sTask[i]->iniOneIter();
+        parallel_for (int i = 0; i < nCJob; ++i)
+            cJob[i]->iniOneIter();
+        parallel_for (int i = 0; i < nSJob; ++i)
+            sJob[i]->iniOneIter();
         flagSparse = false;
         nextM = 0;
     }
     void finishOneIter(){
-        parallel_for (int i = 0; i < nCTask; ++i)
-            cTask[i]->finishOneIter();
-        parallel_for (int i = 0; i < nSTask; ++i)
-            sTask[i]->finishOneIter();
+        parallel_for (int i = 0; i < nCJob; ++i)
+            cJob[i]->finishOneIter();
+        parallel_for (int i = 0; i < nSJob; ++i)
+            sJob[i]->finishOneIter();
         UniFrontier.del();
         // set new frontier
         if (!flagSparse){
@@ -282,9 +282,9 @@ public:
     void finish(){
         if (nextSpUni != NULL)
             free(nextSpUni);
-        delete [] task;
-        // delete [] cTask;
-        // delete [] sTask;
+        delete [] job;
+        // delete [] cJob;
+        // delete [] sJob;
     }
     inline bool* denseMode(){
         flagSparse = false;
@@ -299,12 +299,12 @@ public:
     int pushSparseCnt = 0;
     int pullDenseCnt = 0;
     int pullSparseCnt = 0;
-    int nTask;
-    Task** task; // 1D array to store pointers of the tasks
-    int nCTask;
-    int nSTask;
-    Task** cTask; // concurrent tasks
-    Task** sTask; // singleton tasks
+    int nJob;
+    Job** job; // 1D array to store pointers of the jobs
+    int nCJob;
+    int nSJob;
+    Job** cJob; // concurrent jobs
+    Job** sJob; // singleton jobs
     bool flagSparse;
     bool* nextUni;
     long nextM;

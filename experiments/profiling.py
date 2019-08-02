@@ -37,15 +37,16 @@ llc_miss = {'s':{},'p':{},'k':{}}
 instructions = {'s':{},'p':{},'k':{}}
 output.write("Profiling results of " + data_name + "\n")
 for filename in os.listdir(data_path):
-	if ".time" in filename:
+	if ".time" in filename and filename.split(".time")[0][:-1] in algs:
 		with open(data_path + "/" + filename,"r") as file:
 			for line in file:
 				name = filename.split('.')[0]
 				if "wall clock" in line: # not user time!
-					realtime[name[-1]][name[:-1]] = line.split()[-1]
+					tmp = line.split()[-1]
+					realtime[name[-1]][name[:-1]] = "{:.2f}".format(int(tmp.split(':')[0]) * 60 + float(tmp.split(':')[1]))
 				elif "Maximum resident set size" in line:
 					peakmem[name[-1]][name[:-1]] = line.split()[-1]
-	elif ".perf" in filename:
+	elif ".perf" in filename and filename.split(".perf")[0][:-1] in algs:
 		with open(data_path + "/" + filename,"r") as file:
 			for line in file:
 				name = filename.split('.')[0]

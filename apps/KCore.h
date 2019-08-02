@@ -36,11 +36,11 @@ struct Deg_LessThan_K : public Function
 
 // assume undirected/symmetric graph!
 template<class vertex>
-class KCore : public UnweightedTask
+class KCore : public UnweightedJob
 {
 public:
 	KCore(long _n, vertex* _V):
-		UnweightedTask(_n), V(_V), coreNum(NULL), degrees(NULL), toRemove(NULL), k(1){}
+		UnweightedJob(_n), V(_V), coreNum(NULL), degrees(NULL), toRemove(NULL), k(1){}
 	inline bool update(uintE s, uintE d){
 		degrees[s]--;
 		return false;
