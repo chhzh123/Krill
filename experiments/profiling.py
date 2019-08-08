@@ -24,8 +24,11 @@ def write_table(lst,head):
 		output.write(lst['s'][alg] + "\t\t")
 	output.write("\n")
 	output.write("Ligra-P\t")
-	for alg in algs:
-		output.write(lst['p'][alg] + "\t\t")
+	try:
+		for alg in algs:
+			output.write(lst['p'][alg] + "\t\t")
+	except:
+		pass
 	output.write("\n\n")
 
 print("Extracting profiling results from {} ...".format(data_path))

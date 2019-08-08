@@ -297,17 +297,25 @@ void Execute(graph<vertex>& G, Kernels& K, commandLine P)
         } else {
             K.iniOneIter();
 
+#if defined(CILKP)
+            cilk_spawn pullAll<vertex>(G.V, K.sJob, K.nVert, K.nSJob);
+#else
             // thread singleJobThreads[K.nSJob];
             // for (int i = 0; i < K.nSJob; ++i)
             //     singleJobThreads[i] = thread(pullSingle<vertex>,ref(G.V),ref(K.sJob[i]));
-            thread singleJobAll = thread(pullAll<vertex>,ref(G.V),ref(K.sJob),K.nVert,K.nSJob);
+            thread singleJobAll = thread(pullAll<vertex>, ref(G.V), ref(K.sJob), K.nVert, K.nSJob);
+#endif
 
             if (K.nCJob != 0)
                 Compute(G,K);
 
+#if defined(CILKP)
+            cilk_sync;
+#else
             singleJobAll.join();
             // for (int i = 0; i < K.nSJob; ++i)
             //     singleJobThreads[i].join();
+#endif
 
             K.finishOneIter();
             scheduleJob(K.cJob,K.nCJob);

@@ -45,7 +45,19 @@ PCM = sudo ./$(PCM_PATH)/pcm-memory.x 0.01 -csv=$(PCM_OUTPUT_PATH)/$@.csv --exte
 
 .PHONY: clean cleanpcm exp build bfs pr sssp cc homo1 homo2 heter mbfs msssp pcm bfspcm prpcm ccpcm sssppcm multibfs multicore
 
+# Something needs to be noticed:
+# 1. be careful that cold start of the first attempt will lead to performance degradation
+# 2. `time` and `perf` cannot be done together, since `perf` may also degrade performance
 exp: build homo1 homo2 heter mbfs msssp
+	python profiling.py $(PROFILE_PATH)/$(DATA)
+
+expk: build homo1k homo2k heterk mbfsk mssspk
+	python profiling.py $(PROFILE_PATH)/$(DATA)
+
+exps: build homo1s homo2s heters mbfss msssps
+	python profiling.py $(PROFILE_PATH)/$(DATA)
+
+expp: build homo1p homo2p heterp mbfsp mssspp
 	python profiling.py $(PROFILE_PATH)/$(DATA)
 
 build:
@@ -54,26 +66,26 @@ build:
 bfs: build
 	$(TIMEK) "./$(KRILL_PATH)/Singleton -job bfs $(DATASET)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -job bfs $(DATASET)"
+	# second try
 	$(TIME) './$(LIGRA_PATH)/BFS $(DATASET)'
-	$(PERF) './$(LIGRA_PATH)/BFS $(DATASET)'
 
 pr: build
 	$(TIMEK) "./$(KRILL_PATH)/Singleton -job pr $(DATASET)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -job pr $(DATASET)"
+	# second try
 	$(TIME) './$(LIGRA_PATH)/PageRank $(DATASET)'
-	$(PERF) './$(LIGRA_PATH)/PageRank $(DATASET)'
 
 cc: build
 	$(TIMEK) "./$(KRILL_PATH)/Singleton -job cc $(DATASET)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -job cc $(DATASET)"
+	# second try
 	$(TIME) './$(LIGRA_PATH)/Components $(DATASET)'
-	$(PERF) './$(LIGRA_PATH)/Components $(DATASET)'
 
 sssp: build
 	$(TIMEK) "./$(KRILL_PATH)/Singleton -job sssp -w $(DATASETW)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -job sssp -w $(DATASETW)"
+	# second try
 	$(TIME) './$(LIGRA_PATH)/BellmanFord $(DATASETW)'
-	$(PERF) './$(LIGRA_PATH)/BellmanFord $(DATASETW)'
 
 HOMO1S = ./$(LIGRA_PATH)/BFS -r 10 $(DATASET); \
 	./$(LIGRA_PATH)/BFS -r 20 $(DATASET); \
@@ -84,16 +96,27 @@ HOMO1S = ./$(LIGRA_PATH)/BFS -r 10 $(DATASET); \
 	./$(LIGRA_PATH)/Components $(DATASET); \
 	./$(LIGRA_PATH)/Components $(DATASET)
 HOMO1P = $(subst ;, &,$(HOMO1S)) & wait
+ifneq "$(or $(TW), $(FT))" ""
+homo1: build homo1k homo1s
+else
 homo1: build homo1k homo1s homo1p
+endif
 homo1k: build
+	# first try
 	$(TIME) "./$(KRILL_PATH)/Homo1 $(DATASET)"
+	# second try
 	$(PERF) "./$(KRILL_PATH)/Homo1 $(DATASET)"
+	$(TIME) "./$(KRILL_PATH)/Homo1 $(DATASET)"
 homo1s: build
 	$(TIME) '$(HOMO1S)'
+	# second try
 	$(PERF) '$(HOMO1S)'
+	$(TIME) '$(HOMO1S)'
 homo1p: build
 	$(TIME) '$(HOMO1P)'
+	# second try
 	$(PERF) '$(HOMO1P)'
+	$(TIME) '$(HOMO1P)'
 
 HOMO2S = ./$(LIGRA_PATH)/BellmanFord -r 73 $(DATASETW) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 144 $(DATASETW) ; \
@@ -104,16 +127,26 @@ HOMO2S = ./$(LIGRA_PATH)/BellmanFord -r 73 $(DATASETW) ; \
 	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
 	./$(LIGRA_PATH)/PageRank $(DATASET)
 HOMO2P = $(subst ;, &,$(HOMO2S)) & wait
+ifneq "$(or $(TW), $(FT))" ""
+homo2: build homo2k homo2s
+else
 homo2: build homo2k homo2s homo2p
+endif
 homo2k: build
 	$(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
+	# second try
 	$(PERF) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
+	$(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
 homo2s: build
 	$(TIME) '$(HOMO2S)'
+	# second try
 	$(PERF) '$(HOMO2S)'
+	$(TIME) '$(HOMO2S)'
 homo2p: build
 	$(TIME) '$(HOMO2P)'
+	# second try
 	$(PERF) '$(HOMO2P)'
+	$(TIME) '$(HOMO2P)'
 
 HETERS = ./$(LIGRA_PATH)/BFS -r 71 $(DATASET) ; \
 	./$(LIGRA_PATH)/Components $(DATASET) ; \
@@ -124,16 +157,26 @@ HETERS = ./$(LIGRA_PATH)/BFS -r 71 $(DATASET) ; \
 	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 203 $(DATASETW)
 HETERP = $(subst ;, &,$(HETERS)) & wait
+ifneq "$(or $(TW), $(FT))" ""
+heter: build heterk heters
+else
 heter: build heterk heters heterp
+endif
 heterk: build
 	$(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+	# second try
 	$(PERF) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+	$(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 heters: build
 	$(TIME) '$(HETERS)'
+	# second try
 	$(PERF) '$(HETERS)'
+	$(TIME) '$(HETERS)'
 heterp: build
 	$(TIME) '$(HETERP)'
+	# second try
 	$(PERF) '$(HETERP)'
+	$(TIME) '$(HETERP)'
 
 MBFSS = ./$(LIGRA_PATH)/BFS -r 91 $(DATASET) ; \
 	./$(LIGRA_PATH)/BFS -r 182 $(DATASET) ; \
@@ -144,16 +187,26 @@ MBFSS = ./$(LIGRA_PATH)/BFS -r 91 $(DATASET) ; \
 	./$(LIGRA_PATH)/BFS -r 637 $(DATASET) ; \
 	./$(LIGRA_PATH)/BFS -r 828 $(DATASET)
 MBFSP = $(subst ;, &,$(MBFSS)) & wait
+ifneq "$(or $(TW), $(FT))" ""
+mbfs: build mbfsk mbfss
+else
 mbfs: build mbfsk mbfss mbfsp
+endif
 mbfsk: build
 	$(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
+	# second try
 	$(PERF) "./$(KRILL_PATH)/M-BFS $(DATASET)"
+	$(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
 mbfss: build
 	$(TIME) '$(MBFSS)'
+	# second try
 	$(PERF) '$(MBFSS)'
+	$(TIME) '$(MBFSS)'
 mbfsp: build
 	$(TIME) '$(MBFSP)'
+	# second try
 	$(PERF) '$(MBFSP)'
+	$(TIME) '$(MBFSP)'
 
 MSSSPS = ./$(LIGRA_PATH)/BellmanFord -r 211 $(DATASETW) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 422 $(DATASETW) ; \
@@ -164,17 +217,26 @@ MSSSPS = ./$(LIGRA_PATH)/BellmanFord -r 211 $(DATASETW) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 1477 $(DATASETW) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 1688 $(DATASETW)
 MSSSPP = $(subst ;, &,$(MSSSPS)) & wait
+ifneq "$(or $(TW), $(FT))" ""
+msssp: build mssspk msssps
+else
 msssp: build mssspk msssps mssspp
+endif
 mssspk: build
 	$(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
+	# second try
 	$(PERF) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
+	$(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
 msssps: build
 	$(TIME) '$(MSSSPS)'
+	# second try
 	$(PERF) '$(MSSSPS)'
-
+	$(TIME) '$(MSSSPS)'
 mssspp: build
 	$(TIME) '$(MSSSPP)'
+	# second try
 	$(PERF) '$(MSSSPP)'
+	$(TIME) '$(MSSSPP)'
 
 pcm: buildpcm bfspcm prpcm ccpcm sssppcm
 	python pcm.py $(PCM_OUTPUT_PATH)
