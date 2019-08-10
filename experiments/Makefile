@@ -3,7 +3,7 @@
 KRILL_PATH = ../apps
 LIGRA_PATH = ../../ligra/apps
 DATASET_PATH = ../../Dataset
-PCM_PATH = ../../../Tools/pcm
+PCM_PATH = ../../pcm
 
 ifdef CP
 DATA = cit-Patents
@@ -32,7 +32,7 @@ DATASETW = ../inputs/$(DATA)_WJ_5_100
 endif
 
 PROFILE_PATH = profile
-PCM_OUTPUT_PATH = pcm
+PCM_OUTPUT_PATH = pcm-results
 TIMEK = /usr/bin/time -v -o $(PROFILE_PATH)/$(DATA)/$@k.time sh -c
 PERFK = perf stat -d -o $(PROFILE_PATH)/$(DATA)/$@k.perf sh -c
 TIME = /usr/bin/time -v -o $(PROFILE_PATH)/$(DATA)/$@.time sh -c
@@ -66,26 +66,30 @@ build:
 bfs: build
 	$(TIMEK) "./$(KRILL_PATH)/Singleton -job bfs $(DATASET)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -job bfs $(DATASET)"
-	# second try
 	$(TIME) './$(LIGRA_PATH)/BFS $(DATASET)'
+	# second try
+	$(TIMEK) "./$(KRILL_PATH)/Singleton -job bfs $(DATASET)"
 
 pr: build
 	$(TIMEK) "./$(KRILL_PATH)/Singleton -job pr $(DATASET)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -job pr $(DATASET)"
-	# second try
 	$(TIME) './$(LIGRA_PATH)/PageRank $(DATASET)'
+	# second try
+	$(TIMEK) "./$(KRILL_PATH)/Singleton -job pr $(DATASET)"
 
 cc: build
 	$(TIMEK) "./$(KRILL_PATH)/Singleton -job cc $(DATASET)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -job cc $(DATASET)"
-	# second try
 	$(TIME) './$(LIGRA_PATH)/Components $(DATASET)'
+	# second try
+	$(TIMEK) "./$(KRILL_PATH)/Singleton -job cc $(DATASET)"
 
 sssp: build
 	$(TIMEK) "./$(KRILL_PATH)/Singleton -job sssp -w $(DATASETW)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -job sssp -w $(DATASETW)"
-	# second try
 	$(TIME) './$(LIGRA_PATH)/BellmanFord $(DATASETW)'
+	# second try
+	$(TIMEK) "./$(KRILL_PATH)/Singleton -job sssp -w $(DATASETW)"
 
 HOMO1S = ./$(LIGRA_PATH)/BFS -r 10 $(DATASET); \
 	./$(LIGRA_PATH)/BFS -r 20 $(DATASET); \
@@ -251,6 +255,19 @@ ccpcm: buildpcm
 	$(PCM) ./$(LIGRA_PATH)/Components $(DATASET)
 sssppcm: buildpcm
 	$(PCM) ./$(LIGRA_PATH)/BellmanFord $(DATASETW)
+
+pcmk: buildpcm homo1pcm homo2pcm heterpcm mbfspcm msssppcm
+
+homo1pcm: buildpcm
+	$(PCM) ./$(KRILL_PATH)/Homo1 $(DATASET)
+homo2pcm: buildpcm
+	$(PCM) ./$(KRILL_PATH)/Homo2 -w $(DATASETW)
+heterpcm: buildpcm
+	$(PCM) ./$(KRILL_PATH)/Heter -w $(DATASETW)
+mbfspcm: buildpcm
+	$(PCM) ./$(KRILL_PATH)/M-BFS $(DATASET)
+msssppcm: buildpcm
+	$(PCM) ./$(KRILL_PATH)/M-SSSP -w $(DATASETW)
 
 TIMEBFS = /usr/bin/time -v -o $(PROFILE_PATH)/$(DATA)/$@
 multibfs: build multibfsk multibfss multibfsp

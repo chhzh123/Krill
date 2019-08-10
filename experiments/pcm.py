@@ -14,11 +14,12 @@ output = open(data_name + ".pcm","w")
 print("Extracting pcm results from {} ...".format(data_path))
 for filename in os.listdir(data_path):
 	with open(data_path + "/" + filename,"r") as file:
-		for (i,line) in enumerate(file):
-			if i < 2 or len(line.split(';')) < 3:
-				continue
-			else:
-				res[filename.split('.')[0][:-3]].append(float(line.split(';')[9])) # Memory (MB/s)
+		if filename.split(".")[0] in algs:
+			for (i,line) in enumerate(file):
+				if i < 2 or len(line.split(';')) < 3:
+					continue
+				else:
+					res[filename.split('.')[0][:-3]].append(float(line.split(';')[9])) # Memory (MB/s)
 for alg in algs:
 	res[alg] = res[alg][io[alg]:io[alg]+300]
 # for alg in algs:
