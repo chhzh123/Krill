@@ -43,7 +43,7 @@ PCM = sudo ./$(PCM_PATH)/pcm-memory.x 0.01 -csv=$(PCM_OUTPUT_PATH)/$@.csv --exte
 # to clear the cache
 #sudo sh -c 'echo 1 >/proc/sys/vm/drop_caches'
 
-.PHONY: clean cleanpcm exp build bfs pr sssp cc homo1 homo2 heter mbfs msssp pcm bfspcm prpcm ccpcm sssppcm multibfs multicore
+.PHONY: clean exp build bfs pr sssp cc homo1 homo2 heter mbfs msssp pcm bfspcm prpcm ccpcm sssppcm multibfs multicore
 
 # Something needs to be noticed:
 # 1. be careful that cold start of the first attempt will lead to performance degradation
@@ -60,10 +60,17 @@ exps: build homo1s homo2s heters mbfss msssps
 expp: build homo1p homo2p heterp mbfsp mssspp
 	python profiling.py $(PROFILE_PATH)/$(DATA)
 
+expnokerf: build homo1nokerf homo2nokerf heternokerf mbfsnokerf mssspnokerf
+	python profiling.py $(PROFILE_PATH)/$(DATA)
+
+expnoopt: build homo1noopt homo2noopt heternoopt mbfsnoopt mssspnoopt
+	python profiling.py $(PROFILE_PATH)/$(DATA)
+
 build:
 	-mkdir -p $(PROFILE_PATH)/$(DATA)
 
 bfs: build
+	# first try
 	$(TIMEK) "./$(KRILL_PATH)/Singleton -job bfs $(DATASET)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -job bfs $(DATASET)"
 	$(TIME) './$(LIGRA_PATH)/BFS $(DATASET)'
@@ -71,6 +78,7 @@ bfs: build
 	$(TIMEK) "./$(KRILL_PATH)/Singleton -job bfs $(DATASET)"
 
 pr: build
+	# first try
 	$(TIMEK) "./$(KRILL_PATH)/Singleton -job pr $(DATASET)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -job pr $(DATASET)"
 	$(TIME) './$(LIGRA_PATH)/PageRank $(DATASET)'
@@ -78,6 +86,7 @@ pr: build
 	$(TIMEK) "./$(KRILL_PATH)/Singleton -job pr $(DATASET)"
 
 cc: build
+	# first try
 	$(TIMEK) "./$(KRILL_PATH)/Singleton -job cc $(DATASET)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -job cc $(DATASET)"
 	$(TIME) './$(LIGRA_PATH)/Components $(DATASET)'
@@ -85,6 +94,7 @@ cc: build
 	$(TIMEK) "./$(KRILL_PATH)/Singleton -job cc $(DATASET)"
 
 sssp: build
+	# first try
 	$(TIMEK) "./$(KRILL_PATH)/Singleton -job sssp -w $(DATASETW)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -job sssp -w $(DATASETW)"
 	$(TIME) './$(LIGRA_PATH)/BellmanFord $(DATASETW)'
@@ -111,12 +121,26 @@ homo1k: build
 	# second try
 	$(PERF) "./$(KRILL_PATH)/Homo1 $(DATASET)"
 	$(TIME) "./$(KRILL_PATH)/Homo1 $(DATASET)"
+homo1nokerf: build
+	# first try
+	# Need to recompile! The execution file is different!
+	# $(TIME) "./$(KRILL_PATH)/Homo1 $(DATASET)"
+	# second try
+	$(TIME) "./$(KRILL_PATH)/Homo1 $(DATASET)"
+homo1noopt: build
+	# first try
+	# Need to recompile! The execution file is different!
+	# $(TIME) "./$(KRILL_PATH)/Homo1 $(DATASET)"
+	# second try
+	$(TIME) "./$(KRILL_PATH)/Homo1 $(DATASET)"
 homo1s: build
+	# first try
 	$(TIME) '$(HOMO1S)'
 	# second try
 	$(PERF) '$(HOMO1S)'
 	$(TIME) '$(HOMO1S)'
 homo1p: build
+	# first try
 	$(TIME) '$(HOMO1P)'
 	# second try
 	$(PERF) '$(HOMO1P)'
@@ -137,16 +161,29 @@ else
 homo2: build homo2k homo2s homo2p
 endif
 homo2k: build
+	# first try
 	$(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
 	# second try
 	$(PERF) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
 	$(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
+homo2nokerf: build
+	# first try
+	# $(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
+	# second try
+	$(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
+homo2noopt: build
+	# first try
+	# $(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
+	# second try
+	$(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
 homo2s: build
+	# first try
 	$(TIME) '$(HOMO2S)'
 	# second try
 	$(PERF) '$(HOMO2S)'
 	$(TIME) '$(HOMO2S)'
 homo2p: build
+	# first try
 	$(TIME) '$(HOMO2P)'
 	# second try
 	$(PERF) '$(HOMO2P)'
@@ -167,16 +204,29 @@ else
 heter: build heterk heters heterp
 endif
 heterk: build
+	# first try
 	$(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 	# second try
 	$(PERF) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 	$(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+heternokerf: build
+	# first try
+	# $(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+	# second try
+	$(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+heternoopt: build
+	# first try
+	# $(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+	# second try
+	$(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 heters: build
+	# first try
 	$(TIME) '$(HETERS)'
 	# second try
 	$(PERF) '$(HETERS)'
 	$(TIME) '$(HETERS)'
 heterp: build
+	# first try
 	$(TIME) '$(HETERP)'
 	# second try
 	$(PERF) '$(HETERP)'
@@ -197,16 +247,29 @@ else
 mbfs: build mbfsk mbfss mbfsp
 endif
 mbfsk: build
+	# first try
 	$(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
 	# second try
 	$(PERF) "./$(KRILL_PATH)/M-BFS $(DATASET)"
 	$(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
+mbfsnokerf: build
+	# first try
+	# $(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
+	# second try
+	$(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
+mbfsnoopt: build
+	# first try
+	# $(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
+	# second try
+	$(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
 mbfss: build
+	# first try
 	$(TIME) '$(MBFSS)'
 	# second try
 	$(PERF) '$(MBFSS)'
 	$(TIME) '$(MBFSS)'
 mbfsp: build
+	# first try
 	$(TIME) '$(MBFSP)'
 	# second try
 	$(PERF) '$(MBFSP)'
@@ -227,16 +290,29 @@ else
 msssp: build mssspk msssps mssspp
 endif
 mssspk: build
+	# first try
 	$(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
 	# second try
 	$(PERF) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
 	$(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
+mssspnokerf: build
+	# first try
+	# $(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
+	# second try
+	$(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
+mssspnoopt: build
+	# first try
+	# $(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
+	# second try
+	$(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
 msssps: build
+	# first try
 	$(TIME) '$(MSSSPS)'
 	# second try
 	$(PERF) '$(MSSSPS)'
 	$(TIME) '$(MSSSPS)'
 mssspp: build
+	# first try
 	$(TIME) '$(MSSSPP)'
 	# second try
 	$(PERF) '$(MSSSPP)'
@@ -334,5 +410,5 @@ multicorep: build
 	taskset -c 0-39 env CILK_NWORKERS=40 $(TIMEMULTICORE)40.time sh -c '$(HETERP)'
 
 clean:
-	-rm -rf $(PROFILE_PATH) *.prof
+	-rm -rf $(PROFILE_PATH) *.prof *.log
 	-rm -rf $(PCM_OUTPUT_PATH) *.pcm

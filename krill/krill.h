@@ -169,33 +169,76 @@ void pullDense(vertex*& V, Kernels& K)
 
 // Compute one iteration, pull-based (dense)
 template <class vertex>
-void pullSingle(vertex*& V, Job*& tsk)
+void pullSingle(vertex *&V, Job *&tsk)
 {
 #ifdef DEBUG
     auto t1 = Clock::now();
 #endif
     long n = tsk->n; // # of vertices
-    parallel_for (long vDst = 0; vDst < n; ++vDst){
+    parallel_for(long vDst = 0; vDst < n; ++vDst)
+    {
         vertex dst = V[vDst];
         uintE inDegree = dst.getInDegree();
-        if (!tsk->cond(vDst)) continue;
-        if (inDegree < SEQ_THRESHOLD){
-            for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
-                tsk->condPullSingle(dst.getInNeighbor(vSrcOffset),vDst,
-                        dst.getInWeight(vSrcOffset));
+        if (!tsk->cond(vDst))
+            continue;
+        if (inDegree < SEQ_THRESHOLD)
+        {
+            for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset)
+            {
+                tsk->condPullSingle(dst.getInNeighbor(vSrcOffset), vDst,
+                                    dst.getInWeight(vSrcOffset));
                 if (!tsk->cond(vDst)) // early break!
                     break;
             }
-        } else {
-            parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
-                tsk->condPullSingleAtomic(dst.getInNeighbor(vSrcOffset),vDst,
-                    dst.getInWeight(vSrcOffset));
+        }
+        else
+        {
+            parallel_for(long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset)
+            {
+                tsk->condPullSingleAtomic(dst.getInNeighbor(vSrcOffset), vDst,
+                                          dst.getInWeight(vSrcOffset));
             }
         }
     }
 #ifdef DEBUG
     auto t2 = Clock::now();
     cout << "pull single time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
+#endif
+}
+
+template <class vertex>
+void pushSingle(vertex *&V, Job *&tsk)
+{
+#ifdef DEBUG
+    auto t1 = Clock::now();
+#endif
+    long n = tsk->n; // # of vertices
+    parallel_for(long vSrc = 0; vSrc < n; ++vSrc)
+    { // outer parallel
+        vertex src = V[vSrc];
+        uintE outDegree = src.getOutDegree();
+        if (!tsk->frontier.d[vSrc])
+            continue;
+        if (outDegree < SEQ_THRESHOLD)
+        {
+            for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset)
+            { // inner parallel
+                tsk->condPushSingle(vSrc, src.getOutNeighbor(vDstOffset),
+                                    src.getOutWeight(vDstOffset));
+            }
+        }
+        else
+        {
+            parallel_for(long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset)
+            { // inner parallel
+                tsk->condPushSingle(vSrc, src.getOutNeighbor(vDstOffset),
+                                    src.getOutWeight(vDstOffset));
+            }
+        }
+    }
+#ifdef DEBUG
+    auto t2 = Clock::now();
+    cout << "push single time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
 #endif
 }
 
@@ -233,6 +276,88 @@ void pullAll(vertex*& V, Job**& tsk, int nVert, int nJobs)
 #endif
 }
 
+template <class vertex>
+void pushNoOpt(vertex *&V, Kernels &K)
+{
+#ifdef DEBUG
+    auto t1 = Clock::now();
+#endif
+    int nCJobs = K.nCJob;
+    long n = K.nVert; // # of vertices
+    Job **job = K.cJob;
+    K.denseMode();
+    parallel_for(long vSrc = 0; vSrc < n; ++vSrc)
+    { // outer parallel
+        vertex src = V[vSrc];
+        uintE outDegree = src.getOutDegree();
+        if (outDegree < SEQ_THRESHOLD)
+        {
+            for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset)
+            { // inner parallel
+                for (int i = 0; i < nCJobs; ++i)
+                    job[i]->condPush(K.nextUni,
+                                     vSrc, src.getOutNeighbor(vDstOffset),
+                                     src.getOutWeight(vDstOffset));
+            }
+        }
+        else
+        {
+            parallel_for(long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset)
+            { // inner parallel
+                for (int i = 0; i < nCJobs; ++i)
+                    job[i]->condPush(K.nextUni,
+                                     vSrc, src.getOutNeighbor(vDstOffset),
+                                     src.getOutWeight(vDstOffset));
+            }
+        }
+    }
+#ifdef DEBUG
+    auto t2 = Clock::now();
+    cout << "push no opt time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
+#endif
+}
+
+template <class vertex>
+void pullNoOpt(vertex *&V, Kernels &K)
+{
+#ifdef DEBUG
+    auto t1 = Clock::now();
+#endif
+    int nCJobs = K.nCJob;
+    long n = K.nVert; // # of vertices
+    Job **job = K.cJob;
+    K.denseMode();
+    parallel_for(long vDst = 0; vDst < n; ++vDst)
+    {
+        vertex dst = V[vDst];
+        uintE inDegree = dst.getInDegree();
+        if (inDegree < SEQ_THRESHOLD)
+        {
+            for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset)
+            {
+                for (int i = 0; i < nCJobs; ++i)
+                    job[i]->condPull(K.nextUni,
+                                     dst.getInNeighbor(vSrcOffset), vDst,
+                                     dst.getInWeight(vSrcOffset));
+            }
+        }
+        else
+        {
+            parallel_for(long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset)
+            {
+                for (int i = 0; i < nCJobs; ++i)
+                    job[i]->condPull(K.nextUni,
+                                       dst.getInNeighbor(vSrcOffset), vDst,
+                                       dst.getInWeight(vSrcOffset));
+            }
+        }
+    }
+#ifdef DEBUG
+    auto t2 = Clock::now();
+    cout << "pull no opt time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
+#endif
+}
+
 void scheduleJob(Job**& job, int& nJob)
 {
     int i = 0;
@@ -261,13 +386,20 @@ void Compute(graph<vertex>& G, Kernels& K)
         degrees[i] = V[UniFrontier[i]].getOutDegree();
     // for each iteration, select which engine to use
     uintT outDegrees = sequence::plusReduce(degrees, m);
-    intT threshold = G.m / 2; // f(# of vertices)
+    intT threshold = G.m / 2; // f(# of edges)
     if (outDegrees == 0) {
         K.denseMode();
         free(degrees);
         return;
     }
-    if (m + outDegrees > threshold){
+#ifdef NOOPT
+    if (m + outDegrees > threshold)
+        pullNoOpt(V, K);
+    else
+        pushNoOpt(V, K);
+#else
+    if (m + outDegrees > threshold)
+    {
         free(degrees);
         pushDense(V,K);
     } else {
@@ -276,6 +408,36 @@ void Compute(graph<vertex>& G, Kernels& K)
         else
             pushSparse(V,K,degrees); // sparse index
         free(degrees);
+    }
+#endif
+}
+
+template <class vertex>
+void ComputeNoKerf(graph<vertex>& G, Kernels& K)
+{
+    int nCJobs = K.nCJob;
+    long n = K.nVert; // # of vertices
+    Job **job = K.cJob;
+    vertex *V = G.V; // list of vertices, graph structure, only one copy
+    parallel_for(int i = 0; i < nCJobs; ++i)
+    { // without graph kernel fusion
+        uintT *frontierVert = job[i]->frontier.toSparse();
+        long m = job[i]->frontier.m; // # of vertices in frontier
+        uintT *degrees = newA(uintT, m);
+        parallel_for(long j = 0; j < m; ++j)
+            degrees[j] = V[frontierVert[j]].getOutDegree();
+        // for each iteration, select which engine to use
+        uintT outDegrees = sequence::plusReduce(degrees, m);
+        intT threshold = G.m / 20; // f(# of edges)
+        if (outDegrees == 0)
+            free(degrees);
+        else
+        {
+            if (m + outDegrees > threshold)
+                pullSingle(V, (job[i]));
+            else
+                pushSingle(V, (job[i]));
+        }
     }
 }
 
@@ -290,7 +452,11 @@ void Execute(graph<vertex>& G, Kernels& K, commandLine P)
 #endif
         if (K.nSJob == 0){
             K.iniOneIter();
+#ifndef NOKERF
             Compute(G,K);
+#else
+            ComputeNoKerf(G,K);
+#endif
             K.finishOneIter();
 
             scheduleJob(K.cJob,K.nCJob);
@@ -431,4 +597,4 @@ bool* vertexFilter(vertexSubset V, F filter, int x) {
     return d_out;
 }
 
-#endif
+#endif // KRILL_H

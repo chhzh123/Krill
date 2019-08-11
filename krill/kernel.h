@@ -30,6 +30,7 @@ public:
     virtual void condPush(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void condPull(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void condPullAtomic(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
+    virtual void condPushSingle(const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void condPullSingle(const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void condPullSingleAtomic(const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void iniOneIter(){
@@ -137,6 +138,12 @@ public:
         }
         // DO NOT SET ELSE! some memory may be accessed several times
     }
+    void condPushSingle(const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    {
+        if (cond(vDst) && updateAtomic(vSrc, vDst))
+            nextFrontier[vDst] = 1; // need not atomic
+        // DO NOT SET ELSE! some memory may be accessed several times
+    }
     void condPullSingle(const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
     {
         if (frontier.d[vSrc] && update(vSrc,vDst))
@@ -182,6 +189,11 @@ public:
             nextUni[vDst] = 1;
         }
     }
+    void condPushSingle(const long vSrc, const long vDst, const intE edgeVal)
+    {
+        if (cond(vDst) && updateAtomic(vSrc, vDst, edgeVal))
+            nextFrontier[vDst] = 1;
+    }
     void condPullAtomic(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal)
     {
         if (frontier.d[vSrc] && updateAtomic(vSrc,vDst,edgeVal)){
@@ -213,10 +225,14 @@ public:
     void appendJob(Job* tsk)
     {
         job[nJob++] = tsk;
+#if defined (NOKERF) || defined(NOOPT)
+        cJob[nCJob++] = tsk;
+#else
         if (!tsk->isSingleton)
             cJob[nCJob++] = tsk;
         else
             sJob[nSJob++] = tsk;
+#endif
     }
     void appendJob(initializer_list<Job*> list)
     {

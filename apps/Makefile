@@ -15,7 +15,15 @@ DEBUGFLAG = -g -DDEBUG
 endif
 
 ifdef PROFILE
-PROFILEFLAG = -pg -fprofile-arcs -ftest-coverage --coverage 
+PROFILEFLAG = -pg -fprofile-arcs -ftest-coverage --coverage
+endif
+
+ifdef NOKERF
+NOKERFFLAG = -DNOKERF
+endif
+
+ifdef NOOPT
+NOOPTFLAG = -DNOOPT
 endif
 
 # compilers
@@ -42,7 +50,7 @@ COMMON_FLAGS = -std=c++11 -pthread
 # to clear the cache
 #sudo sh -c 'echo 1 >/proc/sys/vm/drop_caches'
 
-# make sure modifying header files will lead to recompilation 
+# make sure modifying header files will lead to recompilation
 COMMON := krill.h kernel.h graph.h vertex.h utils.h IO.h
 COMMON += parallel.h gettime.h transpose.h parseCommandLine.h vertexSubset.h
 COMMON += blockRadixSort.h
@@ -54,7 +62,7 @@ ALL = Homo1 Homo2 Heter M-BFS M-SSSP Singleton Multi-BFS
 all: $(ALL)
 
 % : %.cpp
-	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $(COMMON_FLAGS) $< -o $@
+	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $(COMMON_FLAGS) $(NOKERFFLAG) $(NOOPTFLAG) $< -o $@
 
 .PHONY: clean
 clean:
