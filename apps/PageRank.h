@@ -52,7 +52,7 @@ public:
 	inline bool finished(){
 		if (iter > maxIters || L1_norm < epsilon){
 #ifdef DEBUG
-    	for (long i = 0; i < n; ++i)
+    	for (long i = 0; i < 20; ++i)
     		cout << p_curr[i] << " ";
     	cout << endl;
 #endif

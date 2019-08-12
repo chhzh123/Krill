@@ -167,6 +167,42 @@ void pullDense(vertex*& V, Kernels& K)
 #endif
 }
 
+template <class vertex>
+void pushSingle(vertex *&V, Job *&tsk)
+{
+#ifdef DEBUG
+    auto t1 = Clock::now();
+#endif
+    long n = tsk->n; // # of vertices
+    parallel_for(long vSrc = 0; vSrc < n; ++vSrc)
+    { // outer parallel
+        vertex src = V[vSrc];
+        uintE outDegree = src.getOutDegree();
+        if (!tsk->frontier.d[vSrc])
+            continue;
+        if (outDegree < SEQ_THRESHOLD)
+        {
+            for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset)
+            { // inner parallel
+                tsk->condPushSingle(vSrc, src.getOutNeighbor(vDstOffset),
+                                    src.getOutWeight(vDstOffset));
+            }
+        }
+        else
+        {
+            parallel_for(long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset)
+            { // inner parallel
+                tsk->condPushSingle(vSrc, src.getOutNeighbor(vDstOffset),
+                                    src.getOutWeight(vDstOffset));
+            }
+        }
+    }
+#ifdef DEBUG
+    auto t2 = Clock::now();
+    cout << "push single time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
+#endif
+}
+
 // Compute one iteration, pull-based (dense)
 template <class vertex>
 void pullSingle(vertex *&V, Job *&tsk)
@@ -203,42 +239,6 @@ void pullSingle(vertex *&V, Job *&tsk)
 #ifdef DEBUG
     auto t2 = Clock::now();
     cout << "pull single time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
-#endif
-}
-
-template <class vertex>
-void pushSingle(vertex *&V, Job *&tsk)
-{
-#ifdef DEBUG
-    auto t1 = Clock::now();
-#endif
-    long n = tsk->n; // # of vertices
-    parallel_for(long vSrc = 0; vSrc < n; ++vSrc)
-    { // outer parallel
-        vertex src = V[vSrc];
-        uintE outDegree = src.getOutDegree();
-        if (!tsk->frontier.d[vSrc])
-            continue;
-        if (outDegree < SEQ_THRESHOLD)
-        {
-            for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset)
-            { // inner parallel
-                tsk->condPushSingle(vSrc, src.getOutNeighbor(vDstOffset),
-                                    src.getOutWeight(vDstOffset));
-            }
-        }
-        else
-        {
-            parallel_for(long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset)
-            { // inner parallel
-                tsk->condPushSingle(vSrc, src.getOutNeighbor(vDstOffset),
-                                    src.getOutWeight(vDstOffset));
-            }
-        }
-    }
-#ifdef DEBUG
-    auto t2 = Clock::now();
-    cout << "push single time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " ns" << endl;
 #endif
 }
 
@@ -346,7 +346,7 @@ void pullNoOpt(vertex *&V, Kernels &K)
             parallel_for(long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset)
             {
                 for (int i = 0; i < nCJobs; ++i)
-                    job[i]->condPull(K.nextUni,
+                    job[i]->condPullAtomic(K.nextUni,
                                        dst.getInNeighbor(vSrcOffset), vDst,
                                        dst.getInWeight(vSrcOffset));
             }
@@ -437,6 +437,7 @@ void ComputeNoKerf(graph<vertex>& G, Kernels& K)
                 pullSingle(V, (job[i]));
             else
                 pushSingle(V, (job[i]));
+            free(degrees);
         }
     }
 }
