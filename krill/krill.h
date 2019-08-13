@@ -12,6 +12,7 @@
 #include <typeinfo> // class name
 #include <chrono> // timing
 #include <thread>
+#include <cassert>
 #include "kernel.h"
 #include "graph.h"
 #include "vertex.h"
@@ -46,6 +47,8 @@ void pushSparse(vertex*& V, Kernels& K, uintT* degrees, bool remDups = false)
     uintT* offsets = degrees;
     long nOutEdges = sequence::plusScan(offsets,degrees,m); // accumulate offsets
     uintE* outEdges = newA(uintE,nOutEdges);
+    parallel_for (long i = 0; i < nOutEdges; ++i)
+        outEdges[i] = UINT_E_MAX;
     parallel_for (long j = 0; j < m; ++j){ // outer parallel
         long vSrc = indices[j];
         uintT os = offsets[j];
@@ -53,10 +56,11 @@ void pushSparse(vertex*& V, Kernels& K, uintT* degrees, bool remDups = false)
         uintE outDegree = src.getOutDegree();
         if (outDegree < SEQ_THRESHOLD){
             for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset){ // inner parallel
-                for (int i = 0; i < nCJobs; ++i)
+                for (int i = 0; i < nCJobs; ++i){
                     job[i]->condPush(outEdges[os+vDstOffset],
                         vSrc,src.getOutNeighbor(vDstOffset),
                         src.getOutWeight(vDstOffset));
+                }
             }
         } else {
             parallel_for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset){ // inner parallel
@@ -392,7 +396,7 @@ void Compute(graph<vertex>& G, Kernels& K)
         degrees[i] = V[UniFrontier[i]].getOutDegree();
     // for each iteration, select which engine to use
     uintT outDegrees = sequence::plusReduce(degrees, m);
-    intT threshold = G.m / 2; // f(# of edges)
+    intT threshold = G.m / 20; // f(# of edges)
     if (outDegrees == 0) {
         K.denseMode();
         free(degrees);
@@ -409,7 +413,7 @@ void Compute(graph<vertex>& G, Kernels& K)
         free(degrees);
         pullDense(V,K);
     } else {
-        if (m + outDegrees > G.m / 5)
+        if (m + outDegrees > G.m / 50)
             pushSparse(V,K,degrees,true);
         else
             pushSparse(V,K,degrees); // sparse index
@@ -476,7 +480,7 @@ void Execute(graph<vertex>& G, Kernels& K, commandLine P)
             // thread singleJobThreads[K.nSJob];
             // for (int i = 0; i < K.nSJob; ++i)
             //     singleJobThreads[i] = thread(pullSingle<vertex>,ref(G.V),ref(K.sJob[i]));
-            thread singleJobAll = thread(pullAll<vertex>, ref(G.V), ref(K.sJob), K.nVert, K.nSJob);
+            thread singleJobAll = thread(pullAll<vertex>, ref(G.V), ref(K.sJob), K.nVert, K.nSJob, false);
 #endif
 
             if (K.nCJob != 0)

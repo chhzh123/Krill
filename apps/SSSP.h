@@ -22,7 +22,9 @@ class SSSP: public WeightedJob
 {
 public:
 	SSSP(long _n, long _start = 0):
-		WeightedJob(_n), shortestPathLen(NULL), changed(NULL), start(_start), round(0){}; // call parent class constructor
+		WeightedJob(_n), shortestPathLen(NULL), changed(NULL), start(_start), round(0){
+			assert(_start < n);
+		}; // call parent class constructor
 	inline bool update(uintE s, uintE d, intE edgeLen){ // relax, edgeLen(s,d)
 		intE newDist = shortestPathLen[s] + edgeLen;
 		if (shortestPathLen[d] > newDist) { // Update shortestPathLen if found a shorter path
