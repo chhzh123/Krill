@@ -268,31 +268,66 @@ public:
         }
         UniFrontier = vertexSubset(nVert,originalUni);
     }
-    void iniOneIter(){
-        parallel_for (int i = 0; i < nCJob; ++i)
-            cJob[i]->iniOneIter();
-        parallel_for (int i = 0; i < nSJob; ++i)
-            sJob[i]->iniOneIter();
-        flagSparse = false;
-        nextM = 0;
+    void iniOneIter(int cORs = 2){
+        // 0: cJob  1: sJobs  2: both
+        if (cORs == 1)
+            parallel_for(int i = 0; i < nSJob; ++i)
+                sJob[i]
+                    ->iniOneIter();
+        else
+        {
+            if (cORs == 0)
+                parallel_for(int i = 0; i < nCJob; ++i)
+                    cJob[i]
+                        ->iniOneIter();
+            else
+            {
+                parallel_for(int i = 0; i < nCJob; ++i)
+                    cJob[i]
+                        ->iniOneIter();
+                parallel_for(int i = 0; i < nSJob; ++i)
+                    sJob[i]
+                        ->iniOneIter();
+            }
+            flagSparse = false;
+            nextM = 0;
+        }
     }
-    void finishOneIter(){
-        parallel_for (int i = 0; i < nCJob; ++i)
-            cJob[i]->finishOneIter();
-        parallel_for (int i = 0; i < nSJob; ++i)
-            sJob[i]->finishOneIter();
-        UniFrontier.del();
-        // set new frontier
-        if (!flagSparse){
-            UniFrontier = ((nextUni != NULL) ?
-                vertexSubset(nVert,nextUni) :
-                vertexSubset(nVert));
-            nextUni = NULL; nextSpUni = NULL;
-        } else {
-            UniFrontier = ((nextSpUni != NULL) ?
-                vertexSubset(nVert,nextM,nextSpUni) :
-                vertexSubset(nVert));
-            nextUni = NULL; nextSpUni = NULL;
+    void finishOneIter(int cORs = 2){
+        // 0: cJob  1: sJobs  2: both
+        if (cORs == 1)
+            parallel_for(int i = 0; i < nSJob; ++i)
+                sJob[i]
+                    ->finishOneIter();
+        else
+        {
+            if (cORs == 0)
+                parallel_for(int i = 0; i < nCJob; ++i)
+                    cJob[i]
+                        ->finishOneIter();
+            else
+            {
+                parallel_for(int i = 0; i < nCJob; ++i)
+                    cJob[i]
+                        ->finishOneIter();
+                parallel_for(int i = 0; i < nSJob; ++i)
+                    sJob[i]
+                        ->finishOneIter();
+            }
+            UniFrontier.del();
+            // set new frontier
+            if (!flagSparse)
+            {
+                UniFrontier = ((nextUni != NULL) ? vertexSubset(nVert, nextUni) : vertexSubset(nVert));
+                nextUni = NULL;
+                nextSpUni = NULL;
+            }
+            else
+            {
+                UniFrontier = ((nextSpUni != NULL) ? vertexSubset(nVert, nextM, nextSpUni) : vertexSubset(nVert));
+                nextUni = NULL;
+                nextSpUni = NULL;
+            }
         }
     }
     void finish(){

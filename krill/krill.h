@@ -120,7 +120,7 @@ void pushDense(vertex*& V, Kernels& K)
 
 // Compute one iteration, pull-based (dense, 0-1)
 template <class vertex>
-void pullDense(vertex*& V, Kernels& K)
+void pullDense(vertex *&V, Kernels &K, bool parallel_flag = false)
 {
 #ifdef DEBUG
     auto t1 = Clock::now();
@@ -136,30 +136,34 @@ void pullDense(vertex*& V, Kernels& K)
         for (int i = 0; i < nCJobs; ++i)
             if (job[i]->cond(vDst))
                 currJob[cntJobs++] = job[i];
-        vertex dst = V[vDst];
-        uintE inDegree = dst.getInDegree();
-        if (inDegree < SEQ_THRESHOLD){
-            for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
-                for (int i = 0; i < cntJobs; ++i){
-                    currJob[i]->condPull(K.nextUni,
-                        dst.getInNeighbor(vSrcOffset),vDst,
-                        dst.getInWeight(vSrcOffset));
-                    if (!currJob[i]->cond(vDst)){ // early break!
-                        cntJobs--;
-                        for (int j = i; j < cntJobs; ++j)
-                            currJob[j] = currJob[j+1];
-                        continue;
+        if (cntJobs != 0){
+            vertex dst = V[vDst];
+            uintE inDegree = dst.getInDegree();
+            if (!parallel_flag || inDegree < SEQ_THRESHOLD)
+            {
+                for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
+                    for (int i = 0; i < cntJobs; ++i){
+                        currJob[i]->condPull(K.nextUni,
+                            dst.getInNeighbor(vSrcOffset),vDst,
+                            dst.getInWeight(vSrcOffset));
+                        // if (!currJob[i]->cond(vDst)){ // early break!
+                        //     cntJobs--;
+                        //     for (int j = i; j < cntJobs; ++j)
+                        //         currJob[j] = currJob[j+1];
+                        //     continue;
+                        // }
                     }
                 }
-            }
-        } else {
-            parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
-                for (int i = 0; i < cntJobs; ++i)
-                    currJob[i]->condPullAtomic(K.nextUni,
-                        dst.getInNeighbor(vSrcOffset),vDst,
-                        dst.getInWeight(vSrcOffset));
+            } else {
+                parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
+                    for (int i = 0; i < cntJobs; ++i)
+                        currJob[i]->condPullAtomic(K.nextUni,
+                            dst.getInNeighbor(vSrcOffset),vDst,
+                            dst.getInWeight(vSrcOffset));
+                }
             }
         }
+        free(currJob);
     }
 #ifdef DEBUG
     auto t2 = Clock::now();
@@ -168,7 +172,7 @@ void pullDense(vertex*& V, Kernels& K)
 }
 
 template <class vertex>
-void pushSingle(vertex *&V, Job *&tsk)
+void pushSingle(vertex *&V, Job *&tsk, bool parallel_flag = true)
 {
 #ifdef DEBUG
     auto t1 = Clock::now();
@@ -178,22 +182,22 @@ void pushSingle(vertex *&V, Job *&tsk)
     { // outer parallel
         vertex src = V[vSrc];
         uintE outDegree = src.getOutDegree();
-        if (!tsk->frontier.d[vSrc])
-            continue;
-        if (outDegree < SEQ_THRESHOLD)
-        {
-            for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset)
-            { // inner parallel
-                tsk->condPushSingle(vSrc, src.getOutNeighbor(vDstOffset),
-                                    src.getOutWeight(vDstOffset));
+        if (tsk->frontier.d[vSrc]){
+            if (!parallel_flag || outDegree < SEQ_THRESHOLD)
+            {
+                for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset)
+                { // inner parallel
+                    tsk->condPushSingle(vSrc, src.getOutNeighbor(vDstOffset),
+                                        src.getOutWeight(vDstOffset));
+                }
             }
-        }
-        else
-        {
-            parallel_for(long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset)
-            { // inner parallel
-                tsk->condPushSingle(vSrc, src.getOutNeighbor(vDstOffset),
-                                    src.getOutWeight(vDstOffset));
+            else
+            {
+                parallel_for(long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset)
+                { // inner parallel
+                    tsk->condPushSingle(vSrc, src.getOutNeighbor(vDstOffset),
+                                        src.getOutWeight(vDstOffset));
+                }
             }
         }
     }
@@ -205,7 +209,7 @@ void pushSingle(vertex *&V, Job *&tsk)
 
 // Compute one iteration, pull-based (dense)
 template <class vertex>
-void pullSingle(vertex *&V, Job *&tsk)
+void pullSingle(vertex *&V, Job *&tsk, bool parallel_flag = false)
 {
 #ifdef DEBUG
     auto t1 = Clock::now();
@@ -215,24 +219,24 @@ void pullSingle(vertex *&V, Job *&tsk)
     {
         vertex dst = V[vDst];
         uintE inDegree = dst.getInDegree();
-        if (!tsk->cond(vDst))
-            continue;
-        if (inDegree < SEQ_THRESHOLD)
-        {
-            for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset)
+        if (tsk->cond(vDst)){
+            if (!parallel_flag || inDegree < SEQ_THRESHOLD)
             {
-                tsk->condPullSingle(dst.getInNeighbor(vSrcOffset), vDst,
-                                    dst.getInWeight(vSrcOffset));
-                if (!tsk->cond(vDst)) // early break!
-                    break;
+                for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset)
+                {
+                    tsk->condPullSingle(dst.getInNeighbor(vSrcOffset), vDst,
+                                        dst.getInWeight(vSrcOffset));
+                    // if (!tsk->cond(vDst)) // early break!
+                    //     break;
+                }
             }
-        }
-        else
-        {
-            parallel_for(long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset)
+            else
             {
-                tsk->condPullSingleAtomic(dst.getInNeighbor(vSrcOffset), vDst,
-                                          dst.getInWeight(vSrcOffset));
+                parallel_for(long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset)
+                {
+                    tsk->condPullSingleAtomic(dst.getInNeighbor(vSrcOffset), vDst,
+                                            dst.getInWeight(vSrcOffset));
+                }
             }
         }
     }
@@ -244,7 +248,7 @@ void pullSingle(vertex *&V, Job *&tsk)
 
 // Compute one iteration, pull-based (dense)
 template <class vertex>
-void pullAll(vertex*& V, Job**& tsk, int nVert, int nJobs)
+void pullAll(vertex *&V, Job **&tsk, int nVert, int nJobs, bool parallel_flag = false)
 {
 #ifdef DEBUG
     auto t1 = Clock::now();
@@ -255,7 +259,8 @@ void pullAll(vertex*& V, Job**& tsk, int nVert, int nJobs)
             if (!job->cond(vDst)) continue;
             vertex dst = V[vDst];
             uintE inDegree = dst.getInDegree();
-            if (inDegree < SEQ_THRESHOLD){
+            if (!parallel_flag || inDegree < SEQ_THRESHOLD)
+            {
                 for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
                     job->condPullSingle(dst.getInNeighbor(vSrcOffset),vDst,
                                 dst.getInWeight(vSrcOffset));
@@ -318,7 +323,7 @@ void pushNoOpt(vertex *&V, Kernels &K)
 }
 
 template <class vertex>
-void pullNoOpt(vertex *&V, Kernels &K)
+void pullNoOpt(vertex *&V, Kernels &K, bool parallel_flag = false)
 {
 #ifdef DEBUG
     auto t1 = Clock::now();
@@ -331,7 +336,7 @@ void pullNoOpt(vertex *&V, Kernels &K)
     {
         vertex dst = V[vDst];
         uintE inDegree = dst.getInDegree();
-        if (inDegree < SEQ_THRESHOLD)
+        if (!parallel_flag || inDegree < SEQ_THRESHOLD)
         {
             for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset)
             {
@@ -358,12 +363,13 @@ void pullNoOpt(vertex *&V, Kernels &K)
 #endif
 }
 
-void scheduleJob(Job**& job, int& nJob)
+void scheduleJob(Job**& job, int& nJob, int nIter)
 {
     int i = 0;
     while (i < nJob){
         if (job[i]->finished()){
-            cout << "Finished job " << typeid(*(job[i])).name() << endl;
+            cout << "Iter " << nIter << ": Finished job "
+                 << job[i]->ID << " - " << typeid(*(job[i])).name() << endl;
             // job[i]->clear(); // child
             // job[i]->clearAll(); // parent
             delete job[i];
@@ -401,7 +407,7 @@ void Compute(graph<vertex>& G, Kernels& K)
     if (m + outDegrees > threshold)
     {
         free(degrees);
-        pushDense(V,K);
+        pullDense(V,K);
     } else {
         if (m + outDegrees > G.m / 5)
             pushSparse(V,K,degrees,true);
@@ -434,9 +440,9 @@ void ComputeNoKerf(graph<vertex>& G, Kernels& K)
         else
         {
             if (m + outDegrees > threshold)
-                pullSingle(V, (job[i]));
+                pullSingle(V, (job[i]), false);
             else
-                pushSingle(V, (job[i]));
+                pushSingle(V, (job[i]), false);
             free(degrees);
         }
     }
@@ -460,7 +466,7 @@ void Execute(graph<vertex>& G, Kernels& K, commandLine P)
 #endif
             K.finishOneIter();
 
-            scheduleJob(K.cJob,K.nCJob);
+            scheduleJob(K.cJob,K.nCJob,iter);
         } else {
             K.iniOneIter();
 
@@ -485,12 +491,38 @@ void Execute(graph<vertex>& G, Kernels& K, commandLine P)
 #endif
 
             K.finishOneIter();
-            scheduleJob(K.cJob,K.nCJob);
-            scheduleJob(K.sJob,K.nSJob);
+            scheduleJob(K.cJob,K.nCJob,iter);
+            scheduleJob(K.sJob,K.nSJob,iter);
         }
     }
     K.finish();
 }
+
+// template <class vertex>
+// void Execute(graph<vertex> &G, Kernels &K, commandLine P)
+// {
+//     // int iter = 0;
+//     parallel_for(int flag = 0; flag < 2; flag++)
+//     {
+//         if (flag == 1)
+//             while (K.nSJob > 0)
+//             {
+//                 K.iniOneIter(1);
+//                 pullAll<vertex>(G.V, K.sJob, K.nVert, K.nSJob);
+//                 K.finishOneIter(1);
+//                 scheduleJob(K.sJob, K.nSJob);
+//             }
+//         else
+//             while (K.nCJob > 0)
+//             { // one iteration
+//                 K.iniOneIter(0);
+//                 Compute(G, K);
+//                 K.finishOneIter(0);
+//                 scheduleJob(K.cJob, K.nCJob);
+//             }
+//     }
+//     K.finish();
+// }
 
 template <class vertex>
 void setKernels(graph<vertex>&G, Kernels& K, commandLine P); // first declare
