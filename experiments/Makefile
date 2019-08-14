@@ -17,6 +17,10 @@ else ifdef RD
 DATA = road_usa
 DATASET = $(DATASET_PATH)/$(DATA)
 DATASETW = $(DATASET_PATH)/$(DATA)-w
+else ifdef RM
+DATA = rMatGraph24
+DATASET = $(DATASET_PATH)/$(DATA)
+DATASETW = $(DATASET_PATH)/$(DATA)-w
 else ifdef TW
 DATA = twitter7
 DATASET = $(DATASET_PATH)/$(DATA)

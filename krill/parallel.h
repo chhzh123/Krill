@@ -1,5 +1,5 @@
 // This code is part of the project "Ligra: A Lightweight Graph Processing
-// Framework for Shared Memory", presented at Principles and Practice of 
+// Framework for Shared Memory", presented at Principles and Practice of
 // Parallel Programming, 2013.
 // Copyright (c) 2013 Julian Shun and Guy Blelloch
 //
@@ -26,6 +26,7 @@
 
 #if defined(CILK)
 #include <cilk/cilk.h>
+#include <cilk/cilk_api.h>
 #define parallel_main main
 #define parallel_for cilk_for
 #define parallel_for_1 _Pragma("cilk_grainsize = 1") cilk_for
@@ -34,6 +35,7 @@
 // intel cilk+
 #elif defined(CILKP)
 #include <cilk/cilk.h>
+#include <cilk/cilk_api.h>
 #define parallel_for cilk_for
 #define parallel_main main
 #define parallel_for_1 _Pragma("cilk grainsize = 1") cilk_for

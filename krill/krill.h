@@ -146,17 +146,19 @@ void pullDense(vertex *&V, Kernels &K, bool parallel_flag = false)
             if (!parallel_flag || inDegree < SEQ_THRESHOLD)
             {
                 for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
-                    for (int i = 0; i < cntJobs; ++i){
-                        currJob[i]->condPull(K.nextUni,
-                            dst.getInNeighbor(vSrcOffset),vDst,
-                            dst.getInWeight(vSrcOffset));
-                        // if (!currJob[i]->cond(vDst)){ // early break!
-                        //     cntJobs--;
-                        //     for (int j = i; j < cntJobs; ++j)
-                        //         currJob[j] = currJob[j+1];
-                        //     continue;
-                        // }
-                    }
+                    // if (cntJobs > 0) {
+                        for (int i = 0; i < cntJobs; ++i){
+                            currJob[i]->condPull(K.nextUni,
+                                dst.getInNeighbor(vSrcOffset),vDst,
+                                dst.getInWeight(vSrcOffset));
+                    //         if (!currJob[i]->cond(vDst)){ // early break!
+                    //             cntJobs--;
+                    //             for (int j = i; j < cntJobs; ++j)
+                    //                 currJob[j] = currJob[j+1];
+                    //         }
+                        }
+                    // } else
+                    //     break;
                 }
             } else {
                 parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
@@ -411,7 +413,7 @@ void Compute(graph<vertex>& G, Kernels& K)
     if (m + outDegrees > threshold)
     {
         free(degrees);
-        pullDense(V,K);
+        pullDense(V, K);
     } else {
         if (m + outDegrees > G.m / 50)
             pushSparse(V,K,degrees,true);

@@ -99,11 +99,12 @@ The datasets used in our experiments can be found in the following links.
 
 | Abbr. | Dataset | # of vertices | # of edges | source |
 | :---: | :---:   | :---:         | :---:      | :---:  |
-| CP | cit-Patents | 3.7M         | 16.5M      | http://snap.stanford.edu/data/cit-Patents.html |
-| LJ | LiveJournal | 5 M          | 69 M       | http://snap.stanford.edu/data/soc-LiveJournal1.html |
-| RD | USAroad | 24 M             | 58 M       | https://sparse.tamu.edu/DIMACS10/road_usa |
-| TW | Twitter | 41.7 M           | 1.4 B      | https://sparse.tamu.edu/SNAP/twitter7 |
-| FT | Friendster | 65 M          | 1.8 B      | http://snap.stanford.edu/data/com-Friendster.html |
+| CP | cit-Patents | 6.0 M         | 16.5M      | http://snap.stanford.edu/data/cit-Patents.html |
+| LJ | LiveJournal | 4.8 M         | 69 M       | http://snap.stanford.edu/data/soc-LiveJournal1.html |
+| RD | USAroad     | 24 M          | 58 M       | https://sparse.tamu.edu/DIMACS10/road_usa |
+| RM | rMat24      | 33.6 M        | 168 M      | https://graph500.org/ |
+| TW | Twitter     | 41.7 M        | 1.4 B      | https://sparse.tamu.edu/SNAP/twitter7 |
+| FT | Friendster  | 124 M         | 1.8 B      | http://snap.stanford.edu/data/com-Friendster.html |
 
 Notice the graph data needs to be transformed into the format of [Problem Based Benchmark Suite](http://www.cs.cmu.edu/~pbbs/benchmarks/graphIO.html). The facilities in `utils` like `SNAPtoAdj`, `MTXtoAdj`, and `adjGraphAddWeights` can be used for format transformation.
 
