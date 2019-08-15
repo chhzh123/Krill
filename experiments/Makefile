@@ -9,26 +9,32 @@ ifdef CP
 DATA = cit-Patents
 DATASET = $(DATASET_PATH)/$(DATA)
 DATASETW = $(DATASET_PATH)/$(DATA)-w
+
 else ifdef LJ
 DATA = soc-LiveJournal1
 DATASET = $(DATASET_PATH)/$(DATA)
 DATASETW = $(DATASET_PATH)/$(DATA)-w
+
 else ifdef RD
 DATA = road_usa
 DATASET = $(DATASET_PATH)/$(DATA)
 DATASETW = $(DATASET_PATH)/$(DATA)-w
-else ifdef RM
-DATA = rMatGraph24
-DATASET = $(DATASET_PATH)/$(DATA)
-DATASETW = $(DATASET_PATH)/$(DATA)-w
+
 else ifdef TW
 DATA = twitter7
 DATASET = $(DATASET_PATH)/$(DATA)
 DATASETW = $(DATASET_PATH)/$(DATA)-w
+
 else ifdef FT
 DATA = com-friendster
 DATASET = $(DATASET_PATH)/$(DATA)
 DATASETW = $(DATASET_PATH)/$(DATA)-w
+
+else ifdef RMAT
+DATA = rMatGraph24
+DATASET = $(DATASET_PATH)/$(DATA)
+DATASETW = $(DATASET_PATH)/$(DATA)-w
+
 else
 DATA = rMatGraph
 DATASET = ../inputs/$(DATA)_J_5_100
@@ -131,12 +137,14 @@ homo1nokerf: build
 	# $(TIME) "./$(KRILL_PATH)/Homo1 $(DATASET)"
 	# second try
 	$(TIME) "./$(KRILL_PATH)/Homo1 $(DATASET)"
+	$(PERF) "./$(KRILL_PATH)/Homo1 $(DATASET)"
 homo1noopt: build
 	# first try
 	# Need to recompile! The execution file is different!
 	# $(TIME) "./$(KRILL_PATH)/Homo1 $(DATASET)"
 	# second try
 	$(TIME) "./$(KRILL_PATH)/Homo1 $(DATASET)"
+	$(PERF) "./$(KRILL_PATH)/Homo1 $(DATASET)"
 homo1s: build
 	# first try
 	$(TIME) '$(HOMO1S)'
@@ -175,11 +183,13 @@ homo2nokerf: build
 	# $(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
 	# second try
 	$(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
+	$(PERF) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
 homo2noopt: build
 	# first try
 	# $(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
 	# second try
 	$(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
+	$(PERF) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
 homo2s: build
 	# first try
 	$(TIME) '$(HOMO2S)'
@@ -218,11 +228,13 @@ heternokerf: build
 	# $(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 	# second try
 	$(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+	$(PERF) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 heternoopt: build
 	# first try
 	# $(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 	# second try
 	$(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+	$(PERF) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 heters: build
 	# first try
 	$(TIME) '$(HETERS)'
@@ -261,11 +273,13 @@ mbfsnokerf: build
 	# $(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
 	# second try
 	$(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
+	$(PERF) "./$(KRILL_PATH)/M-BFS $(DATASET)"
 mbfsnoopt: build
 	# first try
 	# $(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
 	# second try
 	$(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
+	$(PERF) "./$(KRILL_PATH)/M-BFS $(DATASET)"
 mbfss: build
 	# first try
 	$(TIME) '$(MBFSS)'
@@ -304,11 +318,13 @@ mssspnokerf: build
 	# $(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
 	# second try
 	$(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
+	$(PERF) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
 mssspnoopt: build
 	# first try
 	# $(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
 	# second try
 	$(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
+	$(PERF) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
 msssps: build
 	# first try
 	$(TIME) '$(MSSSPS)'

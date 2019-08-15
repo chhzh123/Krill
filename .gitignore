@@ -34,3 +34,4 @@
 # workspace
 *.sublime-project
 *.sublime-workspace
+.vscode

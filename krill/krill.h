@@ -148,7 +148,7 @@ void pullDense(vertex *&V, Kernels &K, bool parallel_flag = false)
                 for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
                     // if (cntJobs > 0) {
                         for (int i = 0; i < cntJobs; ++i){
-                            currJob[i]->condPull(K.nextUni,
+                            currJob[i]->condPullNoCond(K.nextUni,
                                 dst.getInNeighbor(vSrcOffset),vDst,
                                 dst.getInWeight(vSrcOffset));
                     //         if (!currJob[i]->cond(vDst)){ // early break!
@@ -163,7 +163,7 @@ void pullDense(vertex *&V, Kernels &K, bool parallel_flag = false)
             } else {
                 parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
                     for (int i = 0; i < cntJobs; ++i)
-                        currJob[i]->condPullAtomic(K.nextUni,
+                        currJob[i]->condPullNoCondAtomic(K.nextUni,
                             dst.getInNeighbor(vSrcOffset),vDst,
                             dst.getInWeight(vSrcOffset));
                 }
@@ -399,12 +399,13 @@ void Compute(graph<vertex>& G, Kernels& K)
     // for each iteration, select which engine to use
     uintT outDegrees = sequence::plusReduce(degrees, m);
     intT threshold = G.m / 20; // f(# of edges)
-    if (outDegrees == 0) {
-        K.denseMode();
-        free(degrees);
-        return;
-    }
+    // if (outDegrees == 0) {
+    //     K.denseMode();
+    //     free(degrees);
+    //     return;
+    // }
 #ifdef NOOPT
+    free(degrees);
     if (m + outDegrees > threshold)
         pullNoOpt(V, K);
     else
@@ -446,9 +447,9 @@ void ComputeNoKerf(graph<vertex>& G, Kernels& K)
         else
         {
             if (m + outDegrees > threshold)
-                pullSingle(V, (job[i]), false);
+                pullSingle(V, (job[i]));
             else
-                pushSingle(V, (job[i]), false);
+                pushSingle(V, (job[i]));
             free(degrees);
         }
     }
@@ -461,7 +462,7 @@ void Execute(graph<vertex>& G, Kernels& K, commandLine P)
     while (K.nCJob + K.nSJob > 0){ // one iteration
         iter++;
 #ifdef DEBUG
-        cout << iter << ": # of jobs: " << K.nJob << endl;
+        cout << iter << ": # of jobs: " << K.nCJob + K.nSJob << endl;
 #endif
         if (K.nSJob == 0){
             K.iniOneIter();
