@@ -27,11 +27,11 @@ public:
     virtual void initialize() = 0;
     virtual void clear() = 0;
     virtual void condPush(uintE& out, const long vSrc, const long vDst, const intE edgeVal) = 0;
-    virtual void condPush(bool* nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
-    virtual void condPull(bool *nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
-    virtual void condPullAtomic(bool *nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
-    virtual void condPullNoCond(bool *nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
-    virtual void condPullNoCondAtomic(bool* nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
+    virtual void condPush(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
+    virtual void condPull(bool *&nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
+    virtual void condPullAtomic(bool *&nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
+    virtual void condPullNoCond(bool *&nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
+    virtual void condPullNoCondAtomic(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void condPushSingle(const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void condPullSingle(const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void condPullSingleAtomic(const long vSrc, const long vDst, const intE edgeVal) = 0;
@@ -116,7 +116,7 @@ public:
         // DO NOT SET ELSE! some memory may be accessed several times
     }
     // dense
-    void condPush(bool* nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    void condPush(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
     {
         if (frontier.d[vSrc] && cond(vDst) && updateAtomic(vSrc,vDst)){
             nextFrontier[vDst] = 1; // need not atomic
@@ -124,7 +124,7 @@ public:
         }
         // DO NOT SET ELSE! some memory may be accessed several times
     }
-    void condPull(bool *nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    void condPull(bool *&nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
     {
         if (cond(vDst) && frontier.d[vSrc] && update(vSrc, vDst))
         {
@@ -133,7 +133,7 @@ public:
         }
         // DO NOT SET ELSE! some memory may be accessed several times
     }
-    void condPullAtomic(bool *nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    void condPullAtomic(bool *&nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
     {
         if (cond(vDst) && frontier.d[vSrc] && updateAtomic(vSrc, vDst))
         {
@@ -142,7 +142,7 @@ public:
         }
         // DO NOT SET ELSE! some memory may be accessed several times
     }
-    void condPullNoCond(bool* nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    void condPullNoCond(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
     {
         if (frontier.d[vSrc] && update(vSrc,vDst)){
             nextFrontier[vDst] = 1; // need not atomic
@@ -150,7 +150,7 @@ public:
         }
         // DO NOT SET ELSE! some memory may be accessed several times
     }
-    void condPullNoCondAtomic(bool* nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    void condPullNoCondAtomic(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
     {
         if (frontier.d[vSrc] && updateAtomic(vSrc,vDst)){
             nextFrontier[vDst] = 1; // need not atomic
@@ -195,14 +195,14 @@ public:
         // DO NOT SET ELSE! some memory may be accessed several times
     }
     // dense
-    void condPush(bool* nextUni, const long vSrc, const long vDst, const intE edgeVal)
+    void condPush(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal)
     {
         if (frontier.d[vSrc] && cond(vDst) && updateAtomic(vSrc,vDst,edgeVal)){
             nextFrontier[vDst] = 1;
             nextUni[vDst] = 1;
         }
     }
-    void condPull(bool *nextUni, const long vSrc, const long vDst, const intE edgeVal)
+    void condPull(bool *&nextUni, const long vSrc, const long vDst, const intE edgeVal)
     {
         if (cond(vDst) && frontier.d[vSrc] && update(vSrc, vDst, edgeVal))
         {
@@ -210,7 +210,7 @@ public:
             nextUni[vDst] = 1;
         }
     }
-    void condPullAtomic(bool *nextUni, const long vSrc, const long vDst, const intE edgeVal)
+    void condPullAtomic(bool *&nextUni, const long vSrc, const long vDst, const intE edgeVal)
     {
         if (cond(vDst) && frontier.d[vSrc] && updateAtomic(vSrc, vDst, edgeVal))
         {
@@ -218,14 +218,14 @@ public:
             nextUni[vDst] = 1;
         }
     }
-    void condPullNoCond(bool* nextUni, const long vSrc, const long vDst, const intE edgeVal)
+    void condPullNoCond(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal)
     {
         if (frontier.d[vSrc] && update(vSrc,vDst,edgeVal)){
             nextFrontier[vDst] = 1;
             nextUni[vDst] = 1;
         }
     }
-    void condPullNoCondAtomic(bool* nextUni, const long vSrc, const long vDst, const intE edgeVal)
+    void condPullNoCondAtomic(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal)
     {
         if (frontier.d[vSrc] && updateAtomic(vSrc,vDst,edgeVal)){
             nextFrontier[vDst] = 1;

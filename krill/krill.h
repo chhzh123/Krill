@@ -188,24 +188,24 @@ void pushSingle(vertex *&V, Job *&tsk, bool parallel_flag = true)
     { // outer parallel
         vertex src = V[vSrc];
         uintE outDegree = src.getOutDegree();
-        if (tsk->frontier.d[vSrc]){
             if (!parallel_flag || outDegree < SEQ_THRESHOLD)
             {
                 for (long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset)
                 { // inner parallel
-                    tsk->condPushSingle(vSrc, src.getOutNeighbor(vDstOffset),
-                                        src.getOutWeight(vDstOffset));
+                    if (tsk->frontier.d[vSrc])
+                        tsk->condPushSingle(vSrc, src.getOutNeighbor(vDstOffset),
+                                            src.getOutWeight(vDstOffset));
                 }
             }
             else
             {
                 parallel_for(long vDstOffset = 0; vDstOffset < outDegree; ++vDstOffset)
                 { // inner parallel
-                    tsk->condPushSingle(vSrc, src.getOutNeighbor(vDstOffset),
-                                        src.getOutWeight(vDstOffset));
+                    if (tsk->frontier.d[vSrc])
+                        tsk->condPushSingle(vSrc, src.getOutNeighbor(vDstOffset),
+                                            src.getOutWeight(vDstOffset));
                 }
             }
-        }
     }
 #ifdef DEBUG
     auto t2 = Clock::now();
@@ -225,26 +225,26 @@ void pullSingle(vertex *&V, Job *&tsk, bool parallel_flag = false)
     {
         vertex dst = V[vDst];
         uintE inDegree = dst.getInDegree();
-        if (tsk->cond(vDst)){
             if (!parallel_flag || inDegree < SEQ_THRESHOLD)
             {
                 for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset)
                 {
-                    tsk->condPullSingle(dst.getInNeighbor(vSrcOffset), vDst,
-                                        dst.getInWeight(vSrcOffset));
-                    // if (!tsk->cond(vDst)) // early break!
-                    //     break;
+                    if (tsk->cond(vDst))
+                        tsk->condPullSingle(dst.getInNeighbor(vSrcOffset), vDst,
+                                            dst.getInWeight(vSrcOffset));
+                        // if (!tsk->cond(vDst)) // early break!
+                        //     break;
                 }
             }
             else
             {
                 parallel_for(long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset)
                 {
-                    tsk->condPullSingleAtomic(dst.getInNeighbor(vSrcOffset), vDst,
-                                            dst.getInWeight(vSrcOffset));
+                    if (tsk->cond(vDst))
+                        tsk->condPullSingleAtomic(dst.getInNeighbor(vSrcOffset), vDst,
+                                                  dst.getInWeight(vSrcOffset));
                 }
             }
-        }
     }
 #ifdef DEBUG
     auto t2 = Clock::now();
@@ -259,24 +259,27 @@ void pullAll(vertex *&V, Job **&tsk, int nVert, int nJobs, bool parallel_flag = 
 #ifdef DEBUG
     auto t1 = Clock::now();
 #endif
-    parallel_for (long vDst = 0; vDst < nVert; ++vDst){
-        for (int i = 0; i < nJobs; ++i){
+    parallel_for(long vDst = 0; vDst < nVert; ++vDst)
+    {
+        parallel_for(int i = 0; i < nJobs; ++i)
+        {
             Job* job = tsk[i];
-            if (!job->cond(vDst)) continue;
-            vertex dst = V[vDst];
-            uintE inDegree = dst.getInDegree();
-            if (!parallel_flag || inDegree < SEQ_THRESHOLD)
-            {
-                for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
-                    job->condPullSingle(dst.getInNeighbor(vSrcOffset),vDst,
-                                dst.getInWeight(vSrcOffset));
-                    if (!job->cond(vDst)) // early break!
-                        break;
-                }
-            } else {
-                parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
-                    job->condPullSingleAtomic(dst.getInNeighbor(vSrcOffset),vDst,
-                        dst.getInWeight(vSrcOffset));
+            if (job->cond(vDst)){
+                vertex dst = V[vDst];
+                uintE inDegree = dst.getInDegree();
+                if (!parallel_flag || inDegree < SEQ_THRESHOLD)
+                {
+                    for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
+                        job->condPullSingle(dst.getInNeighbor(vSrcOffset),vDst,
+                                    dst.getInWeight(vSrcOffset));
+                        if (!job->cond(vDst)) // early break!
+                            break;
+                    }
+                } else {
+                    parallel_for (long vSrcOffset = 0; vSrcOffset < inDegree; ++vSrcOffset){
+                        job->condPullSingleAtomic(dst.getInNeighbor(vSrcOffset),vDst,
+                            dst.getInWeight(vSrcOffset));
+                    }
                 }
             }
         }
@@ -398,7 +401,7 @@ void Compute(graph<vertex>& G, Kernels& K)
         degrees[i] = V[UniFrontier[i]].getOutDegree();
     // for each iteration, select which engine to use
     uintT outDegrees = sequence::plusReduce(degrees, m);
-    intT threshold = G.m / 20; // f(# of edges)
+    intT threshold = G.m / 2; // f(# of edges)
     // if (outDegrees == 0) {
     //     K.denseMode();
     //     free(degrees);
@@ -416,7 +419,7 @@ void Compute(graph<vertex>& G, Kernels& K)
         free(degrees);
         pullDense(V, K);
     } else {
-        if (m + outDegrees > G.m / 50)
+        if (m + outDegrees > G.m / 5)
             pushSparse(V,K,degrees,true);
         else
             pushSparse(V,K,degrees); // sparse index
@@ -432,7 +435,7 @@ void ComputeNoKerf(graph<vertex>& G, Kernels& K)
     long n = K.nVert; // # of vertices
     Job **job = K.cJob;
     vertex *V = G.V; // list of vertices, graph structure, only one copy
-    parallel_for(int i = 0; i < nCJobs; ++i)
+    for(int i = 0; i < nCJobs; ++i)
     { // without graph kernel fusion
         uintT *frontierVert = job[i]->frontier.toSparse();
         long m = job[i]->frontier.m; // # of vertices in frontier

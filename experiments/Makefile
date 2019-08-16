@@ -367,6 +367,7 @@ msssppcm: buildpcm
 
 TIMEBFS = /usr/bin/time -v -o $(PROFILE_PATH)/$(DATA)/$@
 multibfs: build multibfsk multibfss multibfsp
+	python profiling.py $(PROFILE_PATH)/$(DATA) 1
 multibfsk: build
 	$(TIMEBFS)1.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 1 $(DATASET)"
 	$(TIMEBFS)2.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 2 $(DATASET)"
