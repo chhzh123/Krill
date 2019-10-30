@@ -55,9 +55,9 @@ COMMON := krill.h kernel.h graph.h vertex.h utils.h IO.h
 COMMON += parallel.h gettime.h transpose.h parseCommandLine.h vertexSubset.h
 COMMON += blockRadixSort.h
 
-KERNEL = BFS.h SSSP.h PageRank.h CC.h KCore.h
+KERNEL = BFS.h SSSP.h PageRank.h CC.h
 
-ALL = Homo1 Homo2 Heter M-BFS M-SSSP Singleton Multi-BFS
+ALL = Homo1 Homo2 Heter M-BFS M-SSSP M-CC M-PageRank Singleton Multi-BFS
 
 all: $(ALL)
 

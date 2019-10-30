@@ -34,11 +34,12 @@ def write_table(lst,head,inalgs=algs):
 print("Extracting profiling results from {} ...".format(data_path))
 
 abbreviation = ['s','p','k','f','t']
-realtime, peakmem, llc_load, llc_miss, instructions = {}, {}, {}, {}, {}
+realtime, peakmem, l1_load, l1_miss, llc_miss, instructions = {}, {}, {}, {}, {}, {}
 for abbr in abbreviation:
 	realtime[abbr] = {}
 	peakmem[abbr] = {}
-	llc_load[abbr] = {}
+	l1_load[abbr] = {}
+	l1_miss[abbr] = {}
 	llc_miss[abbr] = {}
 	instructions[abbr] = {}
 
@@ -66,15 +67,18 @@ if len(sys.argv) < 3:
 				for line in file:
 					name = filename.split('.')[0]
 					if "L1-dcache-loads" in line:
-						llc_load[name[-1]][alg] = line.lstrip().split()[0]
+						l1_load[name[-1]][alg] = line.lstrip().split()[0]
 					elif "L1-dcache-load-misses" in line:
+						l1_miss[name[-1]][alg] = line.split("#")[1].lstrip().split()[0]
+					elif "LLC-load-misses" in line:
 						llc_miss[name[-1]][alg] = line.split("#")[1].lstrip().split()[0]
 					elif "instructions" in line:
 						instructions[name[-1]][alg] = line.lstrip().split()[0]
 	write_table(realtime,"Real time / Wall clock time (s)")
 	write_table(peakmem,"Peak memory (KB)")
-	write_table(llc_load,"Memory access")
-	write_table(llc_miss,"L1 Data Cache Hits rate")
+	write_table(l1_load,"Memory accesses") # from memory to processor (L1)
+	write_table(l1_miss,"L1 Data Cache miss rate")
+	write_table(llc_miss,"LLC miss rate")
 	write_table(instructions,"# of Instructions")
 else:
 	for filename in os.listdir(data_path):

@@ -76,16 +76,20 @@ expnokerf: build homo1nokerf homo2nokerf heternokerf mbfsnokerf mssspnokerf
 expnoopt: build homo1noopt homo2noopt heternoopt mbfsnoopt mssspnoopt
 	python profiling.py $(PROFILE_PATH)/$(DATA)
 
+expsingle: build bfs pr cc sssp
+
+expkhomo: build mcc mpr
+
 build:
 	-mkdir -p $(PROFILE_PATH)/$(DATA)
 
 bfs: build
 	# first try
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -job bfs $(DATASET)"
-	$(PERFK) "./$(KRILL_PATH)/Singleton -job bfs $(DATASET)"
-	$(TIME) './$(LIGRA_PATH)/BFS $(DATASET)'
+	$(TIMEK) "./$(KRILL_PATH)/Singleton -job bfs -r 1001 $(DATASET)"
+	$(PERFK) "./$(KRILL_PATH)/Singleton -job bfs -r 1001 $(DATASET)"
+	$(TIME) './$(LIGRA_PATH)/BFS -r 1001 $(DATASET)'
 	# second try
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -job bfs $(DATASET)"
+	$(TIMEK) "./$(KRILL_PATH)/Singleton -job bfs -r 1001 $(DATASET)"
 
 pr: build
 	# first try
@@ -105,11 +109,11 @@ cc: build
 
 sssp: build
 	# first try
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -job sssp -w $(DATASETW)"
-	$(PERFK) "./$(KRILL_PATH)/Singleton -job sssp -w $(DATASETW)"
-	$(TIME) './$(LIGRA_PATH)/BellmanFord $(DATASETW)'
+	$(TIMEK) "./$(KRILL_PATH)/Singleton -job sssp -r 1001 -w $(DATASETW)"
+	$(PERFK) "./$(KRILL_PATH)/Singleton -job sssp -r 1001 -w $(DATASETW)"
+	$(TIME) './$(LIGRA_PATH)/BellmanFord -r 1001 $(DATASETW)'
 	# second try
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -job sssp -w $(DATASETW)"
+	$(TIMEK) "./$(KRILL_PATH)/Singleton -job sssp -r 1001 -w $(DATASETW)"
 
 HOMO1S = ./$(LIGRA_PATH)/BFS -r 10 $(DATASET); \
 	./$(LIGRA_PATH)/BFS -r 20 $(DATASET); \
@@ -337,6 +341,96 @@ mssspp: build
 	# second try
 	$(PERF) '$(MSSSPP)'
 	$(TIME) '$(MSSSPP)'
+
+MCCS = ./$(LIGRA_PATH)/Components $(DATASET) ; \
+	./$(LIGRA_PATH)/Components $(DATASET) ; \
+	./$(LIGRA_PATH)/Components $(DATASET) ; \
+	./$(LIGRA_PATH)/Components $(DATASET) ; \
+	./$(LIGRA_PATH)/Components $(DATASET) ; \
+	./$(LIGRA_PATH)/Components $(DATASET) ; \
+	./$(LIGRA_PATH)/Components $(DATASET) ; \
+	./$(LIGRA_PATH)/Components $(DATASET)
+MCCP = $(subst ;, &,$(MCCS)) & wait
+ifneq "$(or $(TW), $(FT))" ""
+mcc: build mcck mccs
+else
+mcc: build mcck mccs mccp
+endif
+mcck: build
+	# first try
+	$(TIME) "./$(KRILL_PATH)/M-CC $(DATASET)"
+	# second try
+	$(PERF) "./$(KRILL_PATH)/M-CC $(DATASET)"
+	$(TIME) "./$(KRILL_PATH)/M-CC $(DATASET)"
+mccnokerf: build
+	# first try
+	$(TIME) "./$(KRILL_PATH)/M-CC $(DATASET)"
+	# second try
+	$(PERF) "./$(KRILL_PATH)/M-CC $(DATASET)"
+	$(TIME) "./$(KRILL_PATH)/M-CC $(DATASET)"
+mccnoopt: build
+	# first try
+	$(TIME) "./$(KRILL_PATH)/M-CC $(DATASET)"
+	# second try
+	$(PERF) "./$(KRILL_PATH)/M-CC $(DATASET)"
+	$(TIME) "./$(KRILL_PATH)/M-CC $(DATASET)"
+mccs: build
+	# first try
+	$(TIME) '$(MCCS)'
+	# second try
+	$(PERF) '$(MCCS)'
+	$(TIME) '$(MCCS)'
+mccp: build
+	# first try
+	$(TIME) '$(MCCP)'
+	# second try
+	$(PERF) '$(MCCP)'
+	$(TIME) '$(MCCP)'
+
+MPRS = ./$(LIGRA_PATH)/PageRank $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRank $(DATASET)
+MPRP = $(subst ;, &,$(MPRS)) & wait
+ifneq "$(or $(TW), $(FT))" ""
+mpr: build mprk mprs
+else
+mpr: build mprk mprs mprp
+endif
+mprk: build
+	# first try
+	$(TIME) "./$(KRILL_PATH)/M-PageRank $(DATASET)"
+	# second try
+	$(PERF) "./$(KRILL_PATH)/M-PageRank $(DATASET)"
+	$(TIME) "./$(KRILL_PATH)/M-PageRank $(DATASET)"
+mprnokerf: build
+	# first try
+	$(TIME) "./$(KRILL_PATH)/M-PageRank $(DATASET)"
+	# second try
+	$(PERF) "./$(KRILL_PATH)/M-PageRank $(DATASET)"
+	$(TIME) "./$(KRILL_PATH)/M-PageRank $(DATASET)"
+mprnoopt: build
+	# first try
+	$(TIME) "./$(KRILL_PATH)/M-PageRank $(DATASET)"
+	# second try
+	$(PERF) "./$(KRILL_PATH)/M-PageRank $(DATASET)"
+	$(TIME) "./$(KRILL_PATH)/M-PageRank $(DATASET)"
+mprs: build
+	# first try
+	$(TIME) '$(MPRS)'
+	# second try
+	$(PERF) '$(MPRS)'
+	$(TIME) '$(MPRS)'
+mprp: build
+	# first try
+	$(TIME) '$(MPRP)'
+	# second try
+	$(PERF) '$(MPRP)'
+	$(TIME) '$(MPRP)'
 
 pcm: buildpcm bfspcm prpcm ccpcm sssppcm
 	python pcm.py $(PCM_OUTPUT_PATH)
