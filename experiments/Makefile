@@ -432,6 +432,51 @@ mprp: build
 	$(PERF) '$(MPRP)'
 	$(TIME) '$(MPRP)'
 
+HETER2S = ./$(LIGRA_PATH)/BFS -r 71 $(DATASET) ; \
+	./$(LIGRA_PATH)/BellmanFord -r 102 $(DATASETW) ; \
+	./$(LIGRA_PATH)/BFS -r 142 $(DATASET) ; \
+	./$(LIGRA_PATH)/BellmanFord -r 203 $(DATASETW) ; \
+	./$(LIGRA_PATH)/BFS -r 213 $(DATASET) ; \
+	./$(LIGRA_PATH)/BellmanFord -r 304 $(DATASETW) ; \
+	./$(LIGRA_PATH)/BFS -r 284 $(DATASET) ; \
+	./$(LIGRA_PATH)/BellmanFord -r 405 $(DATASETW)
+HETER2P = $(subst ;, &,$(HETER2S)) & wait
+ifneq "$(or $(TW), $(FT))" ""
+heter2: build heter2k heter2s
+else
+heter2: build heter2k heter2s heter2p
+endif
+heter2k: build
+	# first try
+# 	$(TIME) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
+	# second try
+# 	$(PERF) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
+	$(TIME) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
+heter2nokerf: build
+	# first try
+	# $(TIME) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
+	# second try
+# 	$(TIME) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
+	$(PERF) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
+heter2noopt: build
+	# first try
+	# $(TIME) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
+	# second try
+# 	$(TIME) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
+	$(PERF) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
+heter2s: build
+	# first try
+# 	$(TIME) '$(HETER2S)'
+	# second try
+# 	$(PERF) '$(HETER2S)'
+	$(TIME) '$(HETER2S)'
+heter2p: build
+	# first try
+# 	$(TIME) '$(HETER2P)'
+	# second try
+# 	$(PERF) '$(HETER2P)'
+	$(TIME) '$(HETER2P)'
+
 pcm: buildpcm bfspcm prpcm ccpcm sssppcm
 	python pcm.py $(PCM_OUTPUT_PATH)
 buildpcm:
