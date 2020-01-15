@@ -259,7 +259,7 @@ MBFSS = ./$(LIGRA_PATH)/BFS -r 91 $(DATASET) ; \
 	./$(LIGRA_PATH)/BFS -r 455 $(DATASET) ; \
 	./$(LIGRA_PATH)/BFS -r 546 $(DATASET) ; \
 	./$(LIGRA_PATH)/BFS -r 637 $(DATASET) ; \
-	./$(LIGRA_PATH)/BFS -r 828 $(DATASET)
+	./$(LIGRA_PATH)/BFS -r 728 $(DATASET)
 MBFSP = $(subst ;, &,$(MBFSS)) & wait
 ifneq "$(or $(TW), $(FT))" ""
 mbfs: build mbfsk mbfss
