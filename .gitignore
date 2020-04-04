@@ -1,3 +1,7 @@
+*
+!*/
+!*.*
+
 # Prerequisites
 *.d
 
@@ -35,3 +39,6 @@
 *.sublime-project
 *.sublime-workspace
 .vscode
+
+*.txt
+*.prof
