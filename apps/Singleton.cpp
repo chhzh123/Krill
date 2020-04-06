@@ -5,13 +5,14 @@
 #include "BFS.h"
 #include "CC.h"
 #include "PageRank.h"
+#include "PageRankDelta.h"
 #include "SSSP.h"
 using namespace std;
 
 template <class vertex>
 void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
-	string job_name = P.getOptionValue("-job","pr");
+	string job_name = P.getOptionValue("-job","bfs");
 	long start = P.getOptionLongValue("-r",0);
 	if (job_name == "bfs"){
 		BFS* bfs = new BFS(G.n,start);
@@ -25,6 +26,9 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 	} else if (job_name == "sssp"){
 		SSSP* sssp = new SSSP(G.n,start);
 		K.appendJob(sssp);
+	} else if (job_name == "prd"){
+		PageRankDelta<vertex>* prd = new PageRankDelta<vertex>(G.n,G.V);
+		K.appendJob(prd);
 	} else {
 		cerr << "Error: No this job!" << endl;
 		abort();
