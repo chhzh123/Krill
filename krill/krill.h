@@ -628,6 +628,22 @@ vertexSubset vertexFilter(vertexSubset V, F filter) {
 }
 
 template <class F>
+vertexSubset vertexFilter(vertexSubset V, F filter, bool* mask) {
+    long n = V.n;
+    long m = V.m;
+    V.toDense();
+    bool* d_out = newA(bool,n);
+    parallel_for (long i = 0; i < n; i++)
+        d_out[i] = 0;
+    parallel_for (long i = 0; i < n; i++)
+        if (V.d[i]){
+            d_out[i] = filter(i);
+            mask[i] |= d_out[i];
+        }
+    return vertexSubset(n,d_out);
+}
+
+template <class F>
 bool* vertexFilter(vertexSubset V, F filter, int x) {
     long n = V.n;
     long m = V.m;

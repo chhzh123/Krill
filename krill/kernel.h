@@ -44,7 +44,7 @@ public:
         frontier.print(2);
 #endif
     }
-    virtual void finishOneIter(){
+    virtual void finishOneIter(bool* nextUni){
         frontier.del();
         // set new frontier
         setFrontier(n,nextFrontier);
@@ -334,25 +334,25 @@ public:
         if (cORs == 1)
             parallel_for(int i = 0; i < nSJob; ++i)
                 sJob[i]
-                    ->finishOneIter();
+                    ->finishOneIter(nextUni);
         else
         {
             if (cORs == 0)
                 parallel_for(int i = 0; i < nCJob; ++i)
                     cJob[i]
-                        ->finishOneIter();
+                        ->finishOneIter(nextUni);
             else
             {
                 parallel_for(int i = 0; i < nCJob; ++i)
                     cJob[i]
-                        ->finishOneIter();
+                        ->finishOneIter(nextUni);
                 parallel_for(int i = 0; i < nSJob; ++i)
                     sJob[i]
-                        ->finishOneIter();
+                        ->finishOneIter(nextUni);
             }
             UniFrontier.del();
             // set new frontier
-            if (!flagSparse)
+            if (!flagSparse || nextUni != NULL)
             {
                 UniFrontier = ((nextUni != NULL) ? vertexSubset(nVert, nextUni) : vertexSubset(nVert));
                 nextUni = NULL;
