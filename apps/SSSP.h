@@ -70,7 +70,7 @@ public:
 		setAll<int>(changed,0);
 		setFrontier(n,start);
 	}
-	void finishOneIter(){ // overload
+	void finishOneIter(bool*){ // overload
         frontier.del();
         // set new frontier
         setFrontier(n,nextFrontier);

@@ -67,7 +67,7 @@ public:
 		setAll<double>(p_next,0); // 0 if unchanged
 		setFrontierAll();
 	}
-	void finishOneIter(){ // overload
+	void finishOneIter(bool*){ // overload
 		vertexMap(frontier,Update_PR(p_curr,p_next,damping,n));
 
 		// compute L1-norm between p_curr and p_next
