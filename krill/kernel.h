@@ -352,7 +352,7 @@ public:
             }
             UniFrontier.del();
             // set new frontier
-            if (!flagSparse || nextUni != NULL)
+            if (!flagSparse)
             {
                 UniFrontier = ((nextUni != NULL) ? vertexSubset(nVert, nextUni) : vertexSubset(nVert));
                 nextUni = NULL;
@@ -361,6 +361,14 @@ public:
             else
             {
                 UniFrontier = ((nextSpUni != NULL) ? vertexSubset(nVert, nextM, nextSpUni) : vertexSubset(nVert));
+                if (nextUni != NULL)
+                {
+                    UniFrontier.toDense();
+                    parallel_for (long i = 0; i < nVert; ++i)
+                        UniFrontier.d[i] |= nextUni[i];
+                    free(UniFrontier.s);
+                    UniFrontier.s = NULL;
+                }
                 nextUni = NULL;
                 nextSpUni = NULL;
             }
