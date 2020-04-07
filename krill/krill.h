@@ -376,7 +376,7 @@ void scheduleJob(Job**& job, int& nJob, int nIter)
 {
     int i = 0;
     while (i < nJob){
-        if (job[i]->finished()){
+        if (job[i]->finished(nIter)){
             reportTime("Latency: ");
             cout << "Iter " << nIter << ": Finished job "
                  << job[i]->ID << " - " << typeid(*(job[i])).name() << endl;

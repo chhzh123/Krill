@@ -37,7 +37,7 @@ class PageRank : public UnweightedJob
 public:
 	PageRank(long _n, vertex* _V, long _maxIters = 15):
 		UnweightedJob(_n, true), p_curr(NULL), p_next(NULL), V(_V),
-		iter(0), maxIters(_maxIters){}; // call parent class constructor
+		maxIters(_maxIters){}; // call parent class constructor
 	inline bool update(uintE s, uintE d){ // update function applies PageRank equation
 		p_next[d] += p_curr[s] / V[s].getOutDegree();
 		return true;
@@ -49,7 +49,7 @@ public:
 	inline bool cond(uintE d){
 		return cond_true(d);
 	}
-	inline bool finished(){
+	inline bool finished(int iter){
 		if (iter >= maxIters || L1_norm < epsilon){
 #ifdef DEBUG
     	for (long i = 0; i < 20; ++i)
@@ -82,13 +82,11 @@ public:
 
         frontier.del();
         setFrontier(n,nextFrontier);
-        iter++;
     }
 	void clear(){
 		freeMem<double>(p_curr);
 		freeMem<double>(p_next);
 	}
-	long iter;
 	long maxIters;
 	double* p_curr;
 	double* p_next;

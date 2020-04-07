@@ -24,7 +24,7 @@ public:
 	inline bool cond(uintE d){ // cond function checks if vertex has been visited yet
 		return (parents[d] == UINT_E_MAX); // since CAS cannot pass negtive num
 	}
-	inline bool finished(){
+	inline bool finished(int){
 		return frontier.isEmpty();
 	}
 	void initialize(){

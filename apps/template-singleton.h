@@ -69,7 +69,7 @@ public:
 	 * This function justifies whether your job is finished and also should be overridden.
 	 * The default implementation returns whether the frontier set is empty.
 	 */
-	inline bool finished(){
+	inline bool finished(int){
 		// you can change the finished condition
 		return frontier.isEmpty();
 	}

@@ -23,7 +23,7 @@ public:
 
     // *pure* virtual function used for correct function call
     virtual bool cond(uintE d) = 0;
-    virtual bool finished() = 0;
+    virtual bool finished(int iter) = 0;
     virtual void initialize() = 0;
     virtual void clear() = 0;
     virtual void condPush(uintE& out, const long vSrc, const long vDst, const intE edgeVal) = 0;

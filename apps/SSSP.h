@@ -43,7 +43,7 @@ public:
 	inline bool cond(uintE d){
 		return cond_true(d);
 	}
-	inline bool finished(){
+	inline bool finished(int){
 		if (round == n) {
 		// if the relax procedure has been executed for more than N times
 		// there must exist negative weight cycle
