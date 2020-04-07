@@ -25,7 +25,7 @@ public:
     	if (IDs[s] < origID) {
     		IDs[d] = min(origID,IDs[s]);
     		if (origID == prevIDs[d])
-    			return 1;
+    			return 1; // only added to the frontier once
     	}
     	return 0;
 	}
@@ -36,17 +36,17 @@ public:
 	inline bool cond(uintE d){
 		return cond_true(d);
 	}
-	inline bool finished(){
+	inline bool finished(int){
 		// return frontier.isEmpty();
 		if (frontier.isEmpty()){
 			bool* res;
 			setAll<bool>(res,0);
-			for (int i = 0; i < n; ++i)
+			parallel_for (int i = 0; i < n; ++i)
 				res[IDs[i]] = 1;
   			int cnt = 0;
-  			for (int i = 0; i < n; ++i)
+  			parallel_for (int i = 0; i < n; ++i)
 				if (res[i])
-      				cnt++;
+      				writeAdd<int>(&cnt,1);
   			cout << "CC: " << cnt << endl;
   			return true;
 		} else
