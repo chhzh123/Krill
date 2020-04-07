@@ -35,7 +35,7 @@ template <class vertex>
 class PageRank : public UnweightedJob
 {
 public:
-	PageRank(long _n, vertex* _V, long _maxIters = 100):
+	PageRank(long _n, vertex* _V, long _maxIters = 15):
 		UnweightedJob(_n, true), p_curr(NULL), p_next(NULL), V(_V),
 		iter(0), maxIters(_maxIters){}; // call parent class constructor
 	inline bool update(uintE s, uintE d){ // update function applies PageRank equation
@@ -50,7 +50,7 @@ public:
 		return cond_true(d);
 	}
 	inline bool finished(){
-		if (iter > maxIters || L1_norm < epsilon){
+		if (iter >= maxIters || L1_norm < epsilon){
 #ifdef DEBUG
     	for (long i = 0; i < 20; ++i)
     		cout << p_curr[i] << " ";

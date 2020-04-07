@@ -8,12 +8,13 @@ using namespace std;
 // vertex map function to update its p value according to PageRank equation
 struct Update_PageRankDelta : public Function
 {
-	Update_PageRankDelta(double* _p, double* _neigh_sum, double* _delta, double _damping, double _factor, double _one_over_n, int _round):
-		p(_p), neigh_sum(_neigh_sum), delta(_delta), damping(_damping), factor(_factor), one_over_n(_one_over_n), round(_round){}
+	Update_PageRankDelta(double* _p, double* _neigh_sum, double* _delta, double* _abs_delta, double _damping, double _factor, double _one_over_n, int _round):
+		p(_p), neigh_sum(_neigh_sum), delta(_delta), abs_delta(_abs_delta), damping(_damping), factor(_factor), one_over_n(_one_over_n), round(_round){}
 	inline bool operator () (uintE i) {
         if (round != 0){
             delta[i] = damping * neigh_sum[i]; // refresh the old delta
-            if (fabs(delta[i]) > factor * p[i]){
+			abs_delta[i] = fabs(delta[i]);
+            if (abs_delta[i] > factor * p[i]){
                 p[i] += delta[i];
                 return true;
             } else
@@ -21,13 +22,15 @@ struct Update_PageRankDelta : public Function
         } else { // round 0
             p[i] += damping * neigh_sum[i];
             delta[i] = p[i] - one_over_n;
-            return (fabs(delta[i]) > factor * p[i]);
+			abs_delta[i] = fabs(delta[i]);
+            return (abs_delta[i] > factor * p[i]);
         }
 	}
     int round;
 	double* p;
 	double* neigh_sum;
     double* delta;
+	double* abs_delta;
 	double damping;
     double factor;
     double one_over_n;
@@ -37,7 +40,7 @@ template <class vertex>
 class PageRankDelta : public UnweightedJob
 {
 public:
-	PageRankDelta(long _n, vertex* _V, long _maxIters = 10):
+	PageRankDelta(long _n, vertex* _V, long _maxIters = 15):
 		UnweightedJob(_n), p(NULL), neigh_sum(NULL), V(_V),
 		iter(0), maxIters(_maxIters){}; // call parent class constructor
 	inline bool update(uintE s, uintE d){ // update function applies PageRank equation
@@ -58,7 +61,7 @@ public:
 		return true;
 	}
 	inline bool finished(){
-		if (iter > maxIters || L1_norm < epsilon){
+		if (iter >= maxIters || L1_norm < epsilon){
 #ifdef DEBUG
     	for (long i = 0; i < 10; ++i)
     		cout << p[i] << " ";
@@ -79,13 +82,11 @@ public:
 	void finishOneIter(bool* nextUni){ // overload
         if (nextUni == NULL)
             setAll<bool>(nextUni, true);
-        vertexSubset active = vertexFilter<Update_PageRankDelta>(vertexSubset(n, tmp), Update_PageRankDelta(p, neigh_sum, delta, damping, factor, 1/(double)n, iter), nextUni);
+		double *abs_delta = newA(double, n);
+		vertexSubset active = vertexFilter<Update_PageRankDelta>(vertexSubset(n, tmp), Update_PageRankDelta(p, neigh_sum, delta, abs_delta, damping, factor, 1 / (double)n, iter), nextUni);
 
-        // compute L1-norm
-        double* delta_abs = newA(double,n);
-        parallel_for (long i = 0; i < n; ++i)
-            delta_abs[i] = fabs(delta[i]);
-    	L1_norm = sequence::plusReduce(delta_abs,n);
+		// compute L1-norm
+    	L1_norm = sequence::plusReduce(abs_delta,n);
     	if (L1_norm < epsilon){
 #ifdef DEBUG
             cout << "early break" << endl;
@@ -96,6 +97,7 @@ public:
         frontier.del();
         frontier = active;
         setAll<double>(neigh_sum, 0); // delta_dst
+		freeMem<double>(abs_delta);
         iter++;
     }
 	void clear(){
