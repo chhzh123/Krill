@@ -31,10 +31,10 @@ public:
 			shortestPathLen[d] = newDist;
 			if (changed[d] == 0) { // keep track that the vertex has been changed value
 				changed[d] = 1;
-				return 1;
+				return 1; // only set once in sparse mode
 			}
-		} else
-			return 0; // if no edges can be relaxed, then the algorithm terminates
+		}
+		return 0; // if no edges can be relaxed, then the algorithm terminates
 	}
 	inline bool updateAtomic(uintE s, uintE d, intE edgeLen){
 		intE newDist = shortestPathLen[s] + edgeLen;
