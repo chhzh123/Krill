@@ -467,6 +467,8 @@ void Execute(graph<vertex>& G, Kernels& K, commandLine P)
         iter++;
 #ifdef DEBUG
         cout << iter << ": # of jobs: " << K.nCJob + K.nSJob << endl;
+        cout << "UniFrontier: ";
+        K.UniFrontier.print(2);
 #endif
         if (K.nSJob == 0){
             K.iniOneIter();
