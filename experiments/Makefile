@@ -2,21 +2,35 @@
 
 KRILL_PATH = ../apps
 LIGRA_PATH = ../../ligra/apps
+GRAPHM_PATH = ../../GraphM/GridGraph-M/examples
 DATASET_PATH = ../../Dataset
 PCM_PATH = ../../pcm
 
 ifdef CP
 DATA = cit-Patents
-DATASET = $(DATASET_PATH)/$(DATA)
-DATASETW = $(DATASET_PATH)/$(DATA)-w
+Vertices = 6009555
+Edges = 16518948
+SIZE = 150
+SIZEW = 191
 
 else ifdef LJ
 DATA = soc-LiveJournal1
-DATASET = $(DATASET_PATH)/$(DATA)
-DATASETW = $(DATASET_PATH)/$(DATA)-w
+Vertices = 4847571
+Edges = 68993773
+SIZE = 523
+SIZEW = 694
 
 else ifdef RD
 DATA = road_usa
+Vertices = 23947348
+Edges = 57708624
+SIZE = 671
+SIZEW = 816
+
+else ifdef RMAT
+DATA = rMatGraph24
+Vertices = 33554432
+Edges = 168000000
 DATASET = $(DATASET_PATH)/$(DATA)
 DATASETW = $(DATASET_PATH)/$(DATA)-w
 
@@ -30,25 +44,33 @@ DATA = com-friendster
 DATASET = $(DATASET_PATH)/$(DATA)
 DATASETW = $(DATASET_PATH)/$(DATA)-w
 
-else ifdef RMAT
-DATA = rMatGraph24
-DATASET = $(DATASET_PATH)/$(DATA)
-DATASETW = $(DATASET_PATH)/$(DATA)-w
-
 else
 DATA = rMatGraph
+Vertices = 128
+Edges = 708
+SIZE = 1
+SIZEW = 1
 DATASET = ../inputs/$(DATA)_J_5_100
 DATASETW = ../inputs/$(DATA)_WJ_5_100
 endif
 
+DATASET = $(DATASET_PATH)/$(DATA)
+DATASETW = $(DATASET_PATH)/$(DATA)-w
+DATASET_GRID = $(DATASET_PATH)/$(DATA)-grid
+DATASETW_GRID = $(DATASET_PATH)/$(DATA)-w-grid
+
 PROFILE_PATH = profile
-PCM_OUTPUT_PATH = pcm-results
 TIMEK = /usr/bin/time -v -o $(PROFILE_PATH)/$(DATA)/$@k.time sh -c
 PERFK = perf stat -d -o $(PROFILE_PATH)/$(DATA)/$@k.perf sh -c
 TIME = /usr/bin/time -v -o $(PROFILE_PATH)/$(DATA)/$@.time sh -c
 PERF = perf stat -d -o $(PROFILE_PATH)/$(DATA)/$@.perf sh -c
 
+PCM_OUTPUT_PATH = pcm-results
 PCM = sudo ./$(PCM_PATH)/pcm-memory.x 0.01 -csv=$(PCM_OUTPUT_PATH)/$@.csv --external-program
+
+MAX_ITER = 15
+CACHE_SIZE = 20 # MB
+MEMORY_BUDGET = 32 # GB
 
 # to clear the cache
 #sudo sh -c 'echo 1 >/proc/sys/vm/drop_caches'
@@ -76,6 +98,8 @@ expnokerf: build homo1nokerf homo2nokerf heternokerf mbfsnokerf mssspnokerf
 expnoopt: build homo1noopt homo2noopt heternoopt mbfsnoopt mssspnoopt
 	python profiling.py $(PROFILE_PATH)/$(DATA)
 
+expgm: build homo1gm homo2gm hetergm mbfsgm mssspgm
+
 expsingle: build bfs pr cc sssp
 
 expkhomo: build mcc mpr
@@ -93,11 +117,11 @@ bfs: build
 
 pr: build
 	# first try
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -job pr $(DATASET)"
-	$(PERFK) "./$(KRILL_PATH)/Singleton -job pr $(DATASET)"
-	$(TIME) './$(LIGRA_PATH)/PageRank $(DATASET)'
+	$(TIMEK) "./$(KRILL_PATH)/Singleton -job prd $(DATASET)"
+	$(PERFK) "./$(KRILL_PATH)/Singleton -job prd $(DATASET)"
+	$(TIME) './$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET)'
 	# second try
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -job pr $(DATASET)"
+	$(TIMEK) "./$(KRILL_PATH)/Singleton -job prd $(DATASET)"
 
 cc: build
 	# first try
@@ -161,15 +185,20 @@ homo1p: build
 	# second try
 	$(PERF) '$(HOMO1P)'
 	$(TIME) '$(HOMO1P)'
+homo1gm: build $(DATASET_GRID)
+	# first try
+	$(TIME) "./$(GRAPHM_PATH)/Homo1 $(DATASET_GRID) 4 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	# second try
+	$(PERF) "./$(GRAPHM_PATH)/Homo1 $(DATASET_GRID) 4 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
 
 HOMO2S = ./$(LIGRA_PATH)/BellmanFord -r 73 $(DATASETW) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 144 $(DATASETW) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 215 $(DATASETW) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 286 $(DATASETW) ; \
-	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
-	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
-	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
-	./$(LIGRA_PATH)/PageRank $(DATASET)
+	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET)
 HOMO2P = $(subst ;, &,$(HOMO2S)) & wait
 ifneq "$(or $(TW), $(FT))" ""
 homo2: build homo2k homo2s
@@ -206,14 +235,19 @@ homo2p: build
 	# second try
 	$(PERF) '$(HOMO2P)'
 	$(TIME) '$(HOMO2P)'
+homo2gm: build $(DATASETW_GRID)
+	# first try
+	$(TIME) "./$(GRAPHM_PATH)/Homo2 $(DATASETW_GRID) 4 $(MAX_ITER) $(CACHE_SIZE) $(SIZEW) $(MEMORY_BUDGET)"
+	# second try
+	$(PERF) "./$(GRAPHM_PATH)/Homo2 $(DATASETW_GRID) 4 $(MAX_ITER) $(CACHE_SIZE) $(SIZEW) $(MEMORY_BUDGET)"
 
 HETERS = ./$(LIGRA_PATH)/BFS -r 71 $(DATASET) ; \
 	./$(LIGRA_PATH)/Components $(DATASET) ; \
-	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 102 $(DATASETW) ; \
 	./$(LIGRA_PATH)/BFS -r 142 $(DATASET) ; \
 	./$(LIGRA_PATH)/Components $(DATASET) ; \
-	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 203 $(DATASETW)
 HETERP = $(subst ;, &,$(HETERS)) & wait
 ifneq "$(or $(TW), $(FT))" ""
@@ -251,6 +285,11 @@ heterp: build
 	# second try
 	$(PERF) '$(HETERP)'
 	$(TIME) '$(HETERP)'
+hetergm: build $(DATASETW_GRID)
+	# first try
+	$(TIME) "./$(GRAPHM_PATH)/Heter $(DATASETW_GRID) 2 $(MAX_ITER) $(CACHE_SIZE) $(SIZEW) $(MEMORY_BUDGET)"
+	# second try
+	$(PERF) "./$(GRAPHM_PATH)/Heter $(DATASETW_GRID) 2 $(MAX_ITER) $(CACHE_SIZE) $(SIZEW) $(MEMORY_BUDGET)"
 
 MBFSS = ./$(LIGRA_PATH)/BFS -r 91 $(DATASET) ; \
 	./$(LIGRA_PATH)/BFS -r 182 $(DATASET) ; \
@@ -296,6 +335,11 @@ mbfsp: build
 	# second try
 	$(PERF) '$(MBFSP)'
 	$(TIME) '$(MBFSP)'
+mbfsgm: build $(DATASET_GRID)
+	# first try
+	$(TIME) "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 8 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	# second try
+	$(PERF) "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 8 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
 
 MSSSPS = ./$(LIGRA_PATH)/BellmanFord -r 211 $(DATASETW) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 422 $(DATASETW) ; \
@@ -341,6 +385,11 @@ mssspp: build
 	# second try
 	$(PERF) '$(MSSSPP)'
 	$(TIME) '$(MSSSPP)'
+mssspgm: build $(DATASETW_GRID)
+	# first try
+	$(TIME) "./$(GRAPHM_PATH)/M-SSSP $(DATASETW_GRID) 8 $(MAX_ITER) $(CACHE_SIZE) $(SIZEW) $(MEMORY_BUDGET)"
+	# second try
+	$(PERF) "./$(GRAPHM_PATH)/M-SSSP $(DATASETW_GRID) 8 $(MAX_ITER) $(CACHE_SIZE) $(SIZEW) $(MEMORY_BUDGET)"
 
 MCCS = ./$(LIGRA_PATH)/Components $(DATASET) ; \
 	./$(LIGRA_PATH)/Components $(DATASET) ; \
@@ -387,14 +436,14 @@ mccp: build
 	$(PERF) '$(MCCP)'
 	$(TIME) '$(MCCP)'
 
-MPRS = ./$(LIGRA_PATH)/PageRank $(DATASET) ; \
-	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
-	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
-	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
-	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
-	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
-	./$(LIGRA_PATH)/PageRank $(DATASET) ; \
-	./$(LIGRA_PATH)/PageRank $(DATASET)
+MPRS = ./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET) ; \
+	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET)
 MPRP = $(subst ;, &,$(MPRS)) & wait
 ifneq "$(or $(TW), $(FT))" ""
 mpr: build mprk mprs
@@ -485,7 +534,7 @@ buildpcm:
 bfspcm: buildpcm
 	$(PCM) ./$(LIGRA_PATH)/BFS $(DATASET)
 prpcm: buildpcm
-	$(PCM) ./$(LIGRA_PATH)/PageRank $(DATASET)
+	$(PCM) ./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET)
 ccpcm: buildpcm
 	$(PCM) ./$(LIGRA_PATH)/Components $(DATASET)
 sssppcm: buildpcm
@@ -568,6 +617,24 @@ multicorep: build
 	taskset -c 0-15 env CILK_NWORKERS=16 $(TIMEMULTICORE)16.time sh -c '$(HETERP)'
 	taskset -c 0-31 env CILK_NWORKERS=32 $(TIMEMULTICORE)32.time sh -c '$(HETERP)'
 	taskset -c 0-39 env CILK_NWORKERS=40 $(TIMEMULTICORE)40.time sh -c '$(HETERP)'
+
+gen_rmat:
+	./../utils/rMatGraph -a .5 -b .1 -c .1 -d .3 16800000 $(DATASET_PATH)/rMatGraph24
+
+add_weights: $(DATASET)-w
+$(DATASET)-w: $(DATASET)
+	./../utils/adjGraphAddWeights $(DATASET) $(DATASET)-w
+
+run_preprocess: to_bin to_grid to_gm
+to_bin: $(DATASET)
+	python converter.py $(DATASET) $(DATASET_PATH)
+
+to_grid: $(DATASET).in
+	./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocess -i $(DATASET).in -o $(DATASET_GRID) -v $(Vertices) -p 4 -t $(WEIGHTED)
+
+to_gm: $(DATASET_GRID)
+	./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocessing $(DATASET_GRID) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)
+	rm chunk-table-*
 
 clean:
 	-rm -rf $(PROFILE_PATH) *.prof *.log

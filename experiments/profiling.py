@@ -5,6 +5,7 @@ algs = ["homo1","homo2","heter","mbfs","msssp"]
 
 if len(sys.argv) <= 1:
 	print("Error: Please enter the folder path!")
+	sys.exit()
 data_path = sys.argv[1]
 data_name = data_path.split('/')[-1]
 output = open(data_name + ".prof","w")
@@ -27,13 +28,14 @@ def write_table(lst,head,inalgs=algs):
 	write_framework(lst,"Krill",'k',inalgs)
 	write_framework(lst,"Ligra-S",'s',inalgs)
 	write_framework(lst,"Ligra-P",'p',inalgs)
+	write_framework(lst,"GraphM",'m',inalgs)
 	write_framework(lst,"Krill (w/o kerf)",'f',inalgs)
 	write_framework(lst,"Krill (w/o opt)",'t',inalgs)
 	output.write("\n")
 
 print("Extracting profiling results from {} ...".format(data_path))
 
-abbreviation = ['s','p','k','f','t']
+abbreviation = ['s','p','k','m','f','t']
 realtime, peakmem, l1_load, l1_miss, llc_miss, instructions = {}, {}, {}, {}, {}, {}
 for abbr in abbreviation:
 	realtime[abbr] = {}
