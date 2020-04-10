@@ -12,11 +12,11 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
 	Homo1::Property prop(G.n);
 	for (int i = 1; i < 5; ++i){
-		BFS *bfs = new BFS(G.n, prop.add_parents(), 10 * i); // remember to dynamically allocate memory
+		BFS *bfs = new BFS(G.n, prop, 10 * i); // remember to dynamically allocate memory
 		K.appendJob(bfs);
 	}
 	for (int i = 0; i < 4; ++i){
-		Components* cc = new Components(G.n, prop.add_IDs(), prop.add_prevIDs());
+		Components* cc = new Components(G.n, prop);
 		K.appendJob(cc);
 	}
 }

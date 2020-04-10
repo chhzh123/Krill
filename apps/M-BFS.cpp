@@ -14,7 +14,7 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 		int start = 91 * i;
 		if (start >= G.n)
 			start = i;
-		BFS* bfs = new BFS(G.n, prop.add_parents(), start); // remember to dynamically allocate memory
+		BFS* bfs = new BFS(G.n, prop, start); // remember to dynamically allocate memory
 		K.appendJob(bfs);
 	}
 }

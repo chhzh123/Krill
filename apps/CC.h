@@ -20,8 +20,11 @@ struct Update_F : public Function
 class Components : public UnweightedJob
 {
 public:
-	Components(long _n, Components_IDs* _IDs, Components_prevIDs* _prevIDs):
-		UnweightedJob(_n), IDs(_IDs), prevIDs(_prevIDs){}
+	Components(long _n, Property& prop):
+		UnweightedJob(_n){
+			IDs = prop.add_IDs();
+			prevIDs = prop.add_prevIDs();
+		}
 	inline bool update(uintE s, uintE d){ // Update function writes min ID
 		uintE origID = (*IDs)[d];
     	if ((*IDs)[s] < origID) {

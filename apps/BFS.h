@@ -9,9 +9,10 @@ using namespace Homo1;
 class BFS: public UnweightedJob
 {
 public:
-	BFS(long _n, BFS_parents* _parents, long _start = 0):
-		UnweightedJob(_n), parents(_parents), start(_start){
+	BFS(long _n, Property& prop, long _start = 0):
+		UnweightedJob(_n), start(_start){
 			assert(_start < n);
+			parents = prop.add_parents();
 		}; // call parent class constructor
 	inline bool update(uintE s, uintE d){
 		if ((*parents)[d] == UINT_E_MAX){
