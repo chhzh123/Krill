@@ -10,6 +10,7 @@
 
 namespace Homo1 {
 
+typedef int intE;
 typedef unsigned int uintE;
 
 class BFS_parents {
