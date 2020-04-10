@@ -6,6 +6,7 @@
 
 #include <cctype>
 #include <cstdlib>
+#include "parallel.h"
 
 namespace Homo1 {
 
@@ -15,6 +16,9 @@ class BFS_parents {
 public:
   BFS_parents(size_t n) {
     data = (uintE*) malloc(sizeof(uintE) * n);
+    parallel_for (int i = 0; i < n; ++i) {
+      data[i] = -1;
+    }
   }
   ~BFS_parents() {
     free(data);
@@ -28,6 +32,9 @@ class Components_IDs {
 public:
   Components_IDs(size_t n) {
     data = (uintE*) malloc(sizeof(uintE) * n);
+    parallel_for (int i = 0; i < n; ++i) {
+      data[i] = -1;
+    }
   }
   ~Components_IDs() {
     free(data);
