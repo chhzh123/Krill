@@ -46,7 +46,7 @@ By default, the maximum job number is set to 128, and you can modify this number
 Four basic graph algorithms including BFS, BellmanFord (SSSP), PageRank (PR), and Connect Components (CC) are provided in the `apps` folder.
 We also provide simple combinations of them, shown below
 
-| Job set | Combination |
+| Job set | Composition |
 | :---: | :---: |
 | `Homo1` | {BFS, CC} * 4 |
 | `Homo2` | {PR, SSSP} * 4 |
@@ -81,7 +81,7 @@ Notice the system has not been thoroughly tested in other compiler settings exce
 
 ## Execution
 
-To execute the compiled program, you can run the following commands (support the program named `concurrent`):
+To execute the compiled program, you can run the following commands (suppose the program named `concurrent`):
 
 ```bash
 $ ./concurrent -w ../inputs/rMatGraph_WJ_5_100
@@ -113,10 +113,10 @@ Similarly, you need to type `make` in the `utils` folder to compile the faciliti
 ## Experiments
 
 To reproduce the experiments in our paper, you should make sure
-1. Ligra has been compiled in another folder at first.
+1. [Ligra](https://github.com/jshun/ligra) & [GraphM](https://github.com/chhzh123/GraphM) has been compiled in another folder at first.
 2. Python 3 is installed in your system, which is needed for bash script writing and result extraction.
 3. The datasets are downloaded.
-4. The environment variables are properly defined, including `LIGRA_PATH` and `DATASET_PATH`.
+4. The environment variables are properly defined, including `LIGRA_PATH`, `GRAPHM_PATH` and `DATASET_PATH`.
 
 Then follow the guidance below:
 

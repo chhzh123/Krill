@@ -627,7 +627,7 @@ $(DATASET)-w: $(DATASET)
 
 run_preprocess: to_bin to_grid to_gm
 to_bin: $(DATASET)
-	python converter.py $(DATASET) $(DATASET_PATH)
+	python ../utils/converter.py $(DATASET) $(DATASET_PATH)
 
 to_grid: $(DATASET).in
 	./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocess -i $(DATASET).in -o $(DATASET_GRID) -v $(Vertices) -p 4 -t $(WEIGHTED)
@@ -635,6 +635,10 @@ to_grid: $(DATASET).in
 to_gm: $(DATASET_GRID)
 	./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocessing $(DATASET_GRID) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)
 	rm chunk-table-*
+
+CURR_TIME = $(shell env TZ=Asia/Shanghai date +"%Y%m%d-%H%M%S")
+tar_results:
+	tar -cvf profile-$(CURR_TIME).tar profile *.log *.prof
 
 clean:
 	-rm -rf $(PROFILE_PATH) *.prof *.log
