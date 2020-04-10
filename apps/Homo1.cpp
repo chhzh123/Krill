@@ -3,6 +3,8 @@
 
 #include "krill.h"
 #include "Homo1.pb.h"
+using namespace Homo1;
+
 #include "BFS.h"
 #include "CC.h"
 using namespace std;
