@@ -56,7 +56,12 @@ with open(path,"r") as infile:
 def get_prop_class(job_prop):
     job, prop_name, type_name, initial_val = job_prop
     class_name = "{}_{}".format(job,prop_name)
-    type_name = "uintE" if type_name == "uint" else "intE"
+    if type_name == "uint":
+        type_name = "uintE"
+    elif type_name == "int":
+        type_name = "intE"
+    else:
+        pass # other C/C++ inherent types are supported
     res = "class {} {{\npublic:\n".format(class_name)
     # constructor
     res += "  {}(size_t n) {{\n".format(class_name)

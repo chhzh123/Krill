@@ -2,3 +2,10 @@ property SSSP {
   int shortestPathLen = 0x3f3f3f3f;
   int changed = 0;
 }
+
+property PageRankDelta {
+  double p;
+  double neigh_sum = 0.0;
+  double delta;
+  bool tmp;
+}
