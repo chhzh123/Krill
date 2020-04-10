@@ -10,10 +10,14 @@
 namespace Homo1 {
 
 typedef unsigned int uintE;
+
 class BFS_parents {
 public:
   BFS_parents(size_t n) {
     data = (uintE*) malloc(sizeof(uintE) * n);
+  }
+  ~BFS_parents() {
+    free(data);
   }
   inline uintE operator[] (int i) const { return data[i]; }
   inline uintE& operator[] (int i) { return data[i]; }
@@ -25,6 +29,9 @@ public:
   Components_IDs(size_t n) {
     data = (uintE*) malloc(sizeof(uintE) * n);
   }
+  ~Components_IDs() {
+    free(data);
+  }
   inline uintE operator[] (int i) const { return data[i]; }
   inline uintE& operator[] (int i) { return data[i]; }
   uintE* data;
@@ -34,6 +41,9 @@ class Components_prevIDs {
 public:
   Components_prevIDs(size_t n) {
     data = (uintE*) malloc(sizeof(uintE) * n);
+  }
+  ~Components_prevIDs() {
+    free(data);
   }
   inline uintE operator[] (int i) const { return data[i]; }
   inline uintE& operator[] (int i) { return data[i]; }
