@@ -87,6 +87,12 @@ def get_prop_class(job_prop):
     # accessors
     res += "  inline {} operator[] (int i) const {{ return data[i]; }}\n".format(type_name)
     res += "  inline {}& operator[] (int i) {{ return data[i]; }}\n".format(type_name)
+    res += "  inline {} get (int i) const {{ return data[i]; }}\n".format(type_name)
+    res += "  inline {}& get (int i) {{ return data[i]; }}\n".format(type_name)
+    res += "  inline {}* get_addr (int i) {{ return &(data[i]); }}\n".format(type_name)
+    res += "  inline void set (int i, {} val) {{ data[i] = val; }}\n".format(type_name)
+    # data
+    res += "private:\n"
     res += "  {}* data;\n".format(type_name)
     res += "};\n\n"
     return res
