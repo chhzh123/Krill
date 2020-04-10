@@ -1,8 +1,8 @@
 property BFS {
-  uint parents = -1;
+  uint Parents = -1;
 }
 
 property Components {
-  uint IDs = (lambda vID : vID);
-  uint prevIDs;
+  uint CurrIDs = (lambda vID : vID);
+  uint PrevIDs;
 }

@@ -90,6 +90,7 @@ def get_prop_class(job_prop):
     res += "  inline {} get (int i) const {{ return data[i]; }}\n".format(type_name)
     res += "  inline {}& get (int i) {{ return data[i]; }}\n".format(type_name)
     res += "  inline {}* get_addr (int i) {{ return &(data[i]); }}\n".format(type_name)
+    res += "  inline {}* get_data () {{ return data; }}\n".format(type_name)
     res += "  inline void set (int i, {} val) {{ data[i] = val; }}\n".format(type_name)
     # data
     res += "private:\n"

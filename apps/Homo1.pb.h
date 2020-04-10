@@ -13,67 +13,93 @@ namespace Homo1 {
 typedef int intE;
 typedef unsigned int uintE;
 
-class BFS_parents {
+namespace BFS_Prop {
+
+class Parents {
 public:
-  BFS_parents(size_t n) {
+  Parents(size_t n) {
     data = (uintE*) malloc(sizeof(uintE) * n);
     parallel_for (int i = 0; i < n; ++i) {
       data[i] = UINT_MAX;
     }
   }
-  ~BFS_parents() {
+  ~Parents() {
     free(data);
   }
   inline uintE operator[] (int i) const { return data[i]; }
   inline uintE& operator[] (int i) { return data[i]; }
+  inline uintE get (int i) const { return data[i]; }
+  inline uintE& get (int i) { return data[i]; }
+  inline uintE* get_addr (int i) { return &(data[i]); }
+  inline uintE* get_data () { return data; }
+  inline void set (int i, uintE val) { data[i] = val; }
+private:
   uintE* data;
 };
 
-class Components_IDs {
+} // namespace BFS_Prop
+
+namespace Components_Prop {
+
+class CurrIDs {
 public:
-  Components_IDs(size_t n) {
+  CurrIDs(size_t n) {
     data = (uintE*) malloc(sizeof(uintE) * n);
     auto lambda = [](int i) -> uintE { return i; };
     parallel_for (int i = 0; i < n; ++i) {
       data[i] = lambda(i);
     }
   }
-  ~Components_IDs() {
+  ~CurrIDs() {
     free(data);
   }
   inline uintE operator[] (int i) const { return data[i]; }
   inline uintE& operator[] (int i) { return data[i]; }
+  inline uintE get (int i) const { return data[i]; }
+  inline uintE& get (int i) { return data[i]; }
+  inline uintE* get_addr (int i) { return &(data[i]); }
+  inline uintE* get_data () { return data; }
+  inline void set (int i, uintE val) { data[i] = val; }
+private:
   uintE* data;
 };
 
-class Components_prevIDs {
+class PrevIDs {
 public:
-  Components_prevIDs(size_t n) {
+  PrevIDs(size_t n) {
     data = (uintE*) malloc(sizeof(uintE) * n);
   }
-  ~Components_prevIDs() {
+  ~PrevIDs() {
     free(data);
   }
   inline uintE operator[] (int i) const { return data[i]; }
   inline uintE& operator[] (int i) { return data[i]; }
+  inline uintE get (int i) const { return data[i]; }
+  inline uintE& get (int i) { return data[i]; }
+  inline uintE* get_addr (int i) { return &(data[i]); }
+  inline uintE* get_data () { return data; }
+  inline void set (int i, uintE val) { data[i] = val; }
+private:
   uintE* data;
 };
+
+} // namespace Components_Prop
 
 class Property {
 public:
   size_t n;
   Property(size_t _n): n(_n) {}
-  inline BFS_parents* add_parents() {
-    BFS_parents* parents = new BFS_parents(n);
-    return parents;
+  inline BFS_Prop::Parents* add_Parents() {
+    BFS_Prop::Parents* Parents = new BFS_Prop::Parents(n);
+    return Parents;
   }
-  inline Components_IDs* add_IDs() {
-    Components_IDs* IDs = new Components_IDs(n);
-    return IDs;
+  inline Components_Prop::CurrIDs* add_CurrIDs() {
+    Components_Prop::CurrIDs* CurrIDs = new Components_Prop::CurrIDs(n);
+    return CurrIDs;
   }
-  inline Components_prevIDs* add_prevIDs() {
-    Components_prevIDs* prevIDs = new Components_prevIDs(n);
-    return prevIDs;
+  inline Components_Prop::PrevIDs* add_PrevIDs() {
+    Components_Prop::PrevIDs* PrevIDs = new Components_Prop::PrevIDs(n);
+    return PrevIDs;
   }
 };
 
