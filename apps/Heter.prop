@@ -1,3 +1,12 @@
+property BFS {
+  uint Parents = -1;
+}
+
+property Components {
+  uint CurrIDs = (lambda vID : vID);
+  uint PrevIDs;
+}
+
 property SSSP {
   int ShortestPathLen = 0x3f3f3f3f;
   int Changed = 0;

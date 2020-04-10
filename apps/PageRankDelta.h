@@ -3,9 +3,6 @@
 
 #include <cmath>
 #include "kernel.h"
-#include "Homo2.pb.h"
-using namespace std;
-using namespace Homo2;
 
 // vertex map function to update its p value according to PageRank equation
 struct Update_PageRankDelta : public Function
@@ -45,23 +42,23 @@ public:
 	PageRankDelta(long _n, vertex* _V, Property& prop, long _maxIters = 15):
 		UnweightedJob(_n), V(_V),
 		first_flag(true), maxIters(_maxIters){
-			p = prop.add_p();
-			neigh_sum = prop.add_neigh_sum();
-			delta = prop.add_delta();
-			tmp = prop.add_tmp();
+			p = prop.add_P_Value();
+			neigh_sum = prop.add_Neigh_Sum();
+			delta = prop.add_Delta();
+			tmp = prop.add_Temp();
 		}; // call parent class constructor
 	inline bool update(uintE s, uintE d){ // update function applies PageRank equation
-        double oldVal = (*neigh_sum)[d];
-		(*neigh_sum)[d] += (*delta)[s] / V[s].getOutDegree();
+        double oldVal = neigh_sum->get(d);
+		neigh_sum->get(d) += delta->get(s) / V[s].getOutDegree();
 		return oldVal == 0.0;
 	}
 	inline bool updateAtomic(uintE s, uintE d){
-		// writeAdd(&(*neigh_sum)[d], (*delta)[s] / V[s].getOutDegree());
+		// writeAdd(&neigh_sum->get(d), delta->get(s) / V[s].getOutDegree());
         volatile double oldVal, newVal;
         do{
-            oldVal = (*neigh_sum)[d];
-            newVal = oldVal + (*delta)[s] / V[s].getOutDegree();
-        } while (!CAS(&(*neigh_sum)[d],oldVal,newVal));
+            oldVal = neigh_sum->get(d);
+            newVal = oldVal + delta->get(s) / V[s].getOutDegree();
+        } while (!CAS(neigh_sum->get_addr(d),oldVal,newVal));
 		return oldVal == 0.0;
 	}
 	inline bool cond(uintE d){
@@ -80,17 +77,15 @@ public:
 			return false;
 	}
 	void initialize(){
-		setAll<double>(p->data,(1-damping)/(double)n);
-        setAll<double>(delta->data,1/(double)n);
-        setAll<double>(neigh_sum->data, 0); // delta_dst
+		p->set_all((1 - damping) / (double)n);
+		delta->set_all(1 / (double)n);
         setFrontierAll();
-        setAll<bool>(tmp->data, true);
     }
 	void finishOneIter(bool* nextUni){ // overload
         if (nextUni == NULL)
             setAll<bool>(nextUni, true);
 		double *abs_delta = newA(double, n);
-		vertexSubset active = vertexFilter<Update_PageRankDelta>(vertexSubset(n, tmp->data), Update_PageRankDelta(p->data, neigh_sum->data, delta->data, abs_delta, damping, factor, 1 / (double)n, first_flag), nextUni);
+		vertexSubset active = vertexFilter<Update_PageRankDelta>(vertexSubset(n, tmp->get_data()), Update_PageRankDelta(p->get_data(), neigh_sum->get_data(), delta->get_data(), abs_delta, damping, factor, 1 / (double)n, first_flag), nextUni);
 		first_flag = false;
 
 		// compute L1-norm
@@ -104,15 +99,15 @@ public:
 
         frontier.del();
         frontier = active;
-        setAll<double>(neigh_sum->data, 0); // delta_dst
+		neigh_sum->set_all(0); // delta_dst
 		freeMem<double>(abs_delta);
     }
 	long maxIters;
 	bool first_flag;
-	PageRankDelta_p* p;
-	PageRankDelta_neigh_sum* neigh_sum;
-    PageRankDelta_delta* delta;
-    PageRankDelta_tmp* tmp;
+	PageRankDelta_Prop::P_Value* p;
+	PageRankDelta_Prop::Neigh_Sum* neigh_sum;
+    PageRankDelta_Prop::Delta* delta;
+    PageRankDelta_Prop::Temp* tmp;
 	vertex* V;
 	double L1_norm;
 	const double damping = 0.85;

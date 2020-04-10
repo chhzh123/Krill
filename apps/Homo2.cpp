@@ -3,7 +3,8 @@
 
 #include "krill.h"
 #include "Homo2.pb.h"
-#include "PageRank.h"
+using namespace Homo2;
+
 #include "PageRankDelta.h"
 #include "SSSP.h"
 using namespace std;
@@ -13,8 +14,6 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
 	Homo2::Property prop(G.n);
 	for (int i = 0; i < 4; ++i){
-		// PageRank<vertex>* pr = new PageRank<vertex>(G.n,G.V); // remember to dynamically allocate memory
-		// K.appendJob(pr);
 		PageRankDelta<vertex> *prd = new PageRankDelta<vertex>(G.n, G.V, prop);
 		K.appendJob(prd);
 	}
