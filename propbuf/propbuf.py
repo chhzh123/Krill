@@ -44,7 +44,11 @@ with open(path,"r") as infile:
         else:
             initial_val = None
             if "=" in line:
-                initial_val = line[-1]
+                expr = line[3:]
+                if len(expr) == 1:
+                    initial_val = expr[-1]
+                else:
+                    initial_val = (expr[1],' '.join(expr[3:])[:-1])
             type_name, prop_name = line[0], line[1]
             props.append((job,prop_name,type_name,initial_val))
 
@@ -56,8 +60,15 @@ def get_prop_class(job_prop):
     res += "  {}(size_t n) {{\n".format(class_name)
     res += "    data = (uintE*) malloc(sizeof(uintE) * n);\n"
     if initial_val != None:
-        res += "    parallel_for (int i = 0; i < n; ++i) {\n"
-        res += "      data[i] = {};\n".format(initial_val)
+        if type(initial_val) == type("str"):
+            res += "    parallel_for (int i = 0; i < n; ++i) {\n"
+            res += "      data[i] = {};\n".format(initial_val if int(initial_val) != -1 else "UINT_MAX")
+        else: # lambda expression
+            res += "    auto lambda = [](int i) -> {} {{ return ".format("uintE")
+            res += initial_val[1].replace(initial_val[0],"i")
+            res += "; };\n"
+            res += "    parallel_for (int i = 0; i < n; ++i) {\n"
+            res += "      data[i] = lambda(i);\n"
         res += "    }\n"
     res += "  }\n"
     # destructor

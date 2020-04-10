@@ -3,6 +3,6 @@ property BFS {
 }
 
 property Components {
-  int IDs = -1;
+  int IDs = (lambda vID : vID);
   int prevIDs;
 }

@@ -17,7 +17,7 @@ public:
   BFS_parents(size_t n) {
     data = (uintE*) malloc(sizeof(uintE) * n);
     parallel_for (int i = 0; i < n; ++i) {
-      data[i] = -1;
+      data[i] = UINT_MAX;
     }
   }
   ~BFS_parents() {
@@ -32,8 +32,9 @@ class Components_IDs {
 public:
   Components_IDs(size_t n) {
     data = (uintE*) malloc(sizeof(uintE) * n);
+    auto lambda = [](int i) -> uintE { return i; };
     parallel_for (int i = 0; i < n; ++i) {
-      data[i] = -1;
+      data[i] = lambda(i);
     }
   }
   ~Components_IDs() {
