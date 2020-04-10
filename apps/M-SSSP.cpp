@@ -2,7 +2,7 @@
 // Copyright (c) 2019 Hongzheng Chen
 
 #include "krill.h"
-#include "MSSSP.pb.h"
+#include "M-SSSP.pb.h"
 using namespace MSSSP;
 
 #include "SSSP.h"

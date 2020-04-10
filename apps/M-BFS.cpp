@@ -2,7 +2,7 @@
 // Copyright (c) 2019 Hongzheng Chen
 
 #include "krill.h"
-#include "MBFS.pb.h"
+#include "M-BFS.pb.h"
 using namespace MBFS;
 
 #include "BFS.h"
