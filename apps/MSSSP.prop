@@ -1,0 +1,4 @@
+property SSSP {
+  int ShortestPathLen = 0x3f3f3f3f;
+  int Changed = 0;
+}

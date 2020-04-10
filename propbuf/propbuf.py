@@ -66,7 +66,7 @@ def get_prop_class(job_prop):
         pass # other C/C++ inherent types are supported
     res = "class {} {{\npublic:\n".format(class_name)
     # constructor
-    res += "  {}(size_t n) {{\n".format(class_name)
+    res += "  {}(size_t _n): n(_n) {{\n".format(class_name)
     res += "    data = ({0}*) malloc(sizeof({0}) * n);\n".format(type_name)
     if initial_val != None:
         if type(initial_val) == type("str"):
@@ -92,8 +92,10 @@ def get_prop_class(job_prop):
     res += "  inline {}* get_addr (int i) {{ return &(data[i]); }}\n".format(type_name)
     res += "  inline {}* get_data () {{ return data; }}\n".format(type_name)
     res += "  inline void set (int i, {} val) {{ data[i] = val; }}\n".format(type_name)
+    res += "  inline void set_all ({} val) {{ parallel_for (int i = 0; i < n; ++i) data[i] = val; }}\n".format(type_name)
     # data
     res += "private:\n"
+    res += "  size_t n;\n"
     res += "  {}* data;\n".format(type_name)
     res += "};\n\n"
     return res
