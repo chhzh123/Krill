@@ -2,7 +2,9 @@
 // Copyright (c) 2019 Hongzheng Chen
 
 #include "kernel.h"
+#include "Homo1.pb.h"
 using namespace std;
+using namespace Homo1;
 
 struct Update_F : public Function
 {
@@ -18,20 +20,20 @@ struct Update_F : public Function
 class Components : public UnweightedJob
 {
 public:
-	Components(long _n):
-		UnweightedJob(_n), IDs(NULL), prevIDs(NULL){}
+	Components(long _n, Components_IDs* _IDs, Components_prevIDs* _prevIDs):
+		UnweightedJob(_n), IDs(_IDs), prevIDs(_prevIDs){}
 	inline bool update(uintE s, uintE d){ // Update function writes min ID
-		uintE origID = IDs[d];
-    	if (IDs[s] < origID) {
-    		IDs[d] = min(origID,IDs[s]);
-    		if (origID == prevIDs[d])
+		uintE origID = (*IDs)[d];
+    	if ((*IDs)[s] < origID) {
+    		(*IDs)[d] = min(origID,(*IDs)[s]);
+    		if (origID == (*prevIDs)[d])
     			return 1; // only added to the frontier once
     	}
     	return 0;
 	}
 	inline bool updateAtomic(uintE s, uintE d){
-		uintE origID = IDs[d]; // be careful that IDs[d] will be modified
-    	return (writeMin(&IDs[d],IDs[s]) && origID == prevIDs[d]);
+		uintE origID = (*IDs)[d]; // be careful that (*IDs)[d] will be modified
+    	return (writeMin(&(*IDs)[d],(*IDs)[s]) && origID == (*prevIDs)[d]);
 	}
 	inline bool cond(uintE d){
 		return cond_true(d);
@@ -42,7 +44,7 @@ public:
 			bool* res;
 			setAll<bool>(res,0);
 			parallel_for (int i = 0; i < n; ++i)
-				res[IDs[i]] = 1;
+				res[(*IDs)[i]] = 1;
   			int cnt = 0;
   			parallel_for (int i = 0; i < n; ++i)
 				if (res[i])
@@ -53,11 +55,6 @@ public:
 			return false;
 	}
 	void initialize(){
-		IDs = newA(uintE,n);
-		prevIDs = newA(uintE,n); // initialize later
-		parallel_for(long i = 0; i < n; i++){
-			IDs[i] = i; // initialize unique IDs
-		}
 		setFrontierAll();
 	}
 	void iniOneIter(){
@@ -65,15 +62,11 @@ public:
         parallel_for (long i = 0; i < n; ++i) // remember to initialize!
             nextFrontier[i] = 0;
         frontier.toDense();
-		vertexMap(frontier,Update_F(IDs,prevIDs));
+		vertexMap(frontier,Update_F(IDs->data,prevIDs->data));
 #ifdef DEBUG
         frontier.print(20);
 #endif
     }
-	void clear(){
-		freeMem<uintE>(IDs);
-		freeMem<uintE>(prevIDs);
-	}
-	uintE* IDs;
-	uintE* prevIDs;
+	Components_IDs *IDs;
+	Components_prevIDs* prevIDs;
 };

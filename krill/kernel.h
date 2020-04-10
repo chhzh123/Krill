@@ -25,7 +25,7 @@ public:
     virtual bool cond(uintE d) = 0;
     virtual bool finished(int iter) = 0;
     virtual void initialize() = 0;
-    virtual void clear() = 0;
+    // virtual void clear() = 0;
     virtual void condPush(uintE& out, const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void condPush(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;
     virtual void condPull(bool *&nextUni, const long vSrc, const long vDst, const intE edgeVal) = 0;

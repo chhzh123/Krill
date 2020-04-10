@@ -9,7 +9,7 @@ using namespace Homo1;
 class BFS: public UnweightedJob
 {
 public:
-	BFS(long _n, Parents* _parents, long _start = 0):
+	BFS(long _n, BFS_parents* _parents, long _start = 0):
 		UnweightedJob(_n), parents(_parents), start(_start){
 			assert(_start < n);
 		}; // call parent class constructor
@@ -30,14 +30,9 @@ public:
 		return frontier.isEmpty();
 	}
 	void initialize(){
-		// creates Parents array, initialized to all UINT_E_MAX (or -1), except for start
-		setAll<uintE>(parents->data,UINT_E_MAX); // unexplored
 		(*parents)[start] = start;
 		setFrontier(n,start);
 	}
-	void clear(){ // only need to free members in child class
-		freeMem<uintE>(parents->data);
-	}
 	long start;
-	Parents* parents;
+	BFS_parents* parents;
 };
