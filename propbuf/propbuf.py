@@ -34,7 +34,7 @@ tail = """
 """.format(pb_name,pb_name.upper())
 
 job = "main"
-props = []
+props = {}
 with open(path,"r") as infile:
     for line in infile:
         line = line.strip()[:-1].split()
@@ -51,11 +51,13 @@ with open(path,"r") as infile:
                 else:
                     initial_val = (expr[1],' '.join(expr[3:])[:-1])
             type_name, prop_name = line[0], line[1]
-            props.append((job,prop_name,type_name,initial_val))
+            if props.get(job,None) == None:
+                props[job] = []
+            props[job].append((prop_name,type_name,initial_val))
 
 def get_prop_class(job_prop):
-    job, prop_name, type_name, initial_val = job_prop
-    class_name = "{}_{}".format(job,prop_name)
+    prop_name, type_name, initial_val = job_prop
+    class_name = "{}".format(prop_name)
     if type_name == "uint":
         type_name = "uintE"
     elif type_name == "int":
@@ -92,19 +94,24 @@ def get_prop_class(job_prop):
 def get_main_class():
     res  = "class Property {\npublic:\n  size_t n;\n" \
            "  Property(size_t _n): n(_n) {}\n"
-    for prop in props:
-        class_name = "{}_{}".format(prop[0],prop[1])
-        prop_name = prop[1]
-        res += "  inline {0}* add_{1}() {{\n".format(class_name,prop_name)
-        res += "    {0}* {1} = new {0}(n);\n".format(class_name,prop_name)
-        res += "    return {};\n".format(prop_name)
-        res += "  }\n"
+    for job in props:
+        for prop in props[job]:
+            class_name = "{}_Prop::{}".format(job,prop[0])
+            prop_name = prop[0]
+            res += "  inline {0}* add_{1}() {{\n".format(class_name,prop_name)
+            res += "    {0}* {1} = new {0}(n);\n".format(class_name,prop_name)
+            res += "    return {};\n".format(prop_name)
+            res += "  }\n"
     res += "};\n\n"
     return res
 
 with open(prefix + "/" + outfile_name,"w") as outfile:
     outfile.write(head)
-    for prop in props:
-        outfile.write(get_prop_class(prop))
+    for job in props:
+        job_namespace = job + "_Prop"
+        outfile.write("namespace {} {{\n\n".format(job_namespace))
+        for prop in props[job]:
+            outfile.write(get_prop_class(prop))
+        outfile.write("}} // namespace {}\n\n".format(job_namespace))
     outfile.write(get_main_class())
     outfile.write(tail)
