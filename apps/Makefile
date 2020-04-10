@@ -47,6 +47,8 @@ endif
 
 COMMON_FLAGS = -std=c++11 -pthread
 
+.SUFFIXES:            # Delete the default suffixes
+
 # to clear the cache
 #sudo sh -c 'echo 1 >/proc/sys/vm/drop_caches'
 
@@ -57,13 +59,18 @@ COMMON += blockRadixSort.h
 
 KERNEL = BFS.h SSSP.h PageRank.h CC.h
 
-ALL = Homo1 Homo2 Heter M-BFS M-SSSP M-CC M-PageRank Singleton Multi-BFS Heter2
+ALL = Homo1 Homo2 Heter M-BFS M-SSSP
+# ALL += M-CC M-PageRank Singleton Multi-BFS Heter2
 
 all: $(ALL)
 
-% : %.cpp
+% : %.cpp %.pb.h
 	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $(COMMON_FLAGS) $(NOKERFFLAG) $(NOOPTFLAG) $< -o $@
+
+all_pbs: $(addsuffix .pb.h, $(ALL))
+%.pb.h: %.prop
+	python ../propbuf/propbuf.py $<
 
 .PHONY: clean
 clean:
-	-rm -f *.o $(ALL) *.gcov *.gcno *.gcda *.out.* *.out
+	-rm -f *.o $(ALL) *.pb.h *.gcov *.gcno *.gcda *.out.* *.out
