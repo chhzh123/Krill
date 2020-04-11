@@ -1,7 +1,7 @@
 # This code is part of the project "Krill"
 # Copyright (c) 2020 Hongzheng Chen
 
-def get_prop_class(job_prop):
+def get_prop_class(job_prop,pb_name):
     prop_name, type_name, initial_val = job_prop
     class_name = "{}".format(prop_name)
     if type_name == "uint":
@@ -46,13 +46,13 @@ def get_prop_class(job_prop):
     res += "};\n\n"
     return res
 
-def get_props_class(props):
+def get_props_class(props,pb_name):
     res = ""
     for job in props:
         job_namespace = job + "_Prop"
         res += "namespace {} {{\n\n".format(job_namespace)
         for prop in props[job]:
-            res += get_prop_class(prop)
+            res += get_prop_class(prop,pb_name)
         res += "}} // namespace {}\n\n".format(job_namespace)
     return res
 

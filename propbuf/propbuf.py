@@ -71,6 +71,6 @@ with open(path,"r") as infile:
 # codegen
 with open(outfile_name,"w") as outfile:
     outfile.write(head)
-    outfile.write(get_props_class(props))
+    outfile.write(get_props_class(props,pb_name))
     outfile.write(get_main_class(props))
     outfile.write(tail)

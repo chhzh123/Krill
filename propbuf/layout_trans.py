@@ -1,7 +1,7 @@
 # This code is part of the project "Krill"
 # Copyright (c) 2020 Hongzheng Chen
 
-def get_prop_class(job_prop):
+def get_prop_class(job_prop,pb_name):
     prop_name, type_name, initial_val = job_prop
     class_name = "{}".format(prop_name)
     if type_name == "uint":
@@ -13,18 +13,6 @@ def get_prop_class(job_prop):
     res = "class {} {{\npublic:\n".format(class_name)
     # constructor
     res += "  {}(size_t _n): n(_n) {{\n".format(class_name)
-    # res += "    data = ({0}*) malloc(sizeof({0}) * n);\n".format(type_name)
-    # if initial_val != None:
-    #     if type(initial_val) == type("str"):
-    #         res += "    parallel_for (int i = 0; i < n; ++i) {\n"
-    #         res += "      data[i] = {};\n".format(initial_val if eval(initial_val) != -1 else "UINT_MAX")
-    #     else: # lambda expression
-    #         res += "    auto lambda = [](int i) -> {} {{ return ".format(type_name)
-    #         res += initial_val[1].replace(initial_val[0],"i")
-    #         res += "; };\n"
-    #         res += "    parallel_for (int i = 0; i < n; ++i) {\n"
-    #         res += "      data[i] = lambda(i);\n"
-    #     res += "    }\n"
     res += "  }\n"
     # destructor
     res += "  ~{}() {{\n".format(class_name)
@@ -39,7 +27,7 @@ def get_prop_class(job_prop):
     res += "  inline {}* get_data () {{ return data; }}\n".format(type_name)
     res += "  inline void set (int i, {} val) {{ data[i] = val; }}\n".format(type_name)
     res += "  inline void set_all ({} val) {{ parallel_for (int i = 0; i < n; ++i) data[i] = val; }}\n".format(type_name)
-    res += "  friend class {}::Property;\n".format("MBFS")
+    res += "  friend class {}::Property;\n".format(pb_name) # friend class
     # data
     res += "private:\n"
     res += "  size_t n;\n"
@@ -47,13 +35,13 @@ def get_prop_class(job_prop):
     res += "};\n\n"
     return res
 
-def get_props_class(props):
+def get_props_class(props,pb_name):
     res = ""
     for job in props:
         job_namespace = job + "_Prop"
         res += "namespace {} {{\n\n".format(job_namespace)
         for prop in props[job]:
-            res += get_prop_class(prop)
+            res += get_prop_class(prop,pb_name)
         res += "}} // namespace {}\n\n".format(job_namespace)
     return res
 
