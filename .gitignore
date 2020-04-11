@@ -37,6 +37,9 @@
 *.out
 *.app
 
+# python
+*.pyc
+
 # workspace
 *.sublime-project
 *.sublime-workspace
