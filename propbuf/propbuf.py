@@ -5,13 +5,17 @@ import os
 import sys
 import regular
 import layout_trans
+import prop_fuse
 
 if len(sys.argv) <= 2: # py, infile
     get_props_class = regular.get_props_class
     get_main_class = regular.get_main_class
-else:
+elif int(sys.argv[2]) == 1:
     get_props_class = layout_trans.get_props_class
     get_main_class = layout_trans.get_main_class
+else:
+    get_props_class = prop_fuse.get_props_class
+    get_main_class = prop_fuse.get_main_class
 
 path = sys.argv[1]
 dir_name, infile_name = os.path.split(path)
