@@ -24,4 +24,5 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 		SSSP* sssp = new SSSP(G.n, prop, start);
 		K.appendJob(sssp);
 	}
+	prop.initialize();
 }

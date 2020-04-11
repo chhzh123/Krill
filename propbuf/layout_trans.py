@@ -58,24 +58,32 @@ def get_main_class(props):
             res += "    {}.push_back({});\n".format(array_name,prop_name)
             res += "    return {};\n".format(prop_name)
             res += "  }\n"
-    type_name = prop[1]
-    initial_val = prop[2]
     res += "  void initialize() {\n"
-    res += "    for (auto ptr : {}) {{\n".format(array_name)
-    res += "      ptr->data = ({0}*) malloc(sizeof({0}) * n);\n".format(type_name)
-    if initial_val != None:
-        if type(initial_val) == type("str"):
-            res += "      parallel_for (int i = 0; i < n; ++i) {\n"
-            res += "        ptr->data[i] = {};\n".format(initial_val if eval(initial_val) != -1 else "UINT_MAX")
-        else: # lambda expression
-            res += "      auto lambda = [](int i) -> {} {{ return ".format(type_name)
-            res += initial_val[1].replace(initial_val[0],"i")
-            res += "; };\n"
-            res += "      parallel_for (int i = 0; i < n; ++i) {\n"
-            res += "        data[i] = lambda(i);\n"
-        res += "      }\n"
-    res += "    }\n"
+    for job in props:
+        for prop in props[job]:
+            class_name = "{}_Prop::{}".format(job,prop[0])
+            prop_name, type_name, initial_val = prop
+            array_name = "arr_" + prop[0]
+            res += "    for (auto ptr : {}) {{\n".format(array_name)
+            res += "      ptr->data = ({0}*) malloc(sizeof({0}) * n);\n".format(type_name)
+            if initial_val != None:
+                if type(initial_val) == type("str"):
+                    res += "      parallel_for (int i = 0; i < n; ++i) {\n"
+                    res += "        ptr->data[i] = {};\n".format(initial_val if eval(initial_val) != -1 else "UINT_MAX")
+                else: # lambda expression
+                    res += "      auto lambda = [](int i) -> {} {{ return ".format(type_name)
+                    res += initial_val[1].replace(initial_val[0],"i")
+                    res += "; };\n"
+                    res += "      parallel_for (int i = 0; i < n; ++i) {\n"
+                    res += "        ptr->data[i] = lambda(i);\n"
+                res += "      }\n"
+            res += "    }\n"
     res += "  }\n"
-    res += "  std::vector<{}*> {};\n".format(class_name,array_name)
+    for job in props:
+        for prop in props[job]:
+            class_name = "{}_Prop::{}".format(job,prop[0])
+            prop_name = prop[0]
+            array_name = "arr_" + prop[0]
+            res += "  std::vector<{}*> {};\n".format(class_name,array_name)
     res += "};\n\n"
     return res

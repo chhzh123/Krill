@@ -69,7 +69,7 @@ all: $(ALL)
 
 all_pbs: $(addsuffix .pb.h, $(ALL))
 %.pb.h: %.prop
-	python ../propbuf/propbuf.py $<
+	python ../propbuf/propbuf.py $< $(LAYOUT)
 
 .PHONY: clean
 clean:

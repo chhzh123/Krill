@@ -21,4 +21,5 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 		Components* cc = new Components(G.n, prop);
 		K.appendJob(cc);
 	}
+	prop.initialize();
 }

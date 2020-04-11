@@ -35,4 +35,5 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 		// K.appendJob({bfs,cc,pr,sssp});
 		K.appendJob({bfs,cc,prd,sssp});
 	}
+	prop.initialize();
 }
