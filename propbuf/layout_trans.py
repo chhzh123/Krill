@@ -52,7 +52,7 @@ def get_main_class(props):
         for prop in props[job]:
             class_name = "{}_Prop::{}".format(job,prop[0])
             prop_name = prop[0]
-            array_name = "arr_" + prop[0]
+            array_name = "arr_{}_{}".format(job,prop[0])
             res += "  inline {0}* add_{1}() {{\n".format(class_name,prop_name)
             res += "    {0}* {1} = new {0}(n);\n".format(class_name,prop_name)
             res += "    {}.push_back({});\n".format(array_name,prop_name)
@@ -63,9 +63,12 @@ def get_main_class(props):
         for prop in props[job]:
             class_name = "{}_Prop::{}".format(job,prop[0])
             prop_name, type_name, initial_val = prop
-            array_name = "arr_" + prop[0]
+            array_name = "arr_{}_{}".format(job,prop[0])
+            res += "    //  {}\n".format(class_name) # comment
+            res += "    {0}* {1}_all = ({0}*) malloc(sizeof({0}) * n * {1}.size());\n".format(type_name,array_name)
+            res += "    int {}_idx = 0;\n".format(array_name)
             res += "    for (auto ptr : {}) {{\n".format(array_name)
-            res += "      ptr->data = ({0}*) malloc(sizeof({0}) * n);\n".format(type_name)
+            res += "      ptr->data = &({0}_all[{0}_idx]);\n".format(array_name)
             if initial_val != None:
                 if type(initial_val) == type("str"):
                     res += "      parallel_for (int i = 0; i < n; ++i) {\n"
@@ -77,13 +80,14 @@ def get_main_class(props):
                     res += "      parallel_for (int i = 0; i < n; ++i) {\n"
                     res += "        ptr->data[i] = lambda(i);\n"
                 res += "      }\n"
+            res += "      {}_idx += n;\n".format(array_name)
             res += "    }\n"
     res += "  }\n"
     for job in props:
         for prop in props[job]:
             class_name = "{}_Prop::{}".format(job,prop[0])
             prop_name = prop[0]
-            array_name = "arr_" + prop[0]
+            array_name = "arr_{}_{}".format(job,prop[0])
             res += "  std::vector<{}*> {};\n".format(class_name,array_name)
     res += "};\n\n"
     return res
