@@ -6,7 +6,7 @@ import sys
 import regular
 import layout_trans
 
-if len(sys.argv) == 1:
+if len(sys.argv) <= 2: # py, infile
     get_props_class = regular.get_props_class
     get_main_class = regular.get_main_class
 else:

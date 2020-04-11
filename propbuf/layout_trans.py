@@ -58,7 +58,7 @@ def get_main_class(props):
             res += "    {}.push_back({});\n".format(array_name,prop_name)
             res += "    return {};\n".format(prop_name)
             res += "  }\n"
-    res += "  void initialize() {\n"
+    res += "  inline void initialize() {\n"
     for job in props:
         for prop in props[job]:
             class_name = "{}_Prop::{}".format(job,prop[0])

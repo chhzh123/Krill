@@ -67,5 +67,6 @@ def get_main_class(props):
             res += "    {0}* {1} = new {0}(n);\n".format(class_name,prop_name)
             res += "    return {};\n".format(prop_name)
             res += "  }\n"
+    res += "  inline void initialize() {}\n" # empty function
     res += "};\n\n"
     return res
