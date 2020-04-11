@@ -19,4 +19,5 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 		BFS* bfs = new BFS(G.n, prop, start); // remember to dynamically allocate memory
 		K.appendJob(bfs);
 	}
+	prop.initialize();
 }
