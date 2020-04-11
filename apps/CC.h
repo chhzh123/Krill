@@ -1,6 +1,9 @@
 // This code is part of the project "Krill"
 // Copyright (c) 2019 Hongzheng Chen
 
+#ifndef COMPONENT_H
+#define COMPONENT_H
+
 #include "kernel.h"
 
 struct Update_F : public Function
@@ -70,3 +73,5 @@ public:
 	Components_Prop::CurrIDs* IDs;
 	Components_Prop::PrevIDs* prevIDs;
 };
+
+#endif // COMPONENT_H

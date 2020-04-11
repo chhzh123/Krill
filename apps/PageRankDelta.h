@@ -1,6 +1,9 @@
 // This code is part of the project "Krill"
 // Copyright (c) 2019 Hongzheng Chen
 
+#ifndef PAGERANKDELTA_H
+#define PAGERANKDELTA_H
+
 #include <cmath>
 #include "kernel.h"
 
@@ -114,3 +117,5 @@ public:
 	const double epsilon = 0.0000001;
     const double factor = 0.01;
 };
+
+#endif // PAGERANKDELTA_H

@@ -380,8 +380,6 @@ void scheduleJob(Job**& job, int& nJob, int nIter)
             reportTime("Latency: ");
             cout << "Iter " << nIter << ": Finished job "
                  << job[i]->ID << " - " << typeid(*(job[i])).name() << endl;
-            // job[i]->clear(); // child
-            // job[i]->clearAll(); // parent
             delete job[i];
             for (int j = i; j < nJob-1; ++j) // simple schedule
                 job[j] = job[j+1];

@@ -1,6 +1,9 @@
 // This code is part of the project "Krill"
 // Copyright (c) 2019 Hongzheng Chen
 
+#ifndef SSSP_H
+#define SSSP_H
+
 #include "kernel.h"
 
 // reset changed vertices
@@ -85,3 +88,5 @@ public:
 	SSSP_Prop::Changed* changed; // int for CAS
 	long start;
 };
+
+#endif

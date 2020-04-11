@@ -1,6 +1,9 @@
 // This code is part of the project "Krill"
 // Copyright (c) 2019 Hongzheng Chen
 
+#ifndef BFS_H
+#define BFS_H
+
 #include "kernel.h"
 
 class BFS: public UnweightedJob
@@ -34,3 +37,5 @@ public:
 	long start;
 	BFS_Prop::Parents* parents;
 };
+
+#endif // BFS_H

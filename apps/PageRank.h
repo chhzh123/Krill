@@ -1,9 +1,11 @@
 // This code is part of the project "Krill"
 // Copyright (c) 2019 Hongzheng Chen
 
+#ifndef PAGERANK_H
+#define PAGERANK_H
+
 #include "kernel.h"
 #include <cmath>
-using namespace std;
 
 // vertex map function to update its p value according to PageRank equation
 struct Update_PR : public Function
@@ -95,3 +97,5 @@ public:
 	const double damping = 0.85;
 	const double epsilon = 0.0000001;
 };
+
+#endif // PAGERANK_H
