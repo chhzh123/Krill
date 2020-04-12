@@ -48,10 +48,10 @@ public:
 			setAll<bool>(res,0);
 			parallel_for (int i = 0; i < n; ++i)
 				res[IDs->get(i)] = 1;
-  			int cnt = 0;
-  			parallel_for (int i = 0; i < n; ++i)
+			std::atomic<int> cnt(0); // !
+			parallel_for (int i = 0; i < n; ++i)
 				if (res[i])
-      				writeAdd<int>(&cnt,1);
+      				cnt += 1; // this is atomic!
   			cout << "CC: " << cnt << endl;
   			return true;
 		} else

@@ -63,6 +63,7 @@
 
 #endif
 
+#include <atomic>
 #include <limits.h>
 
 #if defined(LONG)
