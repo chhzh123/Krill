@@ -14,10 +14,23 @@ def get_prop_class(job_prop,pb_name):
     # constructor
     res += "  {}(size_t _n): n(_n) {{\n".format(class_name)
     res += "  }\n"
+    # copy constructor
+    res += "  {0}(const {0}& other) {{\n".format(class_name)
+    res += "    this->n = other.n;\n"
+    res += "    this->data = other.data;\n"
+    res += "    this->sj_num = other.sj_num;\n"
+    res += "  }\n"
     # destructor
     res += "  ~{}() {{\n".format(class_name)
     res += "    free(data);\n" \
            "  }\n"
+    # reload =
+    res += "  inline {0}& operator=(const {0}& other) {{\n".format(class_name)
+    res += "    this->n = other.n;\n"
+    res += "    this->data = other.data;\n"
+    res += "    this->sj_num = other.sj_num;\n"
+    res += "    return *this;\n"
+    res += "  }\n"
     # accessors
     res += "  inline {} operator[] (int i) const {{ return data[i * sj_num]; }}\n".format(type_name)
     res += "  inline {}& operator[] (int i) {{ return data[i * sj_num]; }}\n".format(type_name)
