@@ -7,5 +7,4 @@ property PageRankDelta {
   double P_Value;
   double Neigh_Sum = 0.0;
   double Delta;
-  bool Temp = 1;
 }

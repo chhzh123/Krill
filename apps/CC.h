@@ -8,13 +8,14 @@
 
 struct Update_F : public Function
 {
-  	Update_F(uintE* _IDs, uintE* _prevIDs):
-    	IDs(_IDs), prevIDs(_prevIDs) {}
-  	inline bool operator () (uintE i) {
-    	prevIDs[i] = IDs[i];
+	Update_F(Components_Prop::CurrIDs *_IDs, Components_Prop::PrevIDs *_prevIDs) :
+		IDs(_IDs), prevIDs(_prevIDs) {}
+	inline bool operator () (uintE i) {
+    	prevIDs->set(i,IDs->get(i));
     	return 1;
 	}
-	uintE* IDs, *prevIDs;
+	Components_Prop::CurrIDs *IDs;
+	Components_Prop::PrevIDs *prevIDs;
 };
 
 class Components : public UnweightedJob
@@ -65,7 +66,7 @@ public:
         parallel_for (long i = 0; i < n; ++i) // remember to initialize!
             nextFrontier[i] = 0;
         frontier.toDense();
-		vertexMap(frontier,Update_F(IDs->get_data(),prevIDs->get_data()));
+		vertexMap(frontier,Update_F(IDs,prevIDs));
 #ifdef DEBUG
         frontier.print(20);
 #endif

@@ -10,28 +10,35 @@
 // vertex map function to update its p value according to PageRank equation
 struct Update_PageRankDelta : public Function
 {
-	Update_PageRankDelta(double* _p, double* _neigh_sum, double* _delta, double* _abs_delta, double _damping, double _factor, double _one_over_n, bool _first_flag):
-		p(_p), neigh_sum(_neigh_sum), delta(_delta), abs_delta(_abs_delta), damping(_damping), factor(_factor), one_over_n(_one_over_n), first_flag(_first_flag){}
+	Update_PageRankDelta(PageRankDelta_Prop::P_Value *_p,
+						 PageRankDelta_Prop::Neigh_Sum *_neigh_sum,
+						 PageRankDelta_Prop::Delta *_delta,
+						 double *_abs_delta,
+						 double _damping,
+						 double _factor,
+						 double _one_over_n,
+						 bool _first_flag) :
+		p(_p), neigh_sum(_neigh_sum), delta(_delta), abs_delta(_abs_delta), damping(_damping), factor(_factor), one_over_n(_one_over_n), first_flag(_first_flag) {}
 	inline bool operator () (uintE i) {
         if (!first_flag){
-            delta[i] = damping * neigh_sum[i]; // refresh the old delta
-			abs_delta[i] = fabs(delta[i]);
-            if (abs_delta[i] > factor * p[i]){
-                p[i] += delta[i];
+            delta->set(i, damping * neigh_sum->get(i)); // refresh the old delta
+			abs_delta[i] = fabs(delta->get(i));
+            if (abs_delta[i] > factor * p->get(i)){
+                p->add(i,delta->get(i));
                 return true;
             } else
                 return false;
         } else { // round 0
-            p[i] += damping * neigh_sum[i];
-            delta[i] = p[i] - one_over_n;
-			abs_delta[i] = fabs(delta[i]);
-            return (abs_delta[i] > factor * p[i]);
+            p->add(i,damping * neigh_sum->get(i));
+            delta->set(i, p->get(i) - one_over_n);
+			abs_delta[i] = fabs(delta->get(i));
+            return (abs_delta[i] > factor * p->get(i));
         }
 	}
     bool first_flag;
-	double* p;
-	double* neigh_sum;
-    double* delta;
+	PageRankDelta_Prop::P_Value *p;
+	PageRankDelta_Prop::Neigh_Sum *neigh_sum;
+	PageRankDelta_Prop::Delta *delta;
 	double* abs_delta;
 	double damping;
     double factor;
@@ -48,7 +55,6 @@ public:
 			p = prop.add_P_Value();
 			neigh_sum = prop.add_Neigh_Sum();
 			delta = prop.add_Delta();
-			tmp = prop.add_Temp();
 		}; // call parent class constructor
 	inline bool update(uintE s, uintE d){ // update function applies PageRank equation
         double oldVal = neigh_sum->get(d);
@@ -83,12 +89,13 @@ public:
 		p->set_all((1 - damping) / (double)n);
 		delta->set_all(1 / (double)n);
         setFrontierAll();
-    }
+		setAll<bool>(tmp, true);
+	}
 	void finishOneIter(bool* nextUni){ // overload
         if (nextUni == NULL)
             setAll<bool>(nextUni, true);
 		double *abs_delta = newA(double, n);
-		vertexSubset active = vertexFilter<Update_PageRankDelta>(vertexSubset(n, tmp->get_data()), Update_PageRankDelta(p->get_data(), neigh_sum->get_data(), delta->get_data(), abs_delta, damping, factor, 1 / (double)n, first_flag), nextUni);
+		vertexSubset active = vertexFilter<Update_PageRankDelta>(vertexSubset(n, tmp), Update_PageRankDelta(p, neigh_sum, delta, abs_delta, damping, factor, 1 / (double)n, first_flag), nextUni);
 		first_flag = false;
 
 		// compute L1-norm
@@ -110,7 +117,7 @@ public:
 	PageRankDelta_Prop::P_Value* p;
 	PageRankDelta_Prop::Neigh_Sum* neigh_sum;
     PageRankDelta_Prop::Delta* delta;
-    PageRankDelta_Prop::Temp* tmp;
+    bool* tmp;
 	vertex* V;
 	double L1_norm;
 	const double damping = 0.85;

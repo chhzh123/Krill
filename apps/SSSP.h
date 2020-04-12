@@ -10,13 +10,13 @@
 class Reset : public Function
 {
 public:
-	Reset(int* _changed):
-		changed(_changed){}
+	Reset(SSSP_Prop::Changed *_changed) :
+		changed(_changed) {}
 	inline bool operator() (uintE i){
-		changed[i] = 0;
+		changed->set(i,0);
 		return 1;
 	}
-	int* changed;
+	SSSP_Prop::Changed *changed;
 };
 
 // Bellmanford
@@ -51,13 +51,14 @@ public:
 		if (round == n) {
 		// if the relax procedure has been executed for more than N times
 		// there must exist negative weight cycle
-			shortestPathLen->set_all(-(INT_MAX / 2));
+			shortestPathLen->set_all(-0x3f3f3f3f);
 			return true;
 		} else {
 #ifndef DEBUG
 			if (frontier.isEmpty()){
-				if (shortestPathLen->get(0) != 0x3f3f3f)
-					cout << "Len: " << shortestPathLen->get(0) << endl;
+				int val = shortestPathLen->get(0);
+				if (val != 0x3f3f3f3f)
+					cout << "Len: " << val << endl;
 				else
 					cout << "Len: Infinity!" << endl;
 				return true;
@@ -82,7 +83,7 @@ public:
         frontier.del();
         // set new frontier
         setFrontier(n,nextFrontier);
-		vertexMap(frontier,Reset(changed->get_data())); // reset all the changed vertex
+		vertexMap(frontier,Reset(changed)); // reset all the changed vertex
     }
 	SSSP_Prop::ShortestPathLen* shortestPathLen;
 	SSSP_Prop::Changed* changed; // int for CAS
