@@ -78,8 +78,10 @@ def get_main_class(props):
                     res += "    auto lambda = [](int i) -> {} {{ return ".format(type_name)
                     res += initial_val[1].replace(initial_val[0],"i")
                     res += "; };\n"
-                    res += "    parallel_for (int i = 0; i < {}_all_size; ++i) {{\n".format(array_name)
-                    res += "      {0}_all[i] = lambda(i % {0}_size);\n".format(array_name)
+                    res += "    parallel_for (int i = 0; i < n; ++i) {\n"
+                    res += "      auto val = lambda(i);\n"
+                    res += "      for (int j = 0; j < {0}_size; ++j)\n".format(array_name)
+                    res += "        {0}_all[i * {0}_size + j] = val;\n".format(array_name)
                 res += "    }\n"
             res += "    int {}_idx = 0;\n".format(array_name)
             res += "    for (auto ptr : {}) {{\n".format(array_name)
