@@ -19,7 +19,7 @@
 // LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#include <math.h>
+#include <cmath>
 #include "parseCommandLine.h"
 #include "graphIO.h"
 #include "utils.h"
@@ -59,7 +59,7 @@ edgeArray<intT> edge3DMesh(intT n) {
   intT nonZeros = 3*nn;
   edge<intT> *E = newA(edge<intT>,nonZeros);
   parallel_for (intT i=0; i < dn; i++)
-    for (intT j=0; j < dn; j++) 
+    for (intT j=0; j < dn; j++)
       for (intT k=0; k < dn; k++) {
 	intT l = loc3d(dn,i,j,k);
 	E[3*l] =   edge<intT>(l,loc3d(dn,i+1,j,k));
@@ -76,11 +76,11 @@ int parallel_main(int argc, char* argv[]) {
   char* fname = in.second;
   int dims = P.getOptionIntValue("-d", 2);
   edgeArray<uintT> EA;
-  if (dims == 2) 
+  if (dims == 2)
     EA = edge2DMesh<uintT>(n);
-  else if (dims == 3) 
+  else if (dims == 3)
     EA = edge3DMesh<uintT>(n);
-  else 
+  else
     P.badArgument();
   graph<uintT> G = graphFromEdges<uintT>(EA, 1);
   EA.del();

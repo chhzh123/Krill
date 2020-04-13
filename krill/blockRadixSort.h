@@ -24,7 +24,7 @@
 #define A_RADIX_INCLUDED
 
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include "parallel.h"
 #include "utils.h"
 #include "transpose.h"
@@ -45,14 +45,14 @@ namespace intSort {
 
   // Cannot be greater than 8 without changing definition of bIndexT
   //    from unsigned char to unsigned int (or unsigned short)
-#define MAX_RADIX 8 
+#define MAX_RADIX 8
 #define BUCKETS 256    // 1 << MAX_RADIX
 
   // a type that must hold MAX_RADIX bits
   typedef unsigned char bIndexT;
 
   template <class E, class F, class bint>
-  void radixBlock(E* A, E* B, bIndexT *Tmp, 
+  void radixBlock(E* A, E* B, bIndexT *Tmp,
 		  bint counts[BUCKETS], bint offsets[BUCKETS],
 		  bint Boffset, long n, long m, F extract) {
 
@@ -133,7 +133,7 @@ namespace intSort {
   template <class E, class F>
     struct eBits {
       F _f;  long _mask;  long _offset;
-      eBits(long bits, long offset, F f): _mask((1<<bits)-1), 
+      eBits(long bits, long offset, F f): _mask((1<<bits)-1),
 					  _offset(offset), _f(f) {}
       long operator() (E p) {return _mask&(_f(p)>>_offset);}
     };
@@ -159,7 +159,7 @@ namespace intSort {
 			  long numBK, long n, long bits, F f) {
     if (n == 0) return;
     if (bits <= MAX_RADIX) {
-      radixStep(A, B, Tmp, BK, numBK, n, ((long) 1) << bits, true, 
+      radixStep(A, B, Tmp, BK, numBK, n, ((long) 1) << bits, true,
 		eBits<E,F>(bits,0,f));
     } else if (numBK >= BUCKETS+1) {
       radixStep(A, B, Tmp, BK, numBK, n, (long) BUCKETS, true,
@@ -174,7 +174,7 @@ namespace intSort {
 	long blocksOffset = ((long) floor(segOffset * y)) + i + 1;
 	long blocksNextOffset = ((long) floor(segNextOffset * y)) + i + 2;
 	long blockLen = blocksNextOffset - blocksOffset;
-	radixLoopTopDown(A + segOffset, B + segOffset, Tmp + segOffset, 
+	radixLoopTopDown(A + segOffset, B + segOffset, Tmp + segOffset,
 			 BK + blocksOffset, blockLen, segLen,
 			 bits-MAX_RADIX, f);
       }
@@ -190,14 +190,14 @@ namespace intSort {
     return sizeof(E)*n + esize*n + esize*BUCKETS*numBK;
   }
 
-  // Sorts the array A, which is of length n. 
+  // Sorts the array A, which is of length n.
   // Function f maps each element into an integer in the range [0,m)
   // If bucketOffsets is not NULL then it should be an array of length m
   // The offset in A of each bucket i in [0,m) is placed in location i
-  //   such that for i < m-1, offsets[i+1]-offsets[i] gives the number 
+  //   such that for i < m-1, offsets[i+1]-offsets[i] gives the number
   //   of keys=i.   For i = m-1, n-offsets[i] is the number.
   template <class bint, class E, class F, class oint>
-  void iSortX(E *A, oint* bucketOffsets, long n, long m, bool bottomUp, 
+  void iSortX(E *A, oint* bucketOffsets, long n, long m, bool bottomUp,
 	      char* tmpSpace, F f) {
     typedef bint bucketsT[BUCKETS];
 
@@ -205,16 +205,16 @@ namespace intSort {
     long numBK = 1+n/(BUCKETS*8);
 
     // the temporary space is broken into 3 parts: B, Tmp and BK
-    E *B = (E*) tmpSpace; 
+    E *B = (E*) tmpSpace;
     long Bsize =sizeof(E)*n;
     bIndexT *Tmp = (bIndexT*) (tmpSpace+Bsize); // one byte per item
     long tmpSize = sizeof(bIndexT)*n;
     bucketsT *BK = (bucketsT*) (tmpSpace+Bsize+tmpSize);
     if (bits <= MAX_RADIX) {
-      radixStep(A, B, Tmp, BK, numBK, n, (long) 1 << bits, true, 
+      radixStep(A, B, Tmp, BK, numBK, n, (long) 1 << bits, true,
 		eBits<E,F>(bits,0,f));
       if (bucketOffsets != NULL) {
-	parallel_for (long i = 0; i < m; i++) 
+	parallel_for (long i = 0; i < m; i++)
 	  bucketOffsets[i] = BK[0][i];
       }
       return;
@@ -236,7 +236,7 @@ namespace intSort {
   }
 
   template <class E, class F, class oint>
-  void iSort(E *A, oint* bucketOffsets, long n, long m, bool bottomUp, 
+  void iSort(E *A, oint* bucketOffsets, long n, long m, bool bottomUp,
 	     char* tmpSpace, F f) {
     // if n fits in 32 bits then use unsigned ints for bucket counts
     // otherwise use unsigned longs
@@ -262,12 +262,12 @@ namespace intSort {
 
   // A version that uses a NULL bucketOffset
   template <class E, class Func>
-  void iSort(E *A, long n, long m, Func f) { 
+  void iSort(E *A, long n, long m, Func f) {
     iSort(A, (unsigned long*) NULL, n, m, false, f);
   }
 
   template <class E, class Func>
-  void iSort(E *A, long n, long m, char* s, Func f) { 
+  void iSort(E *A, long n, long m, char* s, Func f) {
     iSort(A, (unsigned long*) NULL, n, m, false, s, f);
   }
 

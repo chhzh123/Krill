@@ -21,7 +21,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Adds a random integer weight in [1...log(n)] to each edge
-#include <math.h>
+#include <cmath>
 #include "graphIO.h"
 #include "parseCommandLine.h"
 #include "parallel.h"
@@ -38,12 +38,12 @@ int parallel_main(int argc, char* argv[]) {
 
   long m = G.m;
   long n = G.n;
-  
+
   intT* Weights = newA(intT,m);
 
   intT maxEdgeLen = log2(n);
   intT* Choices = newA(intT,2*maxEdgeLen);
-  
+
   parallel_for (intT i=0;i<maxEdgeLen;i++){
     Choices[2*i] = i+1;
     Choices[2*i+1] = i+1;
@@ -55,7 +55,7 @@ int parallel_main(int argc, char* argv[]) {
     //if(i%1000==0 && Weights[i] < 0) Weights[i]*=-1;
   }
   free(Choices);
-  
+
   wghVertex<intT>* WV = newA(wghVertex<intT>,n);
   intT* Neighbors_start = G.allocatedInplace+2+n;
 
@@ -86,6 +86,6 @@ int parallel_main(int argc, char* argv[]) {
   int r = writeWghGraphToFile<intT>(WG,oFile);
 
   WG.del();
-  
+
   return r;
 }
