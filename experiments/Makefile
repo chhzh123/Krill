@@ -31,18 +31,22 @@ else ifdef RMAT
 DATA = rMatGraph24
 Vertices = 33554432
 Edges = 168000000
-DATASET = $(DATASET_PATH)/$(DATA)
-DATASETW = $(DATASET_PATH)/$(DATA)-w
+SIZE = 1659
+SIZEW = 2089
 
 else ifdef TW
 DATA = twitter7
-DATASET = $(DATASET_PATH)/$(DATA)
-DATASETW = $(DATASET_PATH)/$(DATA)-w
+Vertices = 41652231
+Edges = 1468365182
+SIZE = 12411
+SIZEW = 16108
 
 else ifdef FT
 DATA = com-friendster
-DATASET = $(DATASET_PATH)/$(DATA)
-DATASETW = $(DATASET_PATH)/$(DATA)-w
+Vertices = 124836180
+Edges = 1806067135
+SIZE = 16907
+SIZEW = 21474
 
 else
 DATA = rMatGraph
@@ -71,6 +75,7 @@ PCM = sudo ./$(PCM_PATH)/pcm-memory.x 0.01 -csv=$(PCM_OUTPUT_PATH)/$@.csv --exte
 MAX_ITER = 15
 CACHE_SIZE = 20 # MB
 MEMORY_BUDGET = 32 # GB
+PARTITION = 4
 
 # to clear the cache
 #sudo sh -c 'echo 1 >/proc/sys/vm/drop_caches'
@@ -99,6 +104,7 @@ expnoopt: build homo1noopt homo2noopt heternoopt mbfsnoopt mssspnoopt
 	python profiling.py $(PROFILE_PATH)/$(DATA)
 
 expgm: build homo1gm homo2gm hetergm mbfsgm mssspgm
+	python profiling.py $(PROFILE_PATH)/$(DATA)
 
 expsingle: build bfs pr cc sssp
 
@@ -629,8 +635,9 @@ run_preprocess: to_bin to_grid to_gm
 to_bin: $(DATASET)
 	python ../utils/converter.py $(DATASET) $(DATASET_PATH)
 
+run_togm: to_grid to_gm
 to_grid: $(DATASET).in
-	./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocess -i $(DATASET).in -o $(DATASET_GRID) -v $(Vertices) -p 4 -t $(WEIGHTED)
+	./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocess -i $(DATASET).in -o $(DATASET_GRID) -v $(Vertices) -p $(PARTITION) -t $(WEIGHTED)
 
 to_gm: $(DATASET_GRID)
 	./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocessing $(DATASET_GRID) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)
