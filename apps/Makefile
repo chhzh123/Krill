@@ -59,8 +59,8 @@ COMMON += blockRadixSort.h
 
 KERNEL = BFS.h SSSP.h PageRank.h CC.h
 
-ALL = Homo1 Homo2 Heter M-BFS M-SSSP
-# ALL += M-CC M-PageRank Singleton Multi-BFS Heter2
+ALL = Homo1 Homo2 Heter M-BFS M-SSSP Multi-BFS
+# ALL += M-CC M-PageRank Singleton Heter2
 
 all: $(ALL)
 
