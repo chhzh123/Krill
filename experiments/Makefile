@@ -627,20 +627,27 @@ multicorep: build
 gen_rmat:
 	./../utils/rMatGraph -a .5 -b .1 -c .1 -d .3 16800000 $(DATASET_PATH)/rMatGraph24
 
-add_weights: $(DATASET)-w
-$(DATASET)-w: $(DATASET)
-	./../utils/adjGraphAddWeights $(DATASET) $(DATASET)-w
+add_weights: $(DATASETW)
+$(DATASETW): $(DATASET)
+	./../utils/adjGraphAddWeights $(DATASET) $(DATASETW)
 
 run_preprocess: to_bin to_grid to_gm
-to_bin: $(DATASET)
+to_bin: $(DATASET).in $(DATASETW).in
+$(DATASET).in: $(DATASET)
 	python ../utils/converter.py $(DATASET) $(DATASET_PATH)
+$(DATASETW).in: $(DATASETW)
+	python ../utils/converter.py $(DATASETW) $(DATASET_PATH)
 
 run_togm: to_grid to_gm
-to_grid: $(DATASET).in
-	./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocess -i $(DATASET).in -o $(DATASET_GRID) -v $(Vertices) -p $(PARTITION) -t $(WEIGHTED)
+to_grid: $(DATASET_GRID) $(DATASETW_GRID)
+$(DATASET_GRID): $(DATASET).in
+	./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocess -i $(DATASET).in -o $(DATASET_GRID) -v $(Vertices) -p $(PARTITION) -t 0
+$(DATASETW_GRID): $(DATASETW).in
+	./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocess -i $(DATASETW).in -o $(DATASETW_GRID) -v $(Vertices) -p $(PARTITION) -t 1
 
-to_gm: $(DATASET_GRID)
+to_gm: $(DATASET_GRID) $(DATASETW_GRID)
 	./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocessing $(DATASET_GRID) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)
+	./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocessing $(DATASETW_GRID) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)
 	rm chunk-table-*
 
 CURR_TIME = $(shell env TZ=Asia/Shanghai date +"%Y%m%d-%H%M%S")
