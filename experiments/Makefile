@@ -12,6 +12,7 @@ Vertices = 6009555
 Edges = 16518948
 SIZE = 150
 SIZEW = 191
+# CC=6004238
 
 else ifdef LJ
 DATA = soc-LiveJournal1
@@ -19,6 +20,7 @@ Vertices = 4847571
 Edges = 68993773
 SIZE = 523
 SIZEW = 694
+# CC=397380
 
 else ifdef RD
 DATA = road_usa
@@ -26,6 +28,7 @@ Vertices = 23947348
 Edges = 57708624
 SIZE = 671
 SIZEW = 816
+# CC=2
 
 else ifdef RMAT
 DATA = rMatGraph24
@@ -33,6 +36,7 @@ Vertices = 33554432
 Edges = 168000000
 SIZE = 1659
 SIZEW = 2089
+# CC=5215353
 
 else ifdef TW
 DATA = twitter7
@@ -40,6 +44,7 @@ Vertices = 41652231
 Edges = 1468365182
 SIZE = 12411
 SIZEW = 16108
+# CC=6053611
 
 else ifdef FT
 DATA = com-friendster
@@ -47,6 +52,7 @@ Vertices = 124836180
 Edges = 1806067135
 SIZE = 16907
 SIZEW = 21474
+# CC=59875151
 
 else
 DATA = rMatGraph
