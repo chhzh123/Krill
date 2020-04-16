@@ -58,8 +58,8 @@ def get_props_class(props,pb_name):
     return res
 
 def get_main_class(props):
-    res  = "class Property {\npublic:\n  size_t n;\n" \
-           "  Property(size_t _n): n(_n) {}\n"
+    res  = "class PropertyManager {\npublic:\n  size_t n;\n" \
+           "  PropertyManager(size_t _n): n(_n) {}\n"
     for job in props:
         for prop in props[job]:
             class_name = "{}_Prop::{}".format(job,prop[0])

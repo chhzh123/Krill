@@ -12,7 +12,7 @@ using namespace std;
 template <class vertex>
 void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
-	Homo1::Property prop(G.n);
+	Homo1::PropertyManager prop(G.n);
 	for (int i = 1; i < 5; ++i){
 		BFS *bfs = new BFS(G.n, prop, 10 * i); // remember to dynamically allocate memory
 		K.appendJob(bfs);

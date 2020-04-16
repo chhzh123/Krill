@@ -13,7 +13,7 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
 	long cnt = P.getOptionLongValue("-n",1);
 	cout << cnt << " BFSs" << endl;
-	MultiBFS::Property prop(G.n);
+	MultiBFS::PropertyManager prop(G.n);
 	for (int i = 1; i < cnt+1; ++i){
 		BFS* bfs = new BFS(G.n, prop, 10*i); // remember to dynamically allocate memory
 		K.appendJob(bfs);

@@ -11,7 +11,7 @@ using namespace std;
 template <class vertex>
 void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
-	MSSSP::Property prop(G.n);
+	MSSSP::PropertyManager prop(G.n);
 	for (int i = 1; i < 9; ++i){
 		int start = 211 * i;
 		if (start >= G.n)

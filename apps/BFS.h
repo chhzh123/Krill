@@ -9,7 +9,7 @@
 class BFS: public UnweightedJob
 {
 public:
-	BFS(long _n, Property& prop, long _start = 0):
+	BFS(long _n, PropertyManager& prop, long _start = 0):
 		UnweightedJob(_n), start(_start){
 			assert(_start < n);
 			parents = prop.add_Parents();

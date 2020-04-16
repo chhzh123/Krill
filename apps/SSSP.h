@@ -23,7 +23,7 @@ public:
 class SSSP: public WeightedJob
 {
 public:
-	SSSP(long _n, Property& prop, long _start = 0):
+	SSSP(long _n, PropertyManager& prop, long _start = 0):
 		WeightedJob(_n), start(_start){
 			assert(_start < n);
 			shortestPathLen = prop.add_ShortestPathLen();

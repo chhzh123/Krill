@@ -49,7 +49,7 @@ template <class vertex>
 class PageRankDelta : public UnweightedJob
 {
 public:
-	PageRankDelta(long _n, vertex* _V, Property& prop, long _maxIters = 15):
+	PageRankDelta(long _n, vertex* _V, PropertyManager& prop, long _maxIters = 15):
 		UnweightedJob(_n), V(_V),
 		first_flag(true), maxIters(_maxIters){
 			p = prop.add_P_Value();

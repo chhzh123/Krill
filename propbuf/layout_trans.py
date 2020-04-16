@@ -28,7 +28,7 @@ def get_prop_class(job_prop,pb_name):
     res += "  inline void set (int i, {} val) {{ data[i] = val; }}\n".format(type_name)
     res += "  inline void set_all ({} val) {{ parallel_for (int i = 0; i < n; ++i) data[i] = val; }}\n".format(type_name)
     res += "  inline void add (int i, {} val) {{ data[i * sj_num] += val; }}\n".format(type_name)
-    res += "  friend class {}::Property;\n".format(pb_name) # friend class
+    res += "  friend class {}::PropertyManager;\n".format(pb_name) # friend class
     # data
     res += "private:\n"
     res += "  size_t n;\n"
@@ -47,8 +47,8 @@ def get_props_class(props,pb_name):
     return res
 
 def get_main_class(props):
-    res  = "class Property {\npublic:\n  size_t n;\n" \
-           "  Property(size_t _n): n(_n) {}\n"
+    res  = "class PropertyManager {\npublic:\n  size_t n;\n" \
+           "  PropertyManager(size_t _n): n(_n) {}\n"
     for job in props:
         for prop in props[job]:
             class_name = "{}_Prop::{}".format(job,prop[0])

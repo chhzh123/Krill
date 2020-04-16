@@ -15,7 +15,7 @@ using namespace std;
 template <class vertex>
 void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
-	Heter::Property prop(G.n);
+	Heter::PropertyManager prop(G.n);
 	for (int i = 1; i < 3; ++i){
 		int start_bfs = 71 * i + 2;
 		if (start_bfs >= G.n)

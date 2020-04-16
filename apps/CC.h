@@ -21,7 +21,7 @@ struct Update_F : public Function
 class Components : public UnweightedJob
 {
 public:
-	Components(long _n, Property& prop):
+	Components(long _n, PropertyManager& prop):
 		UnweightedJob(_n){
 			IDs = prop.add_CurrIDs();
 			prevIDs = prop.add_PrevIDs();

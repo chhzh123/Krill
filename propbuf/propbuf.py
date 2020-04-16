@@ -39,7 +39,7 @@ namespace {2} {{
 typedef int intE;
 typedef unsigned int uintE;
 
-class Property;
+class PropertyManager;
 
 """.format(infile_name,pb_name.upper(),pb_name)
 
