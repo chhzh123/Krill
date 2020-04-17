@@ -67,14 +67,14 @@ public:
 			return false;
 		}
 	}
-	void initialize(){
+	inline void initialize(){
 		setAll<uintE>(coreNum,0);
 		degrees = newA(intE,n);
 		parallel_for (long i = 0; i < n; ++i)
 			degrees[i] = V[i].getOutDegree();
 		setFrontierAll();
 	}
-	void iniOneIter(){
+	inline void iniOneIter(){
 		nextFrontier = newA(bool,n);
 		parallel_for (long i = 0; i < n; ++i) // remember to initialize!
 			nextFrontier[i] = 0;

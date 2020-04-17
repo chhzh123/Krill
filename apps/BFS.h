@@ -27,10 +27,7 @@ public:
 	inline bool cond(uintE d){ // cond function checks if vertex has been visited yet
 		return (parents->get(d) == UINT_E_MAX); // since CAS cannot pass negtive num
 	}
-	inline bool finished(int){
-		return frontier.isEmpty();
-	}
-	void initialize(){
+	inline void initialize(){
 		parents->set(start,start);
 		setFrontier(n,start);
 	}

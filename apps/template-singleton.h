@@ -83,24 +83,8 @@ public:
 	 *
 	 * which can be used to set all the values in the `ptr` array to `val`.
 	 */
-	void initialize(){
+	inline void initialize(){
 		// write your initialize function here
-	}
-
-	/**
-	 * If you create instances of some member data using dynamic allocation,
-	 * you should free the memory here. Otherwise, directly return.
-	 * Notice you only need to free the private property values you created,
-	 * the frontier and other basic infrastructures need not be
-	 * managed manually.
-	 * We provide facilities like
-	 *
-	 * > void freeMem(T*& ptr)
-	 *
-	 * to quickly free the allocated memory.
-	 */
-	void clear(){
-		// write your clear function here
 	}
 
 	/**
@@ -113,7 +97,7 @@ public:
 	 * You can overload the function by uncommenting the following part
 	 * and adding the operations you want to implement.
 	 */
-	// void iniOneIter(){
+	// inline void iniOneIter(){
 	//  // WARNING: DO NOT DELETE THE BLOCK BELOW
 	//  //          UNLESS YOU KNOW WHAT YOU ARE DOING
 	//  // ***** DO NOT DELETE BEGIN *****

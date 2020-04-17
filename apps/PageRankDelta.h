@@ -85,7 +85,7 @@ public:
 		else
 			return false;
 	}
-	void initialize(){
+	inline void initialize(){
 		p->set_all((1 - damping) / (double)n);
 		delta->set_all(1 / (double)n);
         setFrontierAll();

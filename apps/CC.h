@@ -58,10 +58,10 @@ public:
 		} else
 			return false;
 	}
-	void initialize(){
+	inline void initialize(){
 		setFrontierAll();
 	}
-	void iniOneIter(){
+	inline void iniOneIter(){
 		nextFrontier = newA(bool,n); // DO NOT FREE nextFrontier
         parallel_for (long i = 0; i < n; ++i) // remember to initialize!
             nextFrontier[i] = 0;

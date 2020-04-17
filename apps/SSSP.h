@@ -75,7 +75,7 @@ public:
 #endif
 		}
 	}
-	void initialize(){
+	inline void initialize(){
 		shortestPathLen->set(start,0);
 		setFrontier(n,start);
 	}

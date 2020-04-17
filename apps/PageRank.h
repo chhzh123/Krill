@@ -63,7 +63,7 @@ public:
 		else
 			return false;
 	}
-	void initialize(){
+	inline void initialize(){
 		double one_over_n = 1/(double)n;
 		setAll<double>(p_curr,one_over_n);
 		setAll<double>(p_next,0); // 0 if unchanged
