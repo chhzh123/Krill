@@ -64,6 +64,9 @@ ALL = Homo1 Homo2 Heter M-BFS M-SSSP Multi-BFS
 
 all: $(ALL)
 
+Singleton: Singleton.cpp Heter.pb.h
+	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $(COMMON_FLAGS) $(NOKERFFLAG) $(NOOPTFLAG) $< -o $@
+
 % : %.cpp %.pb.h
 	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $(COMMON_FLAGS) $(NOKERFFLAG) $(NOOPTFLAG) $< -o $@
 
