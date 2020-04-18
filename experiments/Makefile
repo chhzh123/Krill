@@ -656,6 +656,16 @@ to_gm: $(DATASET_GRID) $(DATASETW_GRID)
 	./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocessing $(DATASETW_GRID) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)
 	rm chunk-table-*
 
+eval_togm: evalgrid evalgridw
+evalgrid: build
+	$(TIME) "./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocess -i $(DATASET).in -o $(DATASET_GRID) -v $(Vertices) -p $(PARTITION) -t 0; ./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocessing $(DATASET_GRID) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	$(PERF) "./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocess -i $(DATASET).in -o $(DATASET_GRID) -v $(Vertices) -p $(PARTITION) -t 0; ./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocessing $(DATASET_GRID) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	rm chunk-table-*
+evalgridw: build
+	$(TIME) "./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocess -i $(DATASETW).in -o $(DATASETW_GRID) -v $(Vertices) -p $(PARTITION) -t 1; ./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocessing $(DATASETW_GRID) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	$(PERF) "./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocess -i $(DATASETW).in -o $(DATASETW_GRID) -v $(Vertices) -p $(PARTITION) -t 1; ./$(GRAPHM_PATH)/../../PreProcessing/bin/preprocessing $(DATASETW_GRID) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	rm chunk-table-*
+
 CURR_TIME = $(shell env TZ=Asia/Shanghai date +"%Y%m%d-%H%M%S")
 tar_results:
 	tar -cvf profile-$(CURR_TIME).tar profile *.log *.prof
