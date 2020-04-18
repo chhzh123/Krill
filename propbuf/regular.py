@@ -39,7 +39,7 @@ def get_prop_class(job_prop,pb_name):
     res += "  inline {}* get_data () {{ return data; }}\n".format(type_name)
     res += "  inline void set (int i, {} val) {{ data[i] = val; }}\n".format(type_name)
     res += "  inline void set_all ({} val) {{ parallel_for (int i = 0; i < n; ++i) data[i] = val; }}\n".format(type_name)
-    res += "  inline void add (int i, {} val) {{ data[i * sj_num] += val; }}\n".format(type_name)
+    res += "  inline void add (int i, {} val) {{ data[i] += val; }}\n".format(type_name)
     # data
     res += "private:\n"
     res += "  size_t n;\n"
