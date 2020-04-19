@@ -1,7 +1,7 @@
 import sys
 import os
 
-algs = ["homo1","homo2","heter","mbfs","msssp"]
+algs = ["heter","homo1","homo2","mbfs","msssp"]
 
 if len(sys.argv) <= 1:
 	print("Error: Please enter the folder path!")

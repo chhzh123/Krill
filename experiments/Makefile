@@ -74,6 +74,7 @@ TIMEK = /usr/bin/time -v -o $(PROFILE_PATH)/$(DATA)/$@k.time sh -c
 PERFK = perf stat -d -o $(PROFILE_PATH)/$(DATA)/$@k.perf sh -c
 TIME = /usr/bin/time -v -o $(PROFILE_PATH)/$(DATA)/$@.time sh -c
 PERF = perf stat -d -o $(PROFILE_PATH)/$(DATA)/$@.perf sh -c
+PERF_REPORT = perf record -e cpu-clock
 
 PCM_OUTPUT_PATH = pcm-results
 PCM = sudo ./$(PCM_PATH)/pcm-memory.x 0.01 -csv=$(PCM_OUTPUT_PATH)/$@.csv --external-program
