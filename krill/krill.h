@@ -396,32 +396,37 @@ void Compute(graph<vertex>& G, Kernels& K)
     uintT* UniFrontier = K.UniFrontier.toSparse();
     long m = K.UniFrontier.m;
     uintT* degrees = newA(uintT, m);
-    parallel_for (long i = 0; i < m; ++i)
+    parallel_for(long i = 0; i < m; ++i)
         degrees[i] = V[UniFrontier[i]].getOutDegree();
     // for each iteration, select which engine to use
     uintT outDegrees = sequence::plusReduce(degrees, m);
-    intT threshold = G.m / 2; // f(# of edges)
-    // if (outDegrees == 0) {
-    //     K.denseMode();
-    //     free(degrees);
-    //     return;
-    // }
+    uintT threshold = G.m * 0.5; // f(# of edges)
+    if (K.flagThreshold){
 #ifdef NOOPT
-    free(degrees);
-    if (m + outDegrees > threshold)
-        pullNoOpt(V, K);
-    else
-        pushNoOpt(V, K);
-#else
-    if (m + outDegrees > threshold)
-    {
         free(degrees);
-        pullDense(V, K);
+        if (m + outDegrees > threshold)
+            pullNoOpt(V, K);
+        else
+            pushNoOpt(V, K);
+#else
+        if (m + outDegrees > threshold)
+        {
+            free(degrees);
+            pullDense(V, K);
+        }
+        else
+        {
+            if (m + outDegrees > G.m / 5)
+                pushSparse(V, K, degrees, true);
+            else
+                pushSparse(V, K, degrees); // sparse index
+            free(degrees);
+        }
     } else {
         if (m + outDegrees > G.m / 5)
-            pushSparse(V,K,degrees,true);
+            pushSparse(V, K, degrees, true);
         else
-            pushSparse(V,K,degrees); // sparse index
+            pushSparse(V, K, degrees); // sparse index
         free(degrees);
     }
 #endif

@@ -393,6 +393,7 @@ public:
     int pushSparseCnt = 0;
     int pullDenseCnt = 0;
     int pullSparseCnt = 0;
+    bool flagThreshold = true;
     int nJob;
     Job** job; // 1D array to store pointers of the jobs
     int nCJob;
