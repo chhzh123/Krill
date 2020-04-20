@@ -8,8 +8,12 @@ if len(sys.argv) <= 1:
 	sys.exit()
 data_path = sys.argv[1]
 data_name = data_path.split('/')[-1]
-if len(sys.argv) < 3 or int(sys.argv[2]) != 3:
+if len(sys.argv) < 3:
 	output = open(data_name + ".prof","w")
+elif int(sys.argv[2]) == 1:
+	output = open(data_name + "-multibfs.prof","w")
+elif int(sys.argv[2]) == 2:
+	output = open(data_name + "-multicore.prof","w")
 else:
 	output = open(data_name + "-grid.prof","w")
 
@@ -109,7 +113,7 @@ elif int(sys.argv[2]) == 2: # multicore
 					if "wall clock" in line:
 						tmp = line.split()[-1]
 						realtime[name][num] = "{:.2f}".format(int(tmp.split(':')[0]) * 60 + float(tmp.split(':')[1]))
-	write_table(realtime,"Real time (s)",[1,2,4,8,16,32,40])
+	write_table(realtime,"Real time (s)",[1,2,4,8,16,32,48])
 else: # preprocess
 	for filename in os.listdir(data_path):
 		if "evalgrid" in filename:

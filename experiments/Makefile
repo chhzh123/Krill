@@ -567,8 +567,8 @@ msssppcm: buildpcm
 	$(PCM) ./$(KRILL_PATH)/M-SSSP -w $(DATASETW)
 
 TIMEBFS = /usr/bin/time -v -o $(PROFILE_PATH)/$(DATA)/$@
-multibfs: build multibfsk multibfss multibfsp
-	python profiling.py $(PROFILE_PATH)/$(DATA) 1
+multibfs: build multibfsk multibfss multibfsp multibfsgm
+	-python profiling.py $(PROFILE_PATH)/$(DATA) 1
 multibfsk: build
 	$(TIMEBFS)1.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 1 $(DATASET)"
 	$(TIMEBFS)2.time sh -c "./$(KRILL_PATH)/Multi-BFS -n 2 $(DATASET)"
@@ -602,34 +602,52 @@ multibfsp: build
 	$(TIMEBFS)32.time sh -c "./multibfs/multibfsp32.sh $(LIGRA_PATH) $(DATASET)"
 	$(TIMEBFS)64.time sh -c "./multibfs/multibfsp64.sh $(LIGRA_PATH) $(DATASET)"
 	$(TIMEBFS)128.time sh -c "./multibfs/multibfsp128.sh $(LIGRA_PATH) $(DATASET)"
+multibfsgm: build
+	$(TIMEBFS)1.time sh -c "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 1 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	$(TIMEBFS)2.time sh -c "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 2 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	$(TIMEBFS)4.time sh -c "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 4 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	$(TIMEBFS)8.time sh -c "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 8 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	$(TIMEBFS)16.time sh -c "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 16 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	$(TIMEBFS)32.time sh -c "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 32 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	$(TIMEBFS)64.time sh -c "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 64 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	$(TIMEBFS)128.time sh -c "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 128 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
 
 TIMEMULTICORE = /usr/bin/time -v -o $(PROFILE_PATH)/$(DATA)/$@
 # or env CILK_NWORKERS
-multicore: build multicorek multicores multicorep
+multicore: build multicorek multicores multicorep multicoregm
+	-python profiling.py $(PROFILE_PATH)/$(DATA) 2
 multicorek: build
-	export CILK_NWORKERS=1 && $(TIMEMULTICORE)1.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
-	export CILK_NWORKERS=2 && $(TIMEMULTICORE)2.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
-	export CILK_NWORKERS=4 && $(TIMEMULTICORE)4.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
-	export CILK_NWORKERS=8 && $(TIMEMULTICORE)8.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
-	export CILK_NWORKERS=16 && $(TIMEMULTICORE)16.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
-	export CILK_NWORKERS=32 && $(TIMEMULTICORE)32.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
-	export CILK_NWORKERS=48 && $(TIMEMULTICORE)48.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+	export CILK_NWORKERS=1 && $(TIMEMULTICORE)1.time sh -c "./$(KRILL_PATH)/M-BFS  $(DATASET)"
+	export CILK_NWORKERS=2 && $(TIMEMULTICORE)2.time sh -c "./$(KRILL_PATH)/M-BFS  $(DATASET)"
+	export CILK_NWORKERS=4 && $(TIMEMULTICORE)4.time sh -c "./$(KRILL_PATH)/M-BFS  $(DATASET)"
+	export CILK_NWORKERS=8 && $(TIMEMULTICORE)8.time sh -c "./$(KRILL_PATH)/M-BFS  $(DATASET)"
+	export CILK_NWORKERS=16 && $(TIMEMULTICORE)16.time sh -c "./$(KRILL_PATH)/M-BFS  $(DATASET)"
+	export CILK_NWORKERS=32 && $(TIMEMULTICORE)32.time sh -c "./$(KRILL_PATH)/M-BFS  $(DATASET)"
+	export CILK_NWORKERS=48 && $(TIMEMULTICORE)48.time sh -c "./$(KRILL_PATH)/M-BFS  $(DATASET)"
 multicores: build
-	env CILK_NWORKERS=1 $(TIMEMULTICORE)1.time sh -c '$(HETERS)'
-	env CILK_NWORKERS=2 $(TIMEMULTICORE)2.time sh -c '$(HETERS)'
-	env CILK_NWORKERS=4 $(TIMEMULTICORE)4.time sh -c '$(HETERS)'
-	env CILK_NWORKERS=8 $(TIMEMULTICORE)8.time sh -c '$(HETERS)'
-	env CILK_NWORKERS=16 $(TIMEMULTICORE)16.time sh -c '$(HETERS)'
-	env CILK_NWORKERS=32 $(TIMEMULTICORE)32.time sh -c '$(HETERS)'
-	env CILK_NWORKERS=48 $(TIMEMULTICORE)48.time sh -c '$(HETERS)'
+	env CILK_NWORKERS=1 $(TIMEMULTICORE)1.time sh -c '$(MBFSS)'
+	env CILK_NWORKERS=2 $(TIMEMULTICORE)2.time sh -c '$(MBFSS)'
+	env CILK_NWORKERS=4 $(TIMEMULTICORE)4.time sh -c '$(MBFSS)'
+	env CILK_NWORKERS=8 $(TIMEMULTICORE)8.time sh -c '$(MBFSS)'
+	env CILK_NWORKERS=16 $(TIMEMULTICORE)16.time sh -c '$(MBFSS)'
+	env CILK_NWORKERS=32 $(TIMEMULTICORE)32.time sh -c '$(MBFSS)'
+	env CILK_NWORKERS=48 $(TIMEMULTICORE)48.time sh -c '$(MBFSS)'
 multicorep: build
-	taskset -c 0 env CILK_NWORKERS=1 $(TIMEMULTICORE)1.time sh -c '$(HETERP)'
-	taskset -c 0-1 env CILK_NWORKERS=2 $(TIMEMULTICORE)2.time sh -c '$(HETERP)'
-	taskset -c 0-3 env CILK_NWORKERS=4 $(TIMEMULTICORE)4.time sh -c '$(HETERP)'
-	taskset -c 0-7 env CILK_NWORKERS=8 $(TIMEMULTICORE)8.time sh -c '$(HETERP)'
-	taskset -c 0-15 env CILK_NWORKERS=16 $(TIMEMULTICORE)16.time sh -c '$(HETERP)'
-	taskset -c 0-31 env CILK_NWORKERS=32 $(TIMEMULTICORE)32.time sh -c '$(HETERP)'
-	taskset -c 0-47 env CILK_NWORKERS=48 $(TIMEMULTICORE)48.time sh -c '$(HETERP)'
+	taskset -c 0 env CILK_NWORKERS=1 $(TIMEMULTICORE)1.time sh -c '$(MBFSP)'
+	taskset -c 0-1 env CILK_NWORKERS=2 $(TIMEMULTICORE)2.time sh -c '$(MBFSP)'
+	taskset -c 0-3 env CILK_NWORKERS=4 $(TIMEMULTICORE)4.time sh -c '$(MBFSP)'
+	taskset -c 0-7 env CILK_NWORKERS=8 $(TIMEMULTICORE)8.time sh -c '$(MBFSP)'
+	taskset -c 0-15 env CILK_NWORKERS=16 $(TIMEMULTICORE)16.time sh -c '$(MBFSP)'
+	taskset -c 0-31 env CILK_NWORKERS=32 $(TIMEMULTICORE)32.time sh -c '$(MBFSP)'
+	taskset -c 0-47 env CILK_NWORKERS=48 $(TIMEMULTICORE)48.time sh -c '$(MBFSP)'
+multicoregm: build
+	export CILK_NWORKERS=1 && $(TIMEMULTICORE)1.time sh -c "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 8 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	export CILK_NWORKERS=2 && $(TIMEMULTICORE)2.time sh -c "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 8 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	export CILK_NWORKERS=4 && $(TIMEMULTICORE)4.time sh -c "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 8 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	export CILK_NWORKERS=8 && $(TIMEMULTICORE)8.time sh -c "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 8 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	export CILK_NWORKERS=16 && $(TIMEMULTICORE)16.time sh -c "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 8 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	export CILK_NWORKERS=32 && $(TIMEMULTICORE)32.time sh -c "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 8 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
+	export CILK_NWORKERS=48 && $(TIMEMULTICORE)48.time sh -c "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 8 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
 
 gen_rmat:
 	./../utils/rMatGraph -a .5 -b .1 -c .1 -d .3 16800000 $(DATASET_PATH)/rMatGraph24
