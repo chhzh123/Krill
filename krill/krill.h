@@ -377,7 +377,7 @@ void scheduleJob(Job**& job, int& nJob, int nIter)
     int i = 0;
     while (i < nJob){
         if (job[i]->finished(nIter)){
-            reportTime("Latency: ");
+            nextTime("Latency");
             cout << "Iter " << nIter << ": Finished job "
                  << job[i]->ID << " - " << typeid(*(job[i])).name() << endl;
             delete job[i];
@@ -546,15 +546,17 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P); // first declare
 template <class vertex>
 void framework(graph<vertex>& G, commandLine P)
 {
+    startTime();
     Kernels K;
     setKernels(G,K,P);
 
     // check validity
     K.initialize(G.n,G.isWeighted);
+    reportTime("Initialization time");
 
     startTime();
     Execute(G,K,P);
-    nextTime("Running time");
+    reportTime("Running time");
 #ifdef DEBUG
     cout << "Push-Dense: " << K.pushDenseCnt << endl;
     cout << "Push-Sparse: " << K.pushSparseCnt << endl;
@@ -578,13 +580,13 @@ int main(int argc, char* argv[]){
             startTime();
             graph<asymmetricUnweightedVertex> G =
                 readGraphFromFile<asymmetricUnweightedVertex>(iFile);
-            nextTime("Graph IO time");
+            reportTime("Graph IO time");
             framework(G,P);
         } else {
             startTime();
             graph<symmetricUnweightedVertex> G =
                 readGraphFromFile<symmetricUnweightedVertex>(iFile);
-            nextTime("Graph IO time");
+            reportTime("Graph IO time");
             framework(G,P);
         }
     } else {
@@ -592,13 +594,13 @@ int main(int argc, char* argv[]){
             startTime();
             graph<asymmetricWeightedVertex> G =
                 readGraphFromFile<asymmetricWeightedVertex>(iFile);
-            nextTime("Graph IO time");
+            reportTime("Graph IO time");
             framework(G,P);
         } else {
             startTime();
             graph<symmetricWeightedVertex> G =
                 readGraphFromFile<symmetricWeightedVertex>(iFile);
-            nextTime("Graph IO time");
+            reportTime("Graph IO time");
             framework(G,P);
         }
     }
