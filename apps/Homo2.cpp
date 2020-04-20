@@ -12,6 +12,7 @@ using namespace std;
 template <class vertex>
 void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
+	K.flagThreshold = false;
 	Homo2::PropertyManager prop(G.n);
 	for (int i = 0; i < 4; ++i){
 		PageRankDelta<vertex> *prd = new PageRankDelta<vertex>(G.n, G.V, prop);

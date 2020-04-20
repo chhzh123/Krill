@@ -423,8 +423,8 @@ void Compute(graph<vertex>& G, Kernels& K)
             free(degrees);
         }
     } else {
-        if (m + outDegrees > G.m / 5)
-            pushSparse(V, K, degrees, true);
+        if (m + outDegrees > G.m / 10)
+            pushDense(V, K);
         else
             pushSparse(V, K, degrees); // sparse index
         free(degrees);
