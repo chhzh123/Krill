@@ -613,7 +613,7 @@ multicorek: build
 	export CILK_NWORKERS=8 && $(TIMEMULTICORE)8.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 	export CILK_NWORKERS=16 && $(TIMEMULTICORE)16.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 	export CILK_NWORKERS=32 && $(TIMEMULTICORE)32.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
-	export CILK_NWORKERS=40 && $(TIMEMULTICORE)40.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+	export CILK_NWORKERS=48 && $(TIMEMULTICORE)48.time sh -c "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 multicores: build
 	env CILK_NWORKERS=1 $(TIMEMULTICORE)1.time sh -c '$(HETERS)'
 	env CILK_NWORKERS=2 $(TIMEMULTICORE)2.time sh -c '$(HETERS)'
@@ -621,7 +621,7 @@ multicores: build
 	env CILK_NWORKERS=8 $(TIMEMULTICORE)8.time sh -c '$(HETERS)'
 	env CILK_NWORKERS=16 $(TIMEMULTICORE)16.time sh -c '$(HETERS)'
 	env CILK_NWORKERS=32 $(TIMEMULTICORE)32.time sh -c '$(HETERS)'
-	env CILK_NWORKERS=40 $(TIMEMULTICORE)40.time sh -c '$(HETERS)'
+	env CILK_NWORKERS=48 $(TIMEMULTICORE)48.time sh -c '$(HETERS)'
 multicorep: build
 	taskset -c 0 env CILK_NWORKERS=1 $(TIMEMULTICORE)1.time sh -c '$(HETERP)'
 	taskset -c 0-1 env CILK_NWORKERS=2 $(TIMEMULTICORE)2.time sh -c '$(HETERP)'
@@ -629,7 +629,7 @@ multicorep: build
 	taskset -c 0-7 env CILK_NWORKERS=8 $(TIMEMULTICORE)8.time sh -c '$(HETERP)'
 	taskset -c 0-15 env CILK_NWORKERS=16 $(TIMEMULTICORE)16.time sh -c '$(HETERP)'
 	taskset -c 0-31 env CILK_NWORKERS=32 $(TIMEMULTICORE)32.time sh -c '$(HETERP)'
-	taskset -c 0-39 env CILK_NWORKERS=40 $(TIMEMULTICORE)40.time sh -c '$(HETERP)'
+	taskset -c 0-47 env CILK_NWORKERS=48 $(TIMEMULTICORE)48.time sh -c '$(HETERP)'
 
 gen_rmat:
 	./../utils/rMatGraph -a .5 -b .1 -c .1 -d .3 16800000 $(DATASET_PATH)/rMatGraph24
