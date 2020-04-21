@@ -42,7 +42,7 @@ def write_table(lst,head,inalgs=algs):
 
 print("Extracting profiling results from {} ...".format(data_path))
 
-abbreviation = ['k','s','p','m','b','f','d','w']
+abbreviation = ['k','s','p','m','b','f','d','w','g']
 realtime, peakmem, l1_load, l1_miss, llc_miss, instructions = {}, {}, {}, {}, {}, {}
 for abbr in abbreviation:
 	realtime[abbr] = {}
@@ -96,7 +96,11 @@ elif int(sys.argv[2]) == 1: # multibfs
 	for filename in os.listdir(data_path):
 		if "multibfs" in filename:
 			name = filename[8]
-			num = int(filename.split(".time")[0][9:])
+			if name == "g":
+				name = 'm'
+				num = int(filename.split(".time")[0][10:])
+			else:
+				num = int(filename.split(".time")[0][9:])
 			with open(data_path + "/" + filename,"r") as file:
 				for line in file:
 					if "wall clock" in line:
@@ -107,7 +111,11 @@ elif int(sys.argv[2]) == 2: # multicore
 	for filename in os.listdir(data_path):
 		if "multicore" in filename:
 			name = filename[9]
-			num = int(filename.split(".time")[0][10:])
+			if name == "g":
+				name = 'm'
+				num = int(filename.split(".time")[0][11:])
+			else:
+				num = int(filename.split(".time")[0][10:])
 			with open(data_path + "/" + filename,"r") as file:
 				for line in file:
 					if "wall clock" in line:
