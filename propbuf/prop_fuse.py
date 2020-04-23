@@ -4,12 +4,6 @@
 def get_prop_class(job_prop,pb_name):
     prop_name, type_name, initial_val = job_prop
     class_name = "{}".format(prop_name)
-    if type_name == "uint":
-        type_name = "uintE"
-    elif type_name == "int":
-        type_name = "intE"
-    else:
-        pass # other C/C++ inherent types are supported
     res = "class {} {{\npublic:\n".format(class_name)
     # constructor
     res += "  {}(size_t _n): n(_n) {{\n".format(class_name)
@@ -62,7 +56,23 @@ def get_props_class(props,pb_name):
     return res
 
 def get_main_class(props):
-    res  = "class PropertyManager {\npublic:\n  size_t n;\n" \
+    res = "class PropertyMessage {\n"
+    type_name = "uintE"
+    job_num = "8"
+    res += "public:\n"
+    res += "  PropertyMessage({} val) {{\n".format(type_name)
+    res += "    for(int i = 0; i < {}; ++i) data[i] = val;\n".format(job_num)
+    res += "  }\n"
+    res += "  inline {} operator[] (int i) const {{ return data[i]; }}\n".format(type_name)
+    res += "  inline {}& operator[] (int i) {{ return data[i]; }}\n".format(type_name)
+    res += "  inline {} get (int i) const {{ return data[i]; }}\n".format(type_name)
+    res += "  inline {}& get (int i) {{ return data[i]; }}\n".format(type_name)
+    res += "  inline {}* get_data () {{ return data; }}\n".format(type_name)
+    res += "  inline void set (int i, {} val) {{ data[i] = val; }}\n".format(type_name)
+    res += "private:\n"
+    res += "  {} data[{}];\n".format(type_name,job_num)
+    res += "};\n\n"
+    res += "class PropertyManager {\npublic:\n  size_t n;\n" \
            "  PropertyManager(size_t _n): n(_n) {}\n"
     for job in props:
         for prop in props[job]:
@@ -83,7 +93,7 @@ def get_main_class(props):
             res += "    //  {}\n".format(class_name) # comment
             res += "    int {0}_size = {0}.size();\n".format(array_name)
             res += "    int {0}_all_size = n * {0}_size;\n".format(array_name)
-            res += "    {0}* {1}_all = ({0}*) malloc(sizeof({0}) * {1}_all_size);\n".format(type_name,array_name)
+            res += "    {1}_all = ({0}*) malloc(sizeof({0}) * {1}_all_size);\n".format(type_name,array_name)
             if initial_val != None:
                 if type(initial_val) == type("str"):
                     res += "    parallel_for (int i = 0; i < {}_all_size; ++i) {{\n".format(array_name)
@@ -106,9 +116,15 @@ def get_main_class(props):
     res += "  }\n"
     for job in props:
         for prop in props[job]:
+            res += "  inline PropertyMessage* get_property() {\n"
+            res += "    return (PropertyMessage*) arr_{}_{}_all;\n".format(job,prop[0])
+            res += "  }\n"
+    for job in props:
+        for prop in props[job]:
             class_name = "{}_Prop::{}".format(job,prop[0])
             prop_name = prop[0]
             array_name = "arr_{}_{}".format(job,prop[0])
             res += "  std::vector<{}*> {};\n".format(class_name,array_name)
+            res += "  {}* arr_{}_{}_all;\n".format(prop[1],job,prop[0])
     res += "};\n\n"
     return res

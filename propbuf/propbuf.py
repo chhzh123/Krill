@@ -68,6 +68,12 @@ with open(path,"r") as infile:
                 else:
                     initial_val = (expr[1],' '.join(expr[3:])[:-1])
             type_name, prop_name = line[0], line[1]
+            if type_name == "uint":
+                type_name = "uintE"
+            elif type_name == "int":
+                type_name = "intE"
+            else:
+                pass # other C/C++ inherent types are supported
             if props.get(job,None) == None:
                 props[job] = []
             props[job].append((prop_name,type_name,initial_val))
