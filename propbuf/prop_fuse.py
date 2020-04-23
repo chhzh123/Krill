@@ -56,8 +56,9 @@ def get_props_class(props,pb_name):
     return res
 
 def get_main_class(props):
-    res = "class PropertyMessage {\n"
-    type_name = "uintE"
+    res = "template <typename T>\n"
+    res += "class PropertyMessage {\n"
+    type_name = "T"
     job_num = "8"
     res += "public:\n"
     res += "  PropertyMessage({} val) {{\n".format(type_name)
@@ -116,8 +117,8 @@ def get_main_class(props):
     res += "  }\n"
     for job in props:
         for prop in props[job]:
-            res += "  inline PropertyMessage* get_property() {\n"
-            res += "    return (PropertyMessage*) arr_{}_{}_all;\n".format(job,prop[0])
+            res += "  inline PropertyMessage<{}>* get_{}() {{\n".format(prop[1],prop[0])
+            res += "    return (PropertyMessage<{}>*) arr_{}_{}_all;\n".format(prop[1],job,prop[0])
             res += "  }\n"
     for job in props:
         for prop in props[job]:
