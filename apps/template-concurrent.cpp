@@ -2,7 +2,15 @@
 // Copyright (c) 2019 Hongzheng Chen
 
 #include "krill.h" // the underlying facility of krill
-// include the singleton jobs you have written below
+
+/*
+ * include the generated property buffer header files below
+ * and use corresponding namespace
+ */
+#include "template-singleton.pb.h"
+using namespace Templatesingleton;
+
+/* include the algorithm description of the jobs you have written */
 #include "template-singleton.h"
 using namespace std;
 
@@ -41,6 +49,12 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 	 * with `-s`, `-w`, `-c`, `-b`, and `-rounds`,
 	 * all of which have special meaning in Krill.
 	 */
+	PropertyManager prop(G.n); // declare property manager first
+
+	/******** Concurrent job declaration start ********/
 	MyJob* myjob = new MyJob(G.n);
 	K.appendJob(myjob);
+	/******** Concurrent job declaration end ********/
+
+	prop.initialize();
 }

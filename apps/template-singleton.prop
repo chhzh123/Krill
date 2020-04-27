@@ -1,0 +1,8 @@
+property Job {
+    /* Declare your property fields here
+     * <type> <name> (= <lambda expression>)
+     * e.g.
+     * int CurrID = (lambda vID : vID);
+     * uint Parent;
+     */
+}

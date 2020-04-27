@@ -29,6 +29,11 @@ public:
 		UnweightedJob(_n){};
 		// WeightedJob(_n){};
 
+	/*
+	 * You can use the `get` and `set` method to access your property data
+	 * declared in property buffers.
+	 */
+
 	/**
 	 * Input:
 	 ** d: the index of the destination vertex
@@ -66,13 +71,14 @@ public:
 	}
 
 	/**
-	 * This function justifies whether your job is finished and also should be overridden.
+	 * This function justifies whether your job is finished and can be overridden.
 	 * The default implementation returns whether the frontier set is empty.
+	 * You can add some outputs when the job is finished.
 	 */
-	inline bool finished(int){
-		// you can change the finished condition
-		return frontier.isEmpty();
-	}
+	// inline bool finished(int){
+	// 	// you can change the finished condition
+	// 	return frontier.isEmpty();
+	// }
 
 	/**
 	 * This method will be functioned before all the iterations.
