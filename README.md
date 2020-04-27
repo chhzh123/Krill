@@ -1,13 +1,25 @@
 Krill: An Efficient Concurrent Graph Processing System
 ======================
 
-Krill is an efficient graph system for processing **concurrent graph jobs**, which equips with **graph kernel fusion** and greatly reduces the number of memory accesses.
+Krill is an efficient graph system for processing **concurrent graph jobs**, which consists of a high-level compiler and a runtime system. We provide an interface called **property buffer** to easily manage the property data. The corresponding description file will be compiled by our compiler, and a header file will be generated for users to use. The runtime system is equipped with **graph kernel fusion**, which greatly reduces the number of memory accesses.
 
 Currently, we select [Ligra](https://github.com/jshun/ligra), a state-of-the-art shared-memory single graph processing framework, as our underlying infrastructure.
 
 ## Getting Started
 
-To write a program to process concurrent graph jobs, you should follow the three steps below.
+To write a program to process concurrent graph jobs, you should follow the steps below.
+
+### Declare the required property data
+Inspired by Google's [protocol buffer](https://developers.google.com/protocol-buffers/docs/proto3), we provide a clean interface to declare your property data for your graph jobs.
+
+For example, in BFS, you need a `parent` array to store the parents of each vertex, then you can declare your property buffer as below:
+```csharp
+property BFS {
+    int Parent = -1;
+}
+```
+
+and save it as a `.prop` file. Our property buffer compiler will generate a header file `.pb.h` which consists of some common data access functions and a property manager for you to call.
 
 ### Write each graph job in a class
 We provide two base classes named `UnweightedJob` and `WeightedJob`, and your custom graph job should be encapsulated in a class and inherit from these two bases.
@@ -36,12 +48,17 @@ In the main program, you should provide the implementation of `setKernels`, wher
 template <class vertex>
 void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
+	PropertyManager prop(G.n); // declare property manager
+
+	// you jobs here
 	MyJob* myjob = new MyJob(G.n);
 	K.appendJob(myjob);
+
+	prop.initialize(); // do initialization
 }
 ```
 
-By default, the maximum job number is set to 128, and you can modify this number in `krill/kernel.h`.
+Notice you should first include the generated property buffer header file and the algorithm descriptions in the prelude. By default, the maximum job number is set to 128, and you can modify this number in `krill/kernel.h`.
 
 Four basic graph algorithms including BFS, BellmanFord (SSSP), PageRank (PR), and Connect Components (CC) are provided in the `apps` folder.
 We also provide simple combinations of them, shown below
@@ -69,7 +86,7 @@ After organizing your jobs and modifying the makefile, you can compile the progr
 
 Just type `make` or `make -j` for compilation in the `apps` folder.
 
-Compilers
+Python 3 and C++ Compilers are needed. For C++, we suppot
 * Intel [icpc](https://software.intel.com/en-us/c-compilers) compiler >= 18.0.0
 * g++ >= 5.3.0 with support of [Cilk Plus](https://www.cilkplus.org/) or [OpenMP](https://www.openmp.org/)
 
@@ -111,11 +128,26 @@ Notice the graph data needs to be transformed into the format of [Problem Based 
 Similarly, you need to type `make` in the `utils` folder to compile the facilities first.
 
 ## Experiments
+### Dataset generation
+We provide several useful commands in `experiments/Makefile` enabling you to generate the datasets.
 
+```bash
+$ # in your code repository
+$ cd experiments
+$ # generate the RM dataset
+$ make gen_rmat
+$ # add weights for the unweighted graph, e.g. LiveJournal
+$ make add_weights LJ=1
+$ # run preprocess (generate binary file, transform to grid format, and relabel) for GraphM
+$ # both unweighted and weighted graphs are needed
+$ make run_preprocess LJ=1
+```
+
+### Execution
 To reproduce the experiments in our paper, you should make sure
 1. [Ligra](https://github.com/jshun/ligra) & [GraphM](https://github.com/chhzh123/GraphM) has been compiled in another folder at first.
 2. Python 3 is installed in your system, which is needed for bash script writing and result extraction.
-3. The datasets are downloaded.
+3. The datasets are downloaded, and preprocessed for GraphM.
 4. The environment variables are properly defined, including `LIGRA_PATH`, `GRAPHM_PATH` and `DATASET_PATH`.
 
 Then follow the guidance below:
