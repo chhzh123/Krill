@@ -87,6 +87,14 @@ struct vertexSubset {
         return s; // Add return value
     }
 
+    uintE* countM() { // will override!
+        _seq<uintE> R = sequence::packIndex<uintE>(d,n);
+        s = R.A;
+        m = R.n;
+        isDense = false;
+        return s; // Add return value
+    }
+
     // check for equality
     bool eq (vertexSubset& b) {
         toDense();

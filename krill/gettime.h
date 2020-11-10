@@ -69,6 +69,7 @@ static Timer _tm;
 #define startTime() _tm.start();
 #define reportTime(_str) _tm.reportTotal(_str);
 #define reportNs() _tm.elapsedMilliseconds();
+#define reportSec() _tm.elapsedSeconds();
 #define nextTime(_str) _tm.reportNext(_str);
 
 #endif // GETTIME_H

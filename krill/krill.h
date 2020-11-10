@@ -38,8 +38,10 @@ void pushSparse(vertex*& V, Kernels& K, uintT* degrees, bool remDups = false)
     auto t1 = Clock::now();
 #endif
     K.pushSparseCnt++;
-    int nCJobs = K.nCJob;
-    Job** job = K.cJob;
+    // int nCJobs = K.nCJob;
+    // Job** job = K.cJob;
+    int nCJobs = K.nAJob;
+    Job** job = K.aJob;
     uintE* indices = K.UniFrontier.toSparse();
     long m = K.UniFrontier.m;
     K.flagSparse = true;
@@ -93,9 +95,11 @@ void pushDense(vertex*& V, Kernels& K)
     auto t1 = Clock::now();
 #endif
     K.pushDenseCnt++;
-    int nCJobs = K.nCJob;
+    // int nCJobs = K.nCJob;
+    // Job** job = K.cJob;
+    int nCJobs = K.nAJob;
+    Job** job = K.aJob;
     long n = K.nVert; // # of vertices
-    Job** job = K.cJob;
     K.denseMode();
     parallel_for (long vSrc = 0; vSrc < n; ++vSrc){ // outer parallel
         vertex src = V[vSrc];
@@ -130,9 +134,11 @@ void pullDense(vertex *&V, Kernels &K, bool parallel_flag = false)
     auto t1 = Clock::now();
 #endif
     K.pullDenseCnt++;
-    int nCJobs = K.nCJob;
+    // int nCJobs = K.nCJob;
+    // Job** job = K.cJob;
+    int nCJobs = K.nAJob;
+    Job** job = K.aJob;
     long n = K.nVert; // # of vertices
-    Job** job = K.cJob;
     K.denseMode();
     parallel_for (long vDst = 0; vDst < n; ++vDst){
         int cntJobs = 0;
@@ -389,6 +395,26 @@ void scheduleJob(Job**& job, int& nJob, int nIter)
     }
 }
 
+void scheduleNewJob(Job**& qjob, Job**& ajob, int& nQJob, int& nAJob, int nIter, bool*& UniFrontier)
+{
+    int i = 0;
+    while (i < nQJob){
+        double curr_time = reportSec();
+        if (qjob[i]->arrival_time <= curr_time){
+            nextTime("[ New ]");
+            cout << "Iter " << nIter << ": New-coming job "
+                 << qjob[i]->ID << "/" << (nAJob + 1) << " - " << typeid(*(qjob[i])).name() << endl;
+            ajob[nAJob] = qjob[i];
+            ajob[nAJob]->activate(UniFrontier);
+            nAJob += 1;
+            for (int j = i; j < nQJob-1; ++j) // simple schedule
+                qjob[j] = qjob[j+1];
+            qjob[--nQJob] = NULL;
+        } else
+            i++;
+    }
+}
+
 template <class vertex>
 void Compute(graph<vertex>& G, Kernels& K)
 {
@@ -466,7 +492,7 @@ template <class vertex>
 void Execute(graph<vertex>& G, Kernels& K, commandLine P)
 {
     int iter = 0;
-    while (K.nCJob + K.nSJob > 0){ // one iteration
+    while (K.nAJob > 0 || K.nQJob != 0){ // one iteration
         iter++;
 #ifdef DEBUG
         cout << iter << ": # of jobs: " << K.nCJob + K.nSJob << endl;
@@ -482,7 +508,10 @@ void Execute(graph<vertex>& G, Kernels& K, commandLine P)
 #endif
             K.finishOneIter();
 
-            scheduleJob(K.cJob,K.nCJob,iter);
+            scheduleJob(K.aJob,K.nAJob,iter);
+            K.UniFrontier.toDense();
+            scheduleNewJob(K.qJob,K.aJob,K.nQJob,K.nAJob,iter,K.UniFrontier.d);
+            K.UniFrontier.countM();
         } else {
             K.iniOneIter();
 
@@ -568,7 +597,7 @@ void framework(graph<vertex>& G, commandLine P)
 
 int main(int argc, char* argv[]){
     commandLine P(argc,argv," [-s] <inFile>");
-    char* iFile = P.getArgument(0);
+    char* iFile = P.getFirstArgument();
     bool symmetric = P.getOptionValue("-s");
     bool weighted = P.getOptionValue("-w");
     bool compressed = P.getOptionValue("-c");

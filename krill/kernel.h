@@ -17,7 +17,7 @@ class Job // base class (abstract class)
 {
 public:
     Job(long _nVertex, bool _isWeighted, bool _isSingleton = false):
-        n(_nVertex), active(false), nextFrontier(NULL),
+        n(_nVertex), active(false), arrival_time(0.0), nextFrontier(NULL),
         isWeighted(_isWeighted), isSingleton(_isSingleton){};
     ~Job() = default;
 
@@ -85,12 +85,24 @@ public:
     inline void setFrontier(long _n, long _m, bool* bits){
         frontier = vertexSubset(_n,_m,bits);
     }
+    void activate(bool*& originalUni){
+        active = true;
+        initialize();
+        cout << "Arrival time of job " << ID << " is " << arrival_time << endl;
+        vertexSubset f = frontier;
+        uintE* s = f.toSparse();
+        long m = f.m;
+        if (!isSingleton)
+            parallel_for (long j = 0; j < m; ++j)
+                originalUni[s[j]] = 1;
+    }
     void printNextFrontier(){
         for (long i = 0; i < n; ++i)
             cout << nextFrontier[i] << ((i != n-1) ? " " : "\n");
     }
     bool active; // be careful of the struct member order
     int ID;
+    float arrival_time; // used for dynamic batching
     long n; // # of vertices
     vertexSubset frontier;
     bool* nextFrontier;
@@ -251,10 +263,12 @@ public:
 class Kernels
 {
 public:
-    Kernels(): nJob(0),nCJob(0),nSJob(0),nextUni(NULL),nextSpUni(NULL){
+    Kernels(): nJob(0),nCJob(0),nSJob(0),nAJob(0),nQJob(0),nextUni(NULL),nextSpUni(NULL){
         job = new Job*[MAX_JOB_NUM]; // polymorphism, using `new' may be easier for deletion
         cJob = new Job*[MAX_JOB_NUM];
         sJob = new Job*[MAX_JOB_NUM];
+        aJob = new Job*[MAX_JOB_NUM];
+        qJob = new Job*[MAX_JOB_NUM];
     };
     ~Kernels() = default;
     void appendJob(Job* tsk)
@@ -289,17 +303,15 @@ public:
         bool* originalUni = newA(bool,nVert);
         parallel_for (int i = 0; i < nVert; ++i)
             originalUni[i] = 0;
-        parallel_for (int i = 0; i < nJob; ++i){
+        for (int i = 0; i < nJob; ++i){
             Job* t = job[i];
-            t->active = true;
             t->ID = i;
-            t->initialize();
-            vertexSubset f = t->frontier;
-            uintE* s = f.toSparse();
-            long m = f.m;
-            if (!t->isSingleton)
-                parallel_for (long j = 0; j < m; ++j)
-                    originalUni[s[j]] = 1;
+            if (t->arrival_time == 0) {
+                t->activate(originalUni);
+                aJob[nAJob++] = t;
+            } else {
+                qJob[nQJob++] = t;
+            }
         }
         UniFrontier = vertexSubset(nVert,originalUni);
     }
@@ -311,18 +323,21 @@ public:
                     ->iniOneIter();
         else
         {
-            if (cORs == 0)
-                parallel_for(int i = 0; i < nCJob; ++i)
-                    cJob[i]
-                        ->iniOneIter();
-            else
-            {
-                parallel_for(int i = 0; i < nCJob; ++i)
-                    cJob[i]
-                        ->iniOneIter();
-                parallel_for(int i = 0; i < nSJob; ++i)
-                    sJob[i]
-                        ->iniOneIter();
+            // if (cORs == 0)
+            //     parallel_for(int i = 0; i < nCJob; ++i)
+            //         cJob[i]
+            //             ->iniOneIter();
+            // else
+            // {
+            //     parallel_for(int i = 0; i < nCJob; ++i)
+            //         cJob[i]
+            //             ->iniOneIter();
+            //     parallel_for(int i = 0; i < nSJob; ++i)
+            //         sJob[i]
+            //             ->iniOneIter();
+            // }
+            for(int i = 0; i < nAJob; ++i) {
+                aJob[i]->iniOneIter();
             }
             flagSparse = false;
             nextM = 0;
@@ -336,19 +351,21 @@ public:
                     ->finishOneIter(nextUni);
         else
         {
-            if (cORs == 0)
-                parallel_for(int i = 0; i < nCJob; ++i)
-                    cJob[i]
-                        ->finishOneIter(nextUni);
-            else
-            {
-                parallel_for(int i = 0; i < nCJob; ++i)
-                    cJob[i]
-                        ->finishOneIter(nextUni);
-                parallel_for(int i = 0; i < nSJob; ++i)
-                    sJob[i]
-                        ->finishOneIter(nextUni);
-            }
+            // if (cORs == 0)
+            //     parallel_for(int i = 0; i < nCJob; ++i)
+            //         cJob[i]
+            //             ->finishOneIter(nextUni);
+            // else
+            // {
+            //     parallel_for(int i = 0; i < nCJob; ++i)
+            //         cJob[i]
+            //             ->finishOneIter(nextUni);
+            //     parallel_for(int i = 0; i < nSJob; ++i)
+            //         sJob[i]
+            //             ->finishOneIter(nextUni);
+            // }
+            parallel_for(int i = 0; i < nAJob; ++i)
+                aJob[i]->finishOneIter(nextUni);
             UniFrontier.del();
             // set new frontier
             if (!flagSparse)
@@ -398,8 +415,12 @@ public:
     Job** job; // 1D array to store pointers of the jobs
     int nCJob;
     int nSJob;
+    int nAJob;
+    int nQJob;
     Job** cJob; // concurrent jobs
     Job** sJob; // singleton jobs
+    Job** aJob; // active jobs
+    Job** qJob; // queued jobs
     bool flagSparse;
     bool* nextUni;
     long nextM;

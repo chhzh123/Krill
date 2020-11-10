@@ -52,6 +52,10 @@ struct commandLine {
     return argv[argc-1-i];
   }
 
+  char* getFirstArgument() {
+    return argv[1];
+  }
+
   // looks for two filenames
   pair<char*,char*> IOFileNames() {
     if (argc < 3) badArgument();
@@ -97,6 +101,12 @@ struct commandLine {
 	return r;
       }
     return defaultValue;
+  }
+
+  double getDoubleValue(int i) {
+    double val;
+    sscanf(argv[i], "%lf", &val);
+    return val;
   }
 
   double getOptionDoubleValue(string option, double defaultValue) {
