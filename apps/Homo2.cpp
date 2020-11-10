@@ -13,9 +13,12 @@ template <class vertex>
 void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 {
 	K.flagThreshold = false;
+	int cnt = 3;
 	Homo2::PropertyManager prop(G.n);
 	for (int i = 0; i < 4; ++i){
 		PageRankDelta<vertex> *prd = new PageRankDelta<vertex>(G.n, G.V, prop);
+		double arrival_time = P.getDoubleValue(cnt++);
+		prd->arrival_time = arrival_time;
 		K.appendJob(prd);
 	}
 	for (int i = 1; i < 5; ++i){
@@ -23,6 +26,8 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 		if (start >= G.n)
 			start = i;
 		SSSP* sssp = new SSSP(G.n, prop, start);
+		double arrival_time = P.getDoubleValue(cnt++);
+		sssp->arrival_time = arrival_time;
 		K.appendJob(sssp);
 	}
 	prop.initialize();
