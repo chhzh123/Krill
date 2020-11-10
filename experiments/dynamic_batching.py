@@ -7,11 +7,31 @@ KRILL_PATH = "../apps"
 LIGRA_PATH = "../../ligra/apps"
 GRAPHM_PATH = "../../GraphM/GridGraph-M/examples"
 DATASET_PATH = "../../Dataset"
+
+# DATA = "soc-LiveJournal1"
+# Vertices = 4847571
+# Edges = 68993773
+# SIZE = 523
+# SIZEW = 694
+
 DATA = "rMatGraph24"
 Vertices = 33554432
 Edges = 168000000
 SIZE = 1659
 SIZEW = 2089
+
+# DATA = "twitter7"
+# Vertices = 41652231
+# Edges = 1468365182
+# SIZE = 12411
+# SIZEW = 16108
+
+# DATA = "com-friendster"
+# Vertices = 124836180
+# Edges = 1806067135
+# SIZE = 16907
+# SIZEW = 21474
+
 DATASET = "{}/{}".format(DATASET_PATH, DATA)
 DATASETW = "{}/{}-w".format(DATASET_PATH, DATA)
 MAX_ITER = 15
@@ -21,7 +41,7 @@ interval = []
 for i in range(7):
     res = random.expovariate(8) * tot # poisson process
     interval.append(res)
-print(interval)
+print(interval,flush=True)
 
 def fun_s(cmds):
     # Ligra-S
@@ -30,8 +50,8 @@ def fun_s(cmds):
         p1 = subprocess.Popen(cmd, shell=True)
         if i != 7:
             sleep = interval[i]
-            print("Sleep {:2f}s".format(sleep))
-            p2 = subprocess.Popen("sleep {}".format(sleep), shell=True)
+            print("Sleep {:2f}s".format(sleep),flush=True)
+            p2 = subprocess.Popen("sleep {}".format(sleep), stdout=subprocess.PIPE, shell=True)
             exit_codes = [p.wait() for p in (p1,p2)]
         else:
             p1.wait()
@@ -43,21 +63,21 @@ def fun_p(cmds):
     all_p = []
     start_time = time.time()
     for i, cmd in enumerate(cmds):
-        p = subprocess.Popen(cmd, shell=True)
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
         all_p.append(p)
         if i != 7:
             sleep = interval[i]
-            print("Sleep {:2f}s".format(sleep))
+            print("Sleep {:2f}s".format(sleep),flush=True)
             os.system("sleep {}".format(sleep))
     exit_codes = [p.wait() for p in all_p]
     end_time = time.time()
-    print("Ligra-P Time used: {:.2f}s\n".format(end_time - start_time))
+    print("Ligra-P Time used: {:.2f}s\n".format(end_time - start_time),flush=True)
 
 def fun_k(cmd):
     start_time = time.time()
     os.system(cmd)
     end_time = time.time()
-    print("Krill Time used: {:.2f}s\n".format(end_time - start_time))
+    print("Krill Time used: {:.2f}s\n".format(end_time - start_time),flush=True)
 
 def homo1l():
     cmd = []
@@ -97,7 +117,7 @@ def heterl():
     cmd = []
     for i in range(2):
         cmd.append("./{}/BFS -r {} {}".format(LIGRA_PATH, 71*(i+1)+2, DATASET))
-        cmd.append("./{}/Compoents {}".format(LIGRA_PATH, DATASET))
+        cmd.append("./{}/Components {}".format(LIGRA_PATH, DATASET))
         cmd.append("./{}/PageRankDelta -maxiters {} {}".format(LIGRA_PATH, MAX_ITER, DATASET))
         cmd.append("./{}/BellmanFord -r {} {}".format(LIGRA_PATH, 101*(i+1)+1, DATASETW))
     fun_s(cmd)
@@ -141,13 +161,19 @@ def mssspk():
         cmd += " {}".format(t)
     fun_k(cmd)
 
+def multibfsk():
+    for i in range(1,10):
+        cmd = "./{}/Multi-BFS {} -n {}".format(KRILL_PATH, DATASET, 2**i)
+        fun_k(cmd)
+
+# heterl()
+# heterk()
 # homo1l()
 # homo1k()
 # homo2l()
 # homo2k()
-# heterl()
-# heterk()
 # mbfsl()
 # mbfsk()
-mssspl()
-mssspk()
+# mssspl()
+# mssspk()
+multibfsk()
