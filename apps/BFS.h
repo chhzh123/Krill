@@ -31,6 +31,24 @@ public:
 		parents->set(start,start);
 		setFrontier(n,start);
 	}
+	void iniOneIter(){
+        nextFrontier = newA(bool,n); // DO NOT FREE nextFrontier
+        parallel_for (long i = 0; i < n; ++i) // remember to initialize!
+            nextFrontier[i] = 0;
+        frontier.toDense();
+		cnt_iter += 1; // used for dynamic batching counting
+#ifdef DEBUG
+        frontier.print(2);
+#endif
+    }
+	bool finished(int iter){ // used for dynamic batching
+		if (frontier.isEmpty()){
+			cout << "BFS: " << cnt_iter << endl;
+			return true;
+		} else
+			return false;
+	}
+	int cnt_iter = 0;
 	long start;
 	BFS_Prop::Parents* parents;
 };
