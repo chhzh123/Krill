@@ -77,7 +77,7 @@ public:
 		if (iter >= maxIters || L1_norm < epsilon){
 #ifdef DEBUG
     	for (long i = 0; i < 10; ++i)
-    		cout << p[i] << " ";
+    		cout << p->get(i) << " ";
     	cout << endl;
 #endif
 			return true;
