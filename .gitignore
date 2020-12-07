@@ -47,3 +47,5 @@
 
 *.txt
 *.prof
+*.log
+*.time

@@ -2,6 +2,7 @@ import os
 import time
 import subprocess
 import random
+import numpy as np
 
 KRILL_PATH = "../apps"
 LIGRA_PATH = "../../ligra/apps"
@@ -14,11 +15,11 @@ DATASET_PATH = "../../Dataset"
 # SIZE = 523
 # SIZEW = 694
 
-DATA = "rMatGraph24"
-Vertices = 33554432
-Edges = 168000000
-SIZE = 1659
-SIZEW = 2089
+# DATA = "rMatGraph24"
+# Vertices = 33554432
+# Edges = 168000000
+# SIZE = 1659
+# SIZEW = 2089
 
 # DATA = "twitter7"
 # Vertices = 41652231
@@ -26,17 +27,24 @@ SIZEW = 2089
 # SIZE = 12411
 # SIZEW = 16108
 
-# DATA = "com-friendster"
-# Vertices = 124836180
-# Edges = 1806067135
-# SIZE = 16907
-# SIZEW = 21474
+DATA = "com-friendster"
+Vertices = 124836180
+Edges = 1806067135
+SIZE = 16907
+SIZEW = 21474
 
 DATASET = "{}/{}".format(DATASET_PATH, DATA)
 DATASETW = "{}/{}-w".format(DATASET_PATH, DATA)
+DATASET_GRID = "{}/{}-grid".format(DATASET_PATH, DATA)
+DATASETW_GRID = "{}/{}-w-grid".format(DATASET_PATH, DATA)
 MAX_ITER = 15
+CACHE_SIZE = 20 # MB
+MEMORY_BUDGET = 32 # GB
+PARTITION = 4
 
-tot = 10 # second / unit
+all_time = []
+
+tot = 15 # second / unit
 interval = []
 for i in range(7):
     res = random.expovariate(8) * tot # poisson process
@@ -45,6 +53,7 @@ print(interval,flush=True)
 
 def fun_s(cmds):
     # Ligra-S
+    global all_time
     start_time = time.time()
     for i, cmd in enumerate(cmds):
         p1 = subprocess.Popen(cmd, shell=True)
@@ -56,10 +65,13 @@ def fun_s(cmds):
         else:
             p1.wait()
     end_time = time.time()
-    print("Ligra-S Time used: {:.2f}s\n".format(end_time - start_time))
+    used_time = end_time - start_time
+    all_time.append(used_time)
+    print("Ligra-S Time used: {:.2f}s\n".format(used_time))
 
 def fun_p(cmds):
     # Ligra-P
+    global all_time
     all_p = []
     start_time = time.time()
     for i, cmd in enumerate(cmds):
@@ -71,13 +83,29 @@ def fun_p(cmds):
             os.system("sleep {}".format(sleep))
     exit_codes = [p.wait() for p in all_p]
     end_time = time.time()
-    print("Ligra-P Time used: {:.2f}s\n".format(end_time - start_time),flush=True)
+    used_time = end_time - start_time
+    all_time.append(used_time)
+    print("Ligra-P Time used: {:.2f}s\n".format(used_time),flush=True)
 
 def fun_k(cmd):
+    # Krill
+    global all_time
     start_time = time.time()
     os.system(cmd)
     end_time = time.time()
-    print("Krill Time used: {:.2f}s\n".format(end_time - start_time),flush=True)
+    used_time = end_time - start_time
+    all_time.append(used_time)
+    print("Krill Time used: {:.2f}s\n".format(used_time),flush=True)
+
+def fun_gm(cmd):
+    # GraphM
+    global all_time
+    start_time = time.time()
+    os.system(cmd)
+    end_time = time.time()
+    used_time = end_time - start_time
+    all_time.append(used_time)
+    print("GraphM Time used: {:.2f}s\n".format(used_time),flush=True)
 
 def homo1l():
     cmd = []
@@ -96,6 +124,14 @@ def homo1k():
         cmd += " {}".format(t)
     fun_k(cmd)
 
+def homo1gm():
+    cmd = "./{}/Homo1 {} 4 {} {} {} {}".format(GRAPHM_PATH, DATASET_GRID, MAX_ITER, CACHE_SIZE, SIZE, MEMORY_BUDGET)
+    t = 0
+    for int_time in interval:
+        t += int_time
+        cmd += " {}".format(t)
+    fun_gm(cmd)
+
 def homo2l():
     cmd = []
     for i in range(4):
@@ -112,6 +148,14 @@ def homo2k():
         t += int_time
         cmd += " {}".format(t)
     fun_k(cmd)
+
+def homo2gm():
+    cmd = "./{}/Homo2 {} 4 {} {} {} {}".format(GRAPHM_PATH, DATASETW_GRID, MAX_ITER, CACHE_SIZE, SIZEW, MEMORY_BUDGET)
+    t = 0
+    for int_time in interval:
+        t += int_time
+        cmd += " {}".format(t)
+    fun_gm(cmd)
 
 def heterl():
     cmd = []
@@ -131,6 +175,14 @@ def heterk():
         cmd += " {}".format(t)
     fun_k(cmd)
 
+def hetergm():
+    cmd = "./{}/Heter {} 2 {} {} {} {}".format(GRAPHM_PATH, DATASETW_GRID, MAX_ITER, CACHE_SIZE, SIZEW, MEMORY_BUDGET)
+    t = 0
+    for int_time in interval:
+        t += int_time
+        cmd += " {}".format(t)
+    fun_gm(cmd)
+
 def mbfsl():
     cmd = []
     for i in range(8):
@@ -145,6 +197,14 @@ def mbfsk():
         t += int_time
         cmd += " {}".format(t)
     fun_k(cmd)
+
+def mbfsgm():
+    cmd = "./{}/M-BFS {} 8 {} {} {} {}".format(GRAPHM_PATH, DATASET_GRID, MAX_ITER, CACHE_SIZE, SIZE, MEMORY_BUDGET)
+    t = 0
+    for int_time in interval:
+        t += int_time
+        cmd += " {}".format(t)
+    fun_gm(cmd)
 
 def mssspl():
     cmd = []
@@ -161,19 +221,47 @@ def mssspk():
         cmd += " {}".format(t)
     fun_k(cmd)
 
+def mssspgm():
+    cmd = "./{}/M-SSSP {} 8 {} {} {} {}".format(GRAPHM_PATH, DATASETW_GRID, MAX_ITER, CACHE_SIZE, SIZEW, MEMORY_BUDGET)
+    t = 0
+    for int_time in interval:
+        t += int_time
+        cmd += " {}".format(t)
+    fun_gm(cmd)
+
 def multibfsk():
     for i in range(1,10):
         cmd = "./{}/Multi-BFS {} -n {}".format(KRILL_PATH, DATASET, 2**i)
         fun_k(cmd)
 
-# heterl()
-# heterk()
-# homo1l()
-# homo1k()
-# homo2l()
-# homo2k()
-# mbfsl()
-# mbfsk()
-# mssspl()
-# mssspk()
+heterl()
+hetergm()
+heterk()
+
+homo1l()
+homo1gm()
+homo1k()
+
+homo2l()
+homo2gm()
+homo2k()
+
+mbfsl()
+mbfsgm()
+mbfsk()
+
+mssspl()
+mssspgm()
+mssspk()
+
 multibfsk()
+
+print("Ligra-S\tLigra-P\tGraphM")
+names = ["heter","homo1","homo2","mbfs","msssp"]
+for i in range(5):
+    out =  "{}\t".format(names[i])
+    out =  "{:.2f}x\t".format(float(all_time[i*4]) / all_time[i*4+3])
+    out += "{:.2f}x\t".format(float(all_time[i*4+1]) / all_time[i*4+3])
+    out += "{:.2f}x".format(float(all_time[i*4+2]) / all_time[i*4+3])
+    print(out)
+print()
