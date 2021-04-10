@@ -49,3 +49,5 @@
 *.prof
 *.log
 *.time
+*.perf
+*.ipynb

@@ -5,6 +5,8 @@
 #ifndef VERTEX_SUBSET_H
 #define VERTEX_SUBSET_H
 
+#include <string>
+
 //*****VERTEX OBJECT*****
 struct vertexSubset {
     bool isDense; // 3Bytes are wasted
@@ -87,6 +89,16 @@ struct vertexSubset {
         return s; // Add return value
     }
 
+    void merge(bool* mask) {
+        toDense();
+        parallel_for (long i = 0; i < n; ++i)
+            d[i] |= mask[i];
+        _seq<uintE> R = sequence::packIndex<uintE>(d, n);
+        m = R.n;
+        isDense = true;
+        free(s);
+        s = NULL;
+    }
     // check for equality
     bool eq (vertexSubset& b) {
         toDense();
@@ -99,25 +111,34 @@ struct vertexSubset {
         return equal;
     }
 
-    void print(int show_num = -1) {
+    std::string print_str(int show_num = -1) {
+        std::string str = "";
         if (show_num == -1)
             show_num = n;
         int cnt = 0;
         if (isDense) {
-            cout << "D (" << m << "):";
+            str += "D (" + to_string(m) + "):";
             for (long i = 0; i < n; i++)
                 if (d[i] && cnt < show_num){
                     cnt++;
-                    cout << i << " ";
+                    str += to_string(i) + " ";
                 }
-            cout << endl;
+            str += "\n";
         } else {
-            cout << "S (" << m << "):";
+            str += "S (" + to_string(m) + "):";
             for (long i = 0; i < m; i++)
                 if (++cnt < show_num)
-                    cout << s[i] << " ";
-            cout << endl;
+                    str += to_string(s[i]) + " ";
+            str += "\n";
         }
+        return str;
+    }
+    void print(int show_num = -1) {
+        std::string str = print_str(show_num);
+        cout << str;
+    }
+    void print_size() {
+        cout << to_string(m) << endl;
     }
 };
 

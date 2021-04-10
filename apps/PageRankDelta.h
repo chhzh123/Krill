@@ -56,24 +56,26 @@ public:
 			neigh_sum = prop.add_Neigh_Sum();
 			delta = prop.add_Delta();
 		}; // call parent class constructor
-	inline bool update(uintE s, uintE d){ // update function applies PageRank equation
+	inline bool update(uintE s, uintE d) final { // update function applies PageRank equation
         double oldVal = neigh_sum->get(d);
 		neigh_sum->get(d) += delta->get(s) / V[s].getOutDegree();
-		return oldVal == 0.0;
+		return false; // do not add new active vertices
+		// return oldVal == 0.0;
 	}
-	inline bool updateAtomic(uintE s, uintE d){
+	inline bool updateAtomic(uintE s, uintE d) final {
 		// writeAdd(&neigh_sum->get(d), delta->get(s) / V[s].getOutDegree());
         volatile double oldVal, newVal;
         do{
             oldVal = neigh_sum->get(d);
             newVal = oldVal + delta->get(s) / V[s].getOutDegree();
         } while (!CAS(neigh_sum->get_addr(d),oldVal,newVal));
-		return oldVal == 0.0;
+		return false;
+		// return oldVal == 0.0;
 	}
-	inline bool cond(uintE d){
+	inline bool cond(uintE d) final {
 		return true;
 	}
-	inline bool finished(int iter){
+	inline bool finished(int iter) final {
 		if (iter >= maxIters || L1_norm < epsilon){
 #ifdef DEBUG
     	for (long i = 0; i < 10; ++i)
@@ -85,15 +87,15 @@ public:
 		else
 			return false;
 	}
-	inline void initialize(){
+	inline void initialize() final {
 		p->set_all((1 - damping) / (double)n);
 		delta->set_all(1 / (double)n);
         setFrontierAll();
 		setAll<bool>(tmp, true);
 	}
-	void finishOneIter(bool* nextUni){ // overload
+	void finishOneIter(bool*& nextUni) final { // overload
         if (nextUni == NULL)
-            setAll<bool>(nextUni, true);
+            setAll<bool>(nextUni, false);
 		double *abs_delta = newA(double, n);
 		vertexSubset active = vertexFilter<Update_PageRankDelta>(vertexSubset(n, tmp), Update_PageRankDelta(p, neigh_sum, delta, abs_delta, damping, factor, 1 / (double)n, first_flag), nextUni);
 		first_flag = false;

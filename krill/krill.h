@@ -40,9 +40,8 @@ void pushSparse(vertex*& V, Kernels& K, uintT* degrees, bool remDups = false)
     K.pushSparseCnt++;
     int nCJobs = K.nCJob;
     Job** job = K.cJob;
-    uintE* indices = K.UniFrontier.toSparse();
-    long m = K.UniFrontier.m;
-    K.flagSparse = true;
+    uintE* indices = K.sparseMode();
+    long m = K.numActiveNodes();
 
     uintT* offsets = degrees;
     long nOutEdges = sequence::plusScan(offsets,degrees,m); // accumulate offsets
