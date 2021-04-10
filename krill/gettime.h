@@ -47,12 +47,12 @@ public:
     {
         return elapsedMilliseconds() / 1000.0;
     }
-    inline double reportNext(std::string str)
+    inline void reportNext(std::string str)
     {
         std::cout << str << ": ";
         reportT(elapsedSeconds());
     }
-    inline double reportTotal(std::string str)
+    inline void reportTotal(std::string str)
     {
         stop();
         std::cout << str << ": ";
