@@ -161,11 +161,7 @@ HOMO1S = ./$(LIGRA_PATH)/BFS -r 10 $(DATASET); \
 	./$(LIGRA_PATH)/Components $(DATASET); \
 	./$(LIGRA_PATH)/Components $(DATASET)
 HOMO1P = $(subst ;, &,$(HOMO1S)) & wait
-ifneq "$(or $(TW), $(FT))" ""
-homo1: build homo1k homo1s
-else
 homo1: build homo1k homo1s homo1p
-endif
 homo1k: build
 	# first try
 	$(TIME) "./$(KRILL_PATH)/Homo1 $(DATASET)"
@@ -213,11 +209,7 @@ HOMO2S = ./$(LIGRA_PATH)/BellmanFord -r 73 $(DATASETW) ; \
 	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET) ; \
 	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET)
 HOMO2P = $(subst ;, &,$(HOMO2S)) & wait
-ifneq "$(or $(TW), $(FT))" ""
-homo2: build homo2k homo2s
-else
 homo2: build homo2k homo2s homo2p
-endif
 homo2k: build
 	# first try
 	$(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
@@ -263,11 +255,7 @@ HETERS = ./$(LIGRA_PATH)/BFS -r 71 $(DATASET) ; \
 	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 203 $(DATASETW)
 HETERP = $(subst ;, &,$(HETERS)) & wait
-ifneq "$(or $(TW), $(FT))" ""
-heter: build heterk heters
-else
 heter: build heterk heters heterp
-endif
 heterk: build
 	# first try
 	$(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
@@ -313,11 +301,7 @@ MBFSS = ./$(LIGRA_PATH)/BFS -r 91 $(DATASET) ; \
 	./$(LIGRA_PATH)/BFS -r 637 $(DATASET) ; \
 	./$(LIGRA_PATH)/BFS -r 728 $(DATASET)
 MBFSP = $(subst ;, &,$(MBFSS)) & wait
-ifneq "$(or $(TW), $(FT))" ""
-mbfs: build mbfsk mbfss
-else
 mbfs: build mbfsk mbfss mbfsp
-endif
 mbfsk: build
 	# first try
 	$(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
@@ -363,11 +347,7 @@ MSSSPS = ./$(LIGRA_PATH)/BellmanFord -r 211 $(DATASETW) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 1477 $(DATASETW) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 1688 $(DATASETW)
 MSSSPP = $(subst ;, &,$(MSSSPS)) & wait
-ifneq "$(or $(TW), $(FT))" ""
-msssp: build mssspk msssps
-else
 msssp: build mssspk msssps mssspp
-endif
 mssspk: build
 	# first try
 	$(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"

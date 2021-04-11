@@ -91,10 +91,13 @@ struct vertexSubset {
 
     void merge(bool* mask) {
         toDense();
-        parallel_for (long i = 0; i < n; ++i)
+        int cnt = 0;
+        parallel_for (long i = 0; i < n; ++i) {
             d[i] |= mask[i];
-        _seq<uintE> R = sequence::packIndex<uintE>(d, n);
-        m = R.n;
+            if (d[i] == 1)
+                writeAdd<int>(&cnt,1);
+        }
+        m = cnt;
         isDense = true;
         free(s);
         s = NULL;
