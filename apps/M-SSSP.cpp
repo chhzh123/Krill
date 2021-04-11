@@ -8,8 +8,8 @@ using namespace MSSSP;
 #include "SSSP.h"
 using namespace std;
 
-template <class vertex>
-void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
+extern "C"
+void setKernels(graph<asymmetricWeightedVertex>&G, Kernels& K, commandLine P)
 {
 	K.flagThreshold = false;
 	MSSSP::PropertyManager prop(G.n);

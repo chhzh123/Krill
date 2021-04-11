@@ -46,29 +46,29 @@ PCFLAGS = -O2 $(INTT) $(INTE) $(CODE) $(PD)
 endif
 
 COMMON_FLAGS = -std=c++11 -pthread
+ALG_FLAGS = -fPIC -shared
 
 .SUFFIXES:            # Delete the default suffixes
 
 # to clear the cache
 #sudo sh -c 'echo 1 >/proc/sys/vm/drop_caches'
 
-# make sure modifying header files will lead to recompilation
-COMMON := krill.h kernel.h graph.h vertex.h utils.h IO.h
-COMMON += parallel.h gettime.h transpose.h parseCommandLine.h vertexSubset.h
-COMMON += blockRadixSort.h
-
-KERNEL = BFS.h SSSP.h PageRank.h CC.h
-
 ALL = Homo1 Homo2 Heter M-BFS M-SSSP Multi-BFS
 # ALL += M-CC M-PageRank Singleton Heter2
 
-all: $(ALL)
+all: main all_so
+
+all_so: $(addsuffix .so, $(ALL))
 
 Singleton: Singleton.cpp Heter.pb.h
-	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $(COMMON_FLAGS) $(NOKERFFLAG) $(NOOPTFLAG) $< -o $@
+	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $(COMMON_FLAGS) $(NOKERFFLAG) $(NOOPTFLAG) $(ALG_FLAGS) $< -o $@
 
-% : %.cpp %.pb.h
-	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $(COMMON_FLAGS) $(NOKERFFLAG) $(NOOPTFLAG) $< -o $@
+main: main.cpp
+	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $(COMMON_FLAGS) $(NOKERFFLAG) $(NOOPTFLAG) $< -ldl -o $@
+
+
+%.so : %.cpp %.pb.h
+	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $(COMMON_FLAGS) $(NOKERFFLAG) $(NOOPTFLAG) $(ALG_FLAGS) $< -o $@
 
 all_pbs: $(addsuffix .pb.h, $(ALL))
 %.pb.h: %.prop

@@ -8,8 +8,8 @@ using namespace MultiBFS;
 #include "BFS.h"
 using namespace std;
 
-template <class vertex>
-void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
+extern "C"
+void setKernels(graph<asymmetricUnweightedVertex>&G, Kernels& K, commandLine P)
 {
 	long cnt = P.getOptionLongValue("-n",1);
 	cout << cnt << " BFSs" << endl;

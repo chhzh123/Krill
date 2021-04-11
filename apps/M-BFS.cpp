@@ -1,15 +1,15 @@
 // This code is part of the project "Krill"
 // Copyright (c) 2019 Hongzheng Chen
 
-#include "krill.h"
+#include "kernel.h"
 #include "M-BFS.pb.h"
 using namespace MBFS;
 
 #include "BFS.h"
 using namespace std;
 
-template <class vertex>
-void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
+extern "C"
+void setKernels(graph<asymmetricUnweightedVertex>&G, Kernels& K, commandLine P)
 {
 	MBFS::PropertyManager prop(G.n);
 	for (int i = 1; i < 9; ++i){

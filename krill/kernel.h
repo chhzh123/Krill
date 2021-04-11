@@ -5,8 +5,11 @@
 #define KERNEL_H
 
 #include <initializer_list> // variadic arguments
+#include <cassert>
 #include "utils.h"
 #include "vertexSubset.h"
+#include "graph.h"
+#include "parseCommandLine.h"
 using namespace std;
 
 // predefined max job num in the waiting list

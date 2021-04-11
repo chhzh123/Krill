@@ -13,6 +13,7 @@
 #include <chrono> // timing
 #include <thread>
 #include <cassert>
+#include <dlfcn.h>
 #include "kernel.h"
 #include "graph.h"
 #include "vertex.h"
@@ -538,72 +539,6 @@ void Execute(graph<vertex>& G, Kernels& K, commandLine P)
 //     }
 //     K.finish();
 // }
-
-template <class vertex>
-void setKernels(graph<vertex>&G, Kernels& K, commandLine P); // first declare
-
-template <class vertex>
-void framework(graph<vertex>& G, commandLine P)
-{
-    startTime();
-    Kernels K;
-    setKernels(G,K,P);
-
-    // check validity
-    K.initialize(G.n,G.isWeighted);
-    reportTime("Initialization time");
-
-    startTime();
-    Execute(G,K,P);
-    reportTime("Running time");
-#ifdef DEBUG
-    cout << "Push-Dense: " << K.pushDenseCnt << endl;
-    cout << "Push-Sparse: " << K.pushSparseCnt << endl;
-    cout << "Pull-Dense: " << K.pullDenseCnt << endl;
-    cout << "Pull-Sparse: " << K.pullSparseCnt << endl;
-#endif
-    G.del();
-}
-
-int main(int argc, char* argv[]){
-    commandLine P(argc,argv," [-s] <inFile>");
-    char* iFile = P.getArgument(0);
-    bool symmetric = P.getOptionValue("-s");
-    bool weighted = P.getOptionValue("-w");
-    bool compressed = P.getOptionValue("-c");
-    bool binary = P.getOptionValue("-b");
-    long rounds = P.getOptionLongValue("-rounds",1);
-
-    if (!weighted) {
-        if (!symmetric) {
-            startTime();
-            graph<asymmetricUnweightedVertex> G =
-                readGraphFromFile<asymmetricUnweightedVertex>(iFile);
-            reportTime("Graph IO time");
-            framework(G,P);
-        } else {
-            startTime();
-            graph<symmetricUnweightedVertex> G =
-                readGraphFromFile<symmetricUnweightedVertex>(iFile);
-            reportTime("Graph IO time");
-            framework(G,P);
-        }
-    } else {
-        if (!symmetric) {
-            startTime();
-            graph<asymmetricWeightedVertex> G =
-                readGraphFromFile<asymmetricWeightedVertex>(iFile);
-            reportTime("Graph IO time");
-            framework(G,P);
-        } else {
-            startTime();
-            graph<symmetricWeightedVertex> G =
-                readGraphFromFile<symmetricWeightedVertex>(iFile);
-            reportTime("Graph IO time");
-            framework(G,P);
-        }
-    }
-}
 
 template <class F>
 void vertexMap(vertexSubset V, F f) {

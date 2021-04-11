@@ -12,8 +12,8 @@ using namespace Heter;
 #include "SSSP.h"
 using namespace std;
 
-template <class vertex>
-void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
+extern "C"
+void setKernels(graph<asymmetricWeightedVertex>&G, Kernels& K, commandLine P)
 {
 	K.flagThreshold = false;
 	Heter::PropertyManager prop(G.n);
@@ -26,7 +26,7 @@ void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
 		Components* cc = new Components(G.n, prop);
 
 		// PageRank<vertex>* pr = new PageRank<vertex>(G.n,G.V);
-		PageRankDelta<vertex> *prd = new PageRankDelta<vertex>(G.n, G.V, prop);
+		PageRankDelta<asymmetricWeightedVertex> *prd = new PageRankDelta<asymmetricWeightedVertex>(G.n, G.V, prop);
 
 		int start_sssp = 101 * i + 1;
 		if (start_sssp >= G.n)

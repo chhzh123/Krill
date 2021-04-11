@@ -9,8 +9,8 @@ using namespace Homo1;
 #include "CC.h"
 using namespace std;
 
-template <class vertex>
-void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
+extern "C"
+void setKernels(graph<asymmetricUnweightedVertex>&G, Kernels& K, commandLine P)
 {
 	Homo1::PropertyManager prop(G.n);
 	for (int i = 1; i < 5; ++i){

@@ -9,13 +9,13 @@ using namespace Homo2;
 #include "SSSP.h"
 using namespace std;
 
-template <class vertex>
-void setKernels(graph<vertex>&G, Kernels& K, commandLine P)
+extern "C"
+void setKernels(graph<asymmetricWeightedVertex>&G, Kernels& K, commandLine P)
 {
 	K.flagThreshold = false;
 	Homo2::PropertyManager prop(G.n);
 	for (int i = 0; i < 4; ++i){
-		PageRankDelta<vertex> *prd = new PageRankDelta<vertex>(G.n, G.V, prop);
+		PageRankDelta<asymmetricWeightedVertex> *prd = new PageRankDelta<asymmetricWeightedVertex>(G.n, G.V, prop);
 		K.appendJob(prd);
 	}
 	for (int i = 1; i < 5; ++i){
