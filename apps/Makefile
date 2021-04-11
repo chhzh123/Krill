@@ -56,16 +56,12 @@ ALG_FLAGS = -fPIC -shared
 ALL = Homo1 Homo2 Heter M-BFS M-SSSP Multi-BFS
 # ALL += M-CC M-PageRank Singleton Heter2
 
-all: main all_so
+all: all_so
 
 all_so: $(addsuffix .so, $(ALL))
 
 Singleton: Singleton.cpp Heter.pb.h
 	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $(COMMON_FLAGS) $(NOKERFFLAG) $(NOOPTFLAG) $(ALG_FLAGS) $< -o $@
-
-main: main.cpp
-	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $(COMMON_FLAGS) $(NOKERFFLAG) $(NOOPTFLAG) $< -ldl -o $@
-
 
 %.so : %.cpp %.pb.h
 	$(PCC) -I../krill $(PCFLAGS) $(DEBUGFLAG) $(PROFILEFLAG) $(COMMON_FLAGS) $(NOKERFFLAG) $(NOOPTFLAG) $(ALG_FLAGS) $< -o $@
