@@ -32,20 +32,11 @@
 #define parallel_for_1 _Pragma("cilk_grainsize = 1") cilk_for
 #define parallel_for_256 _Pragma("cilk_grainsize = 256") cilk_for
 
-// intel cilk+
-#elif defined(CILKP)
-#include <cilk/cilk.h>
-#include <cilk/cilk_api.h>
-#define parallel_for cilk_for
-#define parallel_main main
-#define parallel_for_1 _Pragma("cilk grainsize = 1") cilk_for
-#define parallel_for_256 _Pragma("cilk grainsize = 256") cilk_for
-
 // openmp
 #elif defined(OPENMP)
 #include <omp.h>
-#define cilk_spawn
-#define cilk_sync
+#define cilk_spawn _Pragma("omp task")
+#define cilk_sync _Pragma("omp taskwait")
 #define parallel_main main
 #define parallel_for _Pragma("omp parallel for") for
 #define parallel_for_1 _Pragma("omp parallel for schedule (static,1)") for

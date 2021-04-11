@@ -29,12 +29,12 @@ endif
 # compilers
 ifdef CILK
 PCC = g++
-PCFLAGS = -fcilkplus -lcilkrts -O3 -DCILK $(INTT) $(INTE) $(CODE) $(PD)
+PCFLAGS = -fcilkplus -lcilkrts -O2 -DCILK $(INTT) $(INTE) $(CODE) $(PD)
 PLFLAGS = -fcilkplus -lcilkrts
 
-else ifdef MKLROOT
-PCC = icpc
-PCFLAGS = -O3 -DCILKP $(INTT) $(INTE) $(CODE) $(PD)
+else ifdef ONEAPI_ROOT
+PCC = dpcpp
+PCFLAGS = -fopenmp -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
 
 else ifdef OPENMP
 PCC = g++
@@ -76,4 +76,4 @@ all_pbs: $(addsuffix .pb.h, $(ALL))
 
 .PHONY: clean
 clean:
-	-rm -f *.o $(ALL) *.pb.h *.gcov *.gcno *.gcda *.out.* *.out
+	-rm -f *.o $(ALL) *.pb.h *.gcov *.gcno *.gcda *.out.* *.out *.log
