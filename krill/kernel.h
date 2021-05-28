@@ -375,7 +375,8 @@ public:
             //     assert(size == nVert);
             //     parallel_for (int j = 0; j < size; ++j)
             //         if (fr[j] == 1)
-            //             res[j] += 1;
+            //             // res[j] += 1;
+            //             writeAdd<int>(&(res[j]), 1);
             // }
             // // int cnt = 0;
             // // for (int i = 0; i < nVert; ++i)
@@ -385,7 +386,7 @@ public:
             // for (int i = 0; i < nVert; ++i)
             //     cnt += res[i];
             // free(res);
-            // cout << "cnt: " << cnt << " ratio: " << cnt / (float)UniFrontier.m << endl;
+            // cout << "cnt: " << cnt << " uni: " << UniFrontier.m << " ratio: " << cnt / (float)UniFrontier.m << endl;
         }
     }
     void finish(){
