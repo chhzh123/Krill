@@ -26,7 +26,7 @@ public:
 			IDs = prop.add_CurrIDs();
 			prevIDs = prop.add_PrevIDs();
 		}
-	inline bool update(uintE s, uintE d){ // Update function writes min ID
+	inline bool update(uintE s, uintE d) final { // Update function writes min ID
 		uintE origID = IDs->get(d);
     	if (IDs->get(s) < origID) {
     		IDs->set(d, min(origID,IDs->get(s)));
@@ -35,14 +35,14 @@ public:
     	}
     	return 0;
 	}
-	inline bool updateAtomic(uintE s, uintE d){
+	inline bool updateAtomic(uintE s, uintE d) final {
 		uintE origID = IDs->get(d); // be careful that IDs->get(d) will be modified
     	return (writeMin(IDs->get_addr(d),IDs->get(s)) && origID == prevIDs->get(d));
 	}
-	inline bool cond(uintE d){
+	inline bool cond(uintE d) final {
 		return cond_true(d);
 	}
-	inline bool finished(int){
+	inline bool finished(int) final {
 		// return frontier.isEmpty();
 		if (frontier.isEmpty()){
 			bool* res;
@@ -58,17 +58,18 @@ public:
 		} else
 			return false;
 	}
-	inline void initialize(){
+	inline void initialize() final {
 		setFrontierAll();
 	}
-	inline void iniOneIter(){
+	inline void iniOneIter() final {
 		nextFrontier = newA(bool,n); // DO NOT FREE nextFrontier
         parallel_for (long i = 0; i < n; ++i) // remember to initialize!
             nextFrontier[i] = 0;
         frontier.toDense();
 		vertexMap(frontier,Update_F(IDs,prevIDs));
 #ifdef DEBUG
-        frontier.print(20);
+		frontier.print_size();
+        // frontier.print(20);
 #endif
     }
 	Components_Prop::CurrIDs* IDs;

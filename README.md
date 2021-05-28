@@ -88,6 +88,7 @@ Just type `make` or `make -j` for compilation in the `apps` folder.
 
 Python 3 and C++ Compilers are needed. For C++, we suppot
 * Intel [icpc](https://software.intel.com/en-us/c-compilers) compiler >= 18.0.0
+	* Note: Since Intel ICPC has been integrated into [oneAPI](https://software.intel.com/content/www/us/en/develop/tools/oneapi.html#gs.z7812c), the compiler is not thoroughly tested. Thus, using g++ with Cilk Plus is the most efficient way now.
 * g++ >= 5.3.0 with support of [Cilk Plus](https://www.cilkplus.org/) or [OpenMP](https://www.openmp.org/)
 
 Since template metaprogramming and some C++ 11 features are used in our system, the compiler needs to support the C++ 11 standard.

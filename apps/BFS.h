@@ -14,20 +14,20 @@ public:
 			assert(_start < n);
 			parents = prop.add_Parents();
 		}; // call parent class constructor
-	inline bool update(uintE s, uintE d){
+	inline bool update(uintE s, uintE d) final {
 		if (parents->get(d) == UINT_E_MAX){
 			parents->set(d,s);
 			return 1; // maybe use a bitmap to record frontier
 		} else
 			return 0;
 	}
-	inline bool updateAtomic(uintE s, uintE d){
+	inline bool updateAtomic(uintE s, uintE d) final {
 		return (CAS(parents->get_addr(d),UINT_E_MAX,s));
 	}
-	inline bool cond(uintE d){ // cond function checks if vertex has been visited yet
+	inline bool cond(uintE d) final { // cond function checks if vertex has been visited yet
 		return (parents->get(d) == UINT_E_MAX); // since CAS cannot pass negtive num
 	}
-	inline void initialize(){
+	inline void initialize() final {
 		parents->set(start,start);
 		setFrontier(n,start);
 	}

@@ -19,7 +19,7 @@ public:
     Job(long _nVertex, bool _isWeighted, bool _isSingleton = false):
         n(_nVertex), active(false), arrival_time(0.0), nextFrontier(NULL),
         isWeighted(_isWeighted), isSingleton(_isSingleton){};
-    ~Job() = default;
+    virtual ~Job() = default;
 
     // *pure* virtual function used for correct function call
     virtual bool cond(uintE d) = 0;
@@ -40,10 +40,11 @@ public:
             nextFrontier[i] = 0;
         frontier.toDense();
 #ifdef DEBUG
-        frontier.print(2);
+        frontier.print_size();
+        // frontier.print(2);
 #endif
     }
-    virtual void finishOneIter(bool* nextUni){
+    virtual void finishOneIter(bool*& nextUni){
         frontier.del();
         // set new frontier
         setFrontier(n,nextFrontier);
@@ -118,7 +119,7 @@ public:
     virtual bool update(uintE s, uintE d) = 0;
     virtual bool updateAtomic(uintE s, uintE d) = 0;
     // sparse
-    void condPush(uintE& out, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    inline void condPush(uintE& out, const long vSrc, const long vDst, const intE edgeVal = 0) final // edgeVal is useless
     {
         if (frontier.d[vSrc] && cond(vDst) && updateAtomic(vSrc,vDst)){
             nextFrontier[vDst] = 1; // need not atomic
@@ -127,7 +128,7 @@ public:
         // DO NOT SET ELSE! some memory may be accessed several times
     }
     // dense
-    void condPush(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    inline void condPush(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) final // edgeVal is useless
     {
         if (frontier.d[vSrc] && cond(vDst) && updateAtomic(vSrc,vDst)){
             nextFrontier[vDst] = 1; // need not atomic
@@ -135,7 +136,7 @@ public:
         }
         // DO NOT SET ELSE! some memory may be accessed several times
     }
-    void condPull(bool *&nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    inline void condPull(bool *&nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) final // edgeVal is useless
     {
         if (cond(vDst) && frontier.d[vSrc] && update(vSrc, vDst))
         {
@@ -144,7 +145,7 @@ public:
         }
         // DO NOT SET ELSE! some memory may be accessed several times
     }
-    void condPullAtomic(bool *&nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    inline void condPullAtomic(bool *&nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) final // edgeVal is useless
     {
         if (cond(vDst) && frontier.d[vSrc] && updateAtomic(vSrc, vDst))
         {
@@ -153,7 +154,7 @@ public:
         }
         // DO NOT SET ELSE! some memory may be accessed several times
     }
-    void condPullNoCond(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    inline void condPullNoCond(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) final // edgeVal is useless
     {
         if (frontier.d[vSrc] && update(vSrc,vDst)){
             nextFrontier[vDst] = 1; // need not atomic
@@ -161,7 +162,7 @@ public:
         }
         // DO NOT SET ELSE! some memory may be accessed several times
     }
-    void condPullNoCondAtomic(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    inline void condPullNoCondAtomic(bool*& nextUni, const long vSrc, const long vDst, const intE edgeVal = 0) final // edgeVal is useless
     {
         if (frontier.d[vSrc] && updateAtomic(vSrc,vDst)){
             nextFrontier[vDst] = 1; // need not atomic
@@ -169,19 +170,19 @@ public:
         }
         // DO NOT SET ELSE! some memory may be accessed several times
     }
-    void condPushSingle(const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    inline void condPushSingle(const long vSrc, const long vDst, const intE edgeVal = 0) final // edgeVal is useless
     {
         if (cond(vDst) && updateAtomic(vSrc, vDst))
             nextFrontier[vDst] = 1; // need not atomic
         // DO NOT SET ELSE! some memory may be accessed several times
     }
-    void condPullSingle(const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    inline void condPullSingle(const long vSrc, const long vDst, const intE edgeVal = 0) final // edgeVal is useless
     {
         if (frontier.d[vSrc] && update(vSrc,vDst))
             nextFrontier[vDst] = 1; // need not atomic
         // DO NOT SET ELSE! some memory may be accessed several times
     }
-    void condPullSingleAtomic(const long vSrc, const long vDst, const intE edgeVal = 0) // edgeVal is useless
+    inline void condPullSingleAtomic(const long vSrc, const long vDst, const intE edgeVal = 0) final // edgeVal is useless
     {
         if (frontier.d[vSrc] && updateAtomic(vSrc,vDst))
             nextFrontier[vDst] = 1; // need not atomic
@@ -378,16 +379,31 @@ public:
             {
                 UniFrontier = ((nextSpUni != NULL) ? vertexSubset(nVert, nextM, nextSpUni) : vertexSubset(nVert));
                 if (nextUni != NULL)
-                {
-                    UniFrontier.toDense();
-                    parallel_for (long i = 0; i < nVert; ++i)
-                        UniFrontier.d[i] |= nextUni[i];
-                    free(UniFrontier.s);
-                    UniFrontier.s = NULL;
-                }
+                    UniFrontier.merge(nextUni);
                 nextUni = NULL;
                 nextSpUni = NULL;
             }
+            // int* res = newA(int,nVert);
+            // parallel_for (int i = 0; i < nVert; ++i)
+            //     res[i] = 0;
+            // for (int i = 0; i < nCJob; ++i) {
+            //     bool* fr = cJob[i]->frontier.toDense();
+            //     int size = cJob[i]->frontier.n;
+            //     assert(size == nVert);
+            //     parallel_for (int j = 0; j < size; ++j)
+            //         if (fr[j] == 1)
+            //             // res[j] += 1;
+            //             writeAdd<int>(&(res[j]), 1);
+            // }
+            // // int cnt = 0;
+            // // for (int i = 0; i < nVert; ++i)
+            // //     if (res[i] >= 4)
+            // //         cnt += 1;
+            // int cnt = 0;
+            // for (int i = 0; i < nVert; ++i)
+            //     cnt += res[i];
+            // free(res);
+            // cout << "cnt: " << cnt << " uni: " << UniFrontier.m << " ratio: " << cnt / (float)UniFrontier.m << endl;
         }
     }
     void finish(){
@@ -396,6 +412,14 @@ public:
         delete [] job;
         // delete [] cJob;
         // delete [] sJob;
+    }
+    inline long numActiveNodes(){
+        return UniFrontier.m;
+    }
+    inline uintE* sparseMode(){
+        flagSparse = true;
+        nextUni = NULL;
+        return UniFrontier.toSparse();
     }
     inline bool* denseMode(){
         flagSparse = false;

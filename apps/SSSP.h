@@ -29,7 +29,7 @@ public:
 			shortestPathLen = prop.add_ShortestPathLen();
 			changed = prop.add_Changed();
 		}; // call parent class constructor
-	inline bool update(uintE s, uintE d, intE edgeLen){ // relax, edgeLen(s,d)
+	inline bool update(uintE s, uintE d, intE edgeLen) final { // relax, edgeLen(s,d)
 		intE newDist = shortestPathLen->get(s) + edgeLen;
 		if (shortestPathLen->get(d) > newDist) { // Update shortestPathLen if found a shorter path
 			shortestPathLen->get(d) = newDist;
@@ -40,14 +40,14 @@ public:
 		}
 		return 0; // if no edges can be relaxed, then the algorithm terminates
 	}
-	inline bool updateAtomic(uintE s, uintE d, intE edgeLen){
+	inline bool updateAtomic(uintE s, uintE d, intE edgeLen) final {
 		intE newDist = shortestPathLen->get(s) + edgeLen;
 		return (writeMin(shortestPathLen->get_addr(d),newDist) && CAS(changed->get_addr(d),0,1));
 	}
-	inline bool cond(uintE d){
+	inline bool cond(uintE d) final {
 		return cond_true(d);
 	}
-	inline bool finished(int round){
+	inline bool finished(int round) final {
 		if (round == n) {
 		// if the relax procedure has been executed for more than N times
 		// there must exist negative weight cycle
@@ -75,11 +75,11 @@ public:
 #endif
 		}
 	}
-	inline void initialize(){
+	inline void initialize() final {
 		shortestPathLen->set(start,0);
 		setFrontier(n,start);
 	}
-	void finishOneIter(bool*){ // overload
+	void finishOneIter(bool*) { // overload
         frontier.del();
         // set new frontier
         setFrontier(n,nextFrontier);
