@@ -43,12 +43,15 @@ def write_table(lst,head,inalgs=algs):
 print("Extracting profiling results from {} ...".format(data_path))
 
 abbreviation = ['k','s','p','m','t','b','f','d','w','g']
-realtime, peakmem, l1_load_cnt, l1_miss, llc_miss_cnt, llc_miss, instructions = {}, {}, {}, {}, {}, {}, {}
+cpus, realtime, peakmem, l1_load_cnt, l1_miss_cnt, l1_miss, llc_load_cnt, llc_miss_cnt, llc_miss, instructions = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
 for abbr in abbreviation:
+	cpus[abbr] = {}
 	realtime[abbr] = {}
 	peakmem[abbr] = {}
 	l1_load_cnt[abbr] = {}
 	l1_miss[abbr] = {}
+	l1_miss_cnt[abbr] = {}
+	llc_load_cnt[abbr] = {}
 	llc_miss_cnt[abbr] = {}
 	llc_miss[abbr] = {}
 	instructions[abbr] = {}
@@ -72,10 +75,15 @@ def parse(filename,alg):
 		with open(data_path + "/" + filename,"r") as file:
 			for line in file:
 				name = filename.split('.')[0]
-				if "L1-dcache-loads" in line:
-					l1_load_cnt[name[-1]][alg] = line.lstrip().split()[0]
+				if "task-clock" in line or "cpu-clock" in line:
+					cpus[name[-1]][alg] = float(line.split("#")[1].lstrip().split()[0])
+				elif "L1-dcache-loads" in line:
+					l1_load_cnt[name[-1]][alg] = format(round(float(line.lstrip().split()[0].replace(",","")) / cpus[name[-1]][alg]),",")
 				elif "L1-dcache-load-misses" in line:
 					l1_miss[name[-1]][alg] = line.split("#")[1].lstrip().split()[0]
+					l1_miss_cnt[name[-1]][alg] = line.lstrip().split()[0]
+				elif "LLC-loads" in line:
+					llc_load_cnt[name[-1]][alg] = line.lstrip().split()[0]
 				elif "LLC-load-misses" in line:
 					llc_miss[name[-1]][alg] = line.split("#")[1].lstrip().split()[0]
 					llc_miss_cnt[name[-1]][alg] = line.lstrip().split()[0]
@@ -98,8 +106,10 @@ if len(sys.argv) < 3:
 		parse(filename,alg)
 	write_table(realtime,"Real time / Wall clock time (s)")
 	write_table(peakmem,"Peak memory (KB)")
-	write_table(l1_load_cnt,"Memory accesses") # from memory to processor (L1)
+	write_table(l1_load_cnt,"L1 load") # load instruction
 	write_table(l1_miss,"L1 Data Cache miss rate")
+	write_table(l1_miss_cnt,"L1 Data Cache miss count")
+	write_table(llc_load_cnt,"LLC load")
 	write_table(llc_miss_cnt,"LLC Data Cache miss count")
 	write_table(llc_miss,"LLC miss rate")
 	write_table(instructions,"# of Instructions")
@@ -143,11 +153,15 @@ else: # preprocess
 	write_framework(realtime,"Real time w (s)","w",["Preprocess"])
 	write_framework(peakmem,"Peak memory (KB)","d",["Preprocess"])
 	write_framework(peakmem,"Peak memory w (KB)","w",["Preprocess"])
-	write_framework(l1_load_cnt,"Memory accesses","d",["Preprocess"]) # from memory to processor (L1)
-	write_framework(l1_load_cnt,"Memory accesses w","w",["Preprocess"]) # from memory to processor (L1)
+	write_framework(l1_load_cnt,"L1 load","d",["Preprocess"]) # from memory to processor (L1)
+	write_framework(l1_load_cnt,"L1 load w","w",["Preprocess"]) # from memory to processor (L1)
+	write_framework(llc_load_cnt,"LLC load","d",["Preprocess"])
+	write_framework(llc_load_cnt,"LLC load w","w",["Preprocess"])
 	write_framework(l1_miss,"L1 Data Cache miss rate","d",["Preprocess"])
 	write_framework(l1_miss,"L1 Data Cache miss rate w","w",["Preprocess"])
-	write_framework(llc_miss_cnt,"L1 Data Cache miss count","d",["Preprocess"])
+	write_framework(l1_miss_cnt,"L1 Data Cache miss count","d",["Preprocess"])
+	write_framework(l1_miss_cnt,"L1 Data Cache miss count w","w",["Preprocess"])
+	write_framework(llc_miss_cnt,"LLC Data Cache miss count","d",["Preprocess"])
 	write_framework(llc_miss_cnt,"LLC Data Cache miss count w","w",["Preprocess"])
 	write_framework(llc_miss,"LLC miss rate","d",["Preprocess"])
 	write_framework(llc_miss,"LLC miss rate w","w",["Preprocess"])
