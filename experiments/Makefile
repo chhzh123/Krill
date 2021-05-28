@@ -71,9 +71,9 @@ DATASETW_GRID = $(DATASET_PATH)/$(DATA)-w-grid
 
 PROFILE_PATH = profile
 TIMEK = /usr/bin/time -v -o $(PROFILE_PATH)/$(DATA)/$@k.time sh -c
-PERFK = perf stat -d -o $(PROFILE_PATH)/$(DATA)/$@k.perf sh -c
+PERFK = perf stat -d -o $(PROFILE_PATH)/$(DATA)/$@k.perf -C 0 sh -c
 TIME = /usr/bin/time -v -o $(PROFILE_PATH)/$(DATA)/$@.time sh -c
-PERF = perf stat -d -o $(PROFILE_PATH)/$(DATA)/$@.perf sh -c
+PERF = perf stat -d -o $(PROFILE_PATH)/$(DATA)/$@.perf -C 0 sh -c
 PERF_REPORT = perf record -e cpu-clock
 
 PCM_OUTPUT_PATH = pcm-results
@@ -122,35 +122,35 @@ build:
 
 bfs: build
 	# first try
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -job bfs -r 1001 $(DATASET)"
+	# $(TIMEK) "./$(KRILL_PATH)/Singleton -job bfs -r 1001 $(DATASET)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -job bfs -r 1001 $(DATASET)"
 	$(TIME) './$(LIGRA_PATH)/BFS -r 1001 $(DATASET)'
 	# second try
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -job bfs -r 1001 $(DATASET)"
+	# $(TIMEK) "./$(KRILL_PATH)/Singleton -job bfs -r 1001 $(DATASET)"
 
 pr: build
 	# first try
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -job prd $(DATASET)"
+	# $(TIMEK) "./$(KRILL_PATH)/Singleton -job prd $(DATASET)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -job prd $(DATASET)"
 	$(TIME) './$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET)'
 	# second try
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -job prd $(DATASET)"
+	# $(TIMEK) "./$(KRILL_PATH)/Singleton -job prd $(DATASET)"
 
 cc: build
 	# first try
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -job cc $(DATASET)"
+	# $(TIMEK) "./$(KRILL_PATH)/Singleton -job cc $(DATASET)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -job cc $(DATASET)"
 	$(TIME) './$(LIGRA_PATH)/Components $(DATASET)'
 	# second try
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -job cc $(DATASET)"
+	# $(TIMEK) "./$(KRILL_PATH)/Singleton -job cc $(DATASET)"
 
 sssp: build
 	# first try
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -job sssp -r 1001 -w $(DATASETW)"
+	# $(TIMEK) "./$(KRILL_PATH)/Singleton -job sssp -r 1001 -w $(DATASETW)"
 	$(PERFK) "./$(KRILL_PATH)/Singleton -job sssp -r 1001 -w $(DATASETW)"
 	$(TIME) './$(LIGRA_PATH)/BellmanFord -r 1001 $(DATASETW)'
 	# second try
-	$(TIMEK) "./$(KRILL_PATH)/Singleton -job sssp -r 1001 -w $(DATASETW)"
+	# $(TIMEK) "./$(KRILL_PATH)/Singleton -job sssp -r 1001 -w $(DATASETW)"
 
 HOMO1S = ./$(LIGRA_PATH)/BFS -r 10 $(DATASET); \
 	./$(LIGRA_PATH)/BFS -r 20 $(DATASET); \
@@ -161,17 +161,13 @@ HOMO1S = ./$(LIGRA_PATH)/BFS -r 10 $(DATASET); \
 	./$(LIGRA_PATH)/Components $(DATASET); \
 	./$(LIGRA_PATH)/Components $(DATASET)
 HOMO1P = $(subst ;, &,$(HOMO1S)) & wait
-ifneq "$(or $(TW), $(FT))" ""
-homo1: build homo1k homo1s
-else
-homo1: build homo1k homo1s homo1p
-endif
+homo1: build homo1k homo1s homo1p homo1gm
 homo1k: build
 	# first try
 	$(TIME) "./$(KRILL_PATH)/Homo1 $(DATASET)"
 	# second try
 	$(PERF) "./$(KRILL_PATH)/Homo1 $(DATASET)"
-	$(TIME) "./$(KRILL_PATH)/Homo1 $(DATASET)"
+	# $(TIME) "./$(KRILL_PATH)/Homo1 $(DATASET)"
 homo1nokerf: build
 	# first try
 	# Need to recompile! The execution file is different!
@@ -191,13 +187,13 @@ homo1s: build
 	$(TIME) '$(HOMO1S)'
 	# second try
 	$(PERF) '$(HOMO1S)'
-	$(TIME) '$(HOMO1S)'
+	# $(TIME) '$(HOMO1S)'
 homo1p: build
 	# first try
 	$(TIME) '$(HOMO1P)'
 	# second try
 	$(PERF) '$(HOMO1P)'
-	$(TIME) '$(HOMO1P)'
+	# $(TIME) '$(HOMO1P)'
 homo1gm: build $(DATASET_GRID)
 	# first try
 	$(TIME) "./$(GRAPHM_PATH)/Homo1 $(DATASET_GRID) 4 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
@@ -213,17 +209,13 @@ HOMO2S = ./$(LIGRA_PATH)/BellmanFord -r 73 $(DATASETW) ; \
 	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET) ; \
 	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET)
 HOMO2P = $(subst ;, &,$(HOMO2S)) & wait
-ifneq "$(or $(TW), $(FT))" ""
-homo2: build homo2k homo2s
-else
-homo2: build homo2k homo2s homo2p
-endif
+homo2: build homo2k homo2s homo2p homo2gm
 homo2k: build
 	# first try
 	$(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
 	# second try
 	$(PERF) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
-	$(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
+	# $(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
 homo2nokerf: build
 	# first try
 	# $(TIME) "./$(KRILL_PATH)/Homo2 -w $(DATASETW)"
@@ -241,13 +233,13 @@ homo2s: build
 	$(TIME) '$(HOMO2S)'
 	# second try
 	$(PERF) '$(HOMO2S)'
-	$(TIME) '$(HOMO2S)'
+	# $(TIME) '$(HOMO2S)'
 homo2p: build
 	# first try
 	$(TIME) '$(HOMO2P)'
 	# second try
 	$(PERF) '$(HOMO2P)'
-	$(TIME) '$(HOMO2P)'
+	# $(TIME) '$(HOMO2P)'
 homo2gm: build $(DATASETW_GRID)
 	# first try
 	$(TIME) "./$(GRAPHM_PATH)/Homo2 $(DATASETW_GRID) 4 $(MAX_ITER) $(CACHE_SIZE) $(SIZEW) $(MEMORY_BUDGET)"
@@ -263,17 +255,13 @@ HETERS = ./$(LIGRA_PATH)/BFS -r 71 $(DATASET) ; \
 	./$(LIGRA_PATH)/PageRankDelta -maxiters $(MAX_ITER) $(DATASET) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 203 $(DATASETW)
 HETERP = $(subst ;, &,$(HETERS)) & wait
-ifneq "$(or $(TW), $(FT))" ""
-heter: build heterk heters
-else
-heter: build heterk heters heterp
-endif
+heter: build heterk heters heterp hetergm
 heterk: build
 	# first try
 	$(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 	# second try
 	$(PERF) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
-	$(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
+	# $(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
 heternokerf: build
 	# first try
 	# $(TIME) "./$(KRILL_PATH)/Heter -w $(DATASETW)"
@@ -291,13 +279,13 @@ heters: build
 	$(TIME) '$(HETERS)'
 	# second try
 	$(PERF) '$(HETERS)'
-	$(TIME) '$(HETERS)'
+	# $(TIME) '$(HETERS)'
 heterp: build
 	# first try
 	$(TIME) '$(HETERP)'
 	# second try
 	$(PERF) '$(HETERP)'
-	$(TIME) '$(HETERP)'
+	# $(TIME) '$(HETERP)'
 hetergm: build $(DATASETW_GRID)
 	# first try
 	$(TIME) "./$(GRAPHM_PATH)/Heter $(DATASETW_GRID) 2 $(MAX_ITER) $(CACHE_SIZE) $(SIZEW) $(MEMORY_BUDGET)"
@@ -313,17 +301,13 @@ MBFSS = ./$(LIGRA_PATH)/BFS -r 91 $(DATASET) ; \
 	./$(LIGRA_PATH)/BFS -r 637 $(DATASET) ; \
 	./$(LIGRA_PATH)/BFS -r 728 $(DATASET)
 MBFSP = $(subst ;, &,$(MBFSS)) & wait
-ifneq "$(or $(TW), $(FT))" ""
-mbfs: build mbfsk mbfss
-else
-mbfs: build mbfsk mbfss mbfsp
-endif
+mbfs: build mbfsk mbfss mbfsp mbfsgm
 mbfsk: build
 	# first try
 	$(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
 	# second try
 	$(PERF) "./$(KRILL_PATH)/M-BFS $(DATASET)"
-	$(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
+	# $(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
 mbfsnokerf: build
 	# first try
 	# $(TIME) "./$(KRILL_PATH)/M-BFS $(DATASET)"
@@ -341,13 +325,13 @@ mbfss: build
 	$(TIME) '$(MBFSS)'
 	# second try
 	$(PERF) '$(MBFSS)'
-	$(TIME) '$(MBFSS)'
+	# $(TIME) '$(MBFSS)'
 mbfsp: build
 	# first try
 	$(TIME) '$(MBFSP)'
 	# second try
 	$(PERF) '$(MBFSP)'
-	$(TIME) '$(MBFSP)'
+	# $(TIME) '$(MBFSP)'
 mbfsgm: build $(DATASET_GRID)
 	# first try
 	$(TIME) "./$(GRAPHM_PATH)/M-BFS $(DATASET_GRID) 8 $(MAX_ITER) $(CACHE_SIZE) $(SIZE) $(MEMORY_BUDGET)"
@@ -363,17 +347,13 @@ MSSSPS = ./$(LIGRA_PATH)/BellmanFord -r 211 $(DATASETW) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 1477 $(DATASETW) ; \
 	./$(LIGRA_PATH)/BellmanFord -r 1688 $(DATASETW)
 MSSSPP = $(subst ;, &,$(MSSSPS)) & wait
-ifneq "$(or $(TW), $(FT))" ""
-msssp: build mssspk msssps
-else
-msssp: build mssspk msssps mssspp
-endif
+msssp: build mssspk msssps mssspp mssspgm
 mssspk: build
 	# first try
 	$(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
 	# second try
 	$(PERF) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
-	$(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
+	# $(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
 mssspnokerf: build
 	# first try
 	# $(TIME) "./$(KRILL_PATH)/M-SSSP -w $(DATASETW)"
@@ -391,13 +371,13 @@ msssps: build
 	$(TIME) '$(MSSSPS)'
 	# second try
 	$(PERF) '$(MSSSPS)'
-	$(TIME) '$(MSSSPS)'
+	# $(TIME) '$(MSSSPS)'
 mssspp: build
 	# first try
 	$(TIME) '$(MSSSPP)'
 	# second try
 	$(PERF) '$(MSSSPP)'
-	$(TIME) '$(MSSSPP)'
+	# $(TIME) '$(MSSSPP)'
 mssspgm: build $(DATASETW_GRID)
 	# first try
 	$(TIME) "./$(GRAPHM_PATH)/M-SSSP $(DATASETW_GRID) 8 $(MAX_ITER) $(CACHE_SIZE) $(SIZEW) $(MEMORY_BUDGET)"
@@ -510,7 +490,7 @@ heter2: build heter2k heter2s heter2p
 endif
 heter2k: build
 	# first try
-# 	$(TIME) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
+	# $(TIME) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
 	# second try
 # 	$(PERF) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
 	$(TIME) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
@@ -518,23 +498,23 @@ heter2nokerf: build
 	# first try
 	# $(TIME) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
 	# second try
-# 	$(TIME) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
+	# $(TIME) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
 	$(PERF) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
 heter2noopt: build
 	# first try
 	# $(TIME) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
 	# second try
-# 	$(TIME) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
+	# $(TIME) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
 	$(PERF) "./$(KRILL_PATH)/Heter2 -w $(DATASETW)"
 heter2s: build
 	# first try
-# 	$(TIME) '$(HETER2S)'
+	# $(TIME) '$(HETER2S)'
 	# second try
 # 	$(PERF) '$(HETER2S)'
 	$(TIME) '$(HETER2S)'
 heter2p: build
 	# first try
-# 	$(TIME) '$(HETER2P)'
+	# $(TIME) '$(HETER2P)'
 	# second try
 # 	$(PERF) '$(HETER2P)'
 	$(TIME) '$(HETER2P)'
