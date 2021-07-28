@@ -95,8 +95,6 @@ Since template metaprogramming and some C++ 11 features are used in our system, 
 
 To compile with g++ using Cilk Plus, define the environment variable `CILK`. To compile with icpc, define the environment variable `MKLROOT` and make sure CILK is not defined. To compile with OpenMP, define the environment variable `OPENMP` and make sure CILK and MKLROOT are not defined. To output the debugging message, define `DEBUG` variable.
 
-Notice the system has not been thoroughly tested in other compiler settings except for Intel icpc. Please commit a issue if some bugs you have found.
-
 ## Execution
 
 To execute the compiled program, you can run the following commands (suppose the program named `concurrent`):
@@ -170,11 +168,11 @@ make add_weights TW=1
 make add_weights FT=1
 ```
 
-To generate the datasets required for GraphM, please run preprocessing as shown below.
+To generate the datasets required for GraphM, please run preprocessing as shown below. It may takes hours for large datasets.
 
 ```bash
 # run preprocess (generate binary file, transform to grid format, and relabel) for GraphM
-# both unweighted and weighted graphs are needed
+# both unweighted and weighted graphs should be generated first
 make run_preprocess LJ=1
 ```
 
@@ -189,20 +187,24 @@ To reproduce the experiments in our paper, you should make sure
 Then follow the guidance below:
 
 ```bash
-$ # in your code repository
-$ cd experiments
-$ # this will run all the experiments for LiveJournal (LJ)
-$ make exp LJ=1
-$ # only run for single job, say PageRank
-$ make pr LJ=1
-$ # only run for heter
-$ make heter LJ=1
-$ # processor counter monitor
-$ make pcm LJ=1
-$ # scalability of # of jobs
-$ make multibfs LJ=1
-$ # scalability of # of cores
-$ make multicore LJ=1
-$ # clean experimental results
-$ make clean
+# in your code repository
+cd experiments
+# this will run all the experiments for LiveJournal (LJ)
+# heter, homo1, homo2, mbfs, msssp
+make exp LJ=1
+
+# only run for single job, say PageRank
+make pr LJ=1
+# only run for heter
+make heter LJ=1
+
+# scalability of # of jobs
+make multibfs LJ=1
+# scalability of # of cores
+make multicore LJ=1
+
+# clean experimental results
+make clean
 ```
+
+The raw profiling results can be found in the `profile` folder. If the programs run faultlessly, you will see the `.prof` results to be generated.
