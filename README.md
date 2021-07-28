@@ -65,9 +65,9 @@ We also provide simple combinations of them, shown below
 
 | Job set | Composition |
 | :---: | :---: |
+| `Heter` | {BFS, CC, PR, SSSP} * 2 |
 | `Homo1` | {BFS, CC} * 4 |
 | `Homo2` | {PR, SSSP} * 4 |
-| `Heter` | {BFS, CC, PR, SSSP} * 2 |
 | `M-BFS` | {BFS} * 8 |
 | `M-SSSP` | {SSSP} * 8 |
 
@@ -115,16 +115,15 @@ The command line arguments used in our system include:
 
 The datasets used in our experiments can be found in the following links.
 
-| Abbr. | Dataset | # of vertices | # of edges | source |
-| :---: | :---:   | :---:         | :---:      | :---:  |
-| CP | cit-Patents | 6.0 M         | 16.5M      | http://snap.stanford.edu/data/cit-Patents.html |
-| LJ | LiveJournal | 4.8 M         | 69 M       | http://snap.stanford.edu/data/soc-LiveJournal1.html |
-| RD | USAroad     | 24 M          | 58 M       | https://sparse.tamu.edu/DIMACS10/road_usa |
-| RM | rMat24      | 33.6 M        | 168 M      | https://graph500.org/ |
-| TW | Twitter     | 41.7 M        | 1.4 B      | https://sparse.tamu.edu/SNAP/twitter7 |
-| FT | Friendster  | 124 M         | 1.8 B      | http://snap.stanford.edu/data/com-Friendster.html |
+| Abbr. | Dataset | # of vertices | # of edges | source | Original format |
+| :---: | :---:   | :---:         | :---:      | :---:  | :---: |
+| CP | cit-Patents | 6.0 M         | 16.5M      | http://snap.stanford.edu/data/cit-Patents.html | SNAP |
+| LJ | LiveJournal | 4.8 M         | 69 M       | http://snap.stanford.edu/data/soc-LiveJournal1.html | SNAP |
+| RM | rMat24      | 33.6 M        | 168 M      | https://graph500.org/ | - |
+| TW | Twitter     | 41.7 M        | 1.4 B      | https://sparse.tamu.edu/SNAP/twitter7 | MTX |
+| FT | Friendster  | 124 M         | 1.8 B      | http://snap.stanford.edu/data/com-Friendster.html | SNAP |
 
-Notice the graph data needs to be transformed into the format of [Problem Based Benchmark Suite](http://www.cs.cmu.edu/~pbbs/benchmarks/graphIO.html). The facilities in `utils` like `SNAPtoAdj`, `MTXtoAdj`, and `adjGraphAddWeights` can be used for format transformation.
+Notice the graph data needs to be transformed into the format of **[Problem Based Benchmark Suite](http://www.cs.cmu.edu/~pbbs/benchmarks/graphIO.html)**. The facilities in `utils` like `SNAPtoAdj`, `MTXtoAdj`, and `adjGraphAddWeights` can be used for format transformation.
 
 Similarly, you need to type `make` in the `utils` folder to compile the facilities first.
 
@@ -132,17 +131,53 @@ Similarly, you need to type `make` in the `utils` folder to compile the faciliti
 ### Dataset generation
 We provide several useful commands in `experiments/Makefile` enabling you to generate the datasets.
 
+To generate the required datasets for Krill and Ligra, please follow the instructions below.
+
 ```bash
-$ # in your code repository
-$ cd experiments
-$ # generate the RM dataset
-$ make gen_rmat
-$ # add weights for the unweighted graph, e.g. LiveJournal
-$ make add_weights LJ=1
-$ # run preprocess (generate binary file, transform to grid format, and relabel) for GraphM
-$ # both unweighted and weighted graphs are needed
-$ make run_preprocess LJ=1
+mkdir Dataset
+# suppose "Dataset" and "Krill" repo are in the same folder
+cd Dataset
+
+# CP
+wget http://snap.stanford.edu/data/cit-Patents.txt.gz
+gunzip cit-Patents.txt.gz
+./../Krill/utils/SNAPtoAdj cit-Patents.txt cit-Patents
+
+# LJ
+wget http://snap.stanford.edu/data/soc-LiveJournal1.txt.gz
+gunzip soc-LiveJournal1.txt.gz
+./../Krill/utils/SNAPtoAdj soc-LiveJournal1.txt soc-LiveJournal1
+
+# RM
+./../Krill/utils/rMatGraph -a .5 -b .1 -c .1 -d .3 16800000 rMatGraph24
+
+# TW
+wget https://suitesparse-collection-website.herokuapp.com/MM/SNAP/twitter7.tar.gz
+tar -xzvf twitter7.tar.gz
+./../Krill/utils/MTXtoAdj soc-LiveJournal1.txt twitter7
+
+# FT
+wget http://snap.stanford.edu/data/bigdata/communities/com-friendster.ungraph.txt.gz
+gunzip com-friendster.ungraph.txt.gz
+./../Krill/utils/SNAPtoAdj com-friendster.ungraph.txt com-friendster
+
+# add weights for the unweighted graph
+cd ../Krill/experiments
+make add_weights CP=1
+make add_weights LJ=1
+make add_weights RMAT=1
+make add_weights TW=1
+make add_weights FT=1
 ```
+
+To generate the datasets required for GraphM, please run preprocessing as shown below.
+
+```bash
+# run preprocess (generate binary file, transform to grid format, and relabel) for GraphM
+# both unweighted and weighted graphs are needed
+make run_preprocess LJ=1
+```
+
 
 ### Execution
 To reproduce the experiments in our paper, you should make sure
