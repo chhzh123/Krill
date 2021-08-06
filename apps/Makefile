@@ -27,12 +27,7 @@ NOOPTFLAG = -DNOOPT
 endif
 
 # compilers
-ifdef CILK
-PCC = g++
-PCFLAGS = -fcilkplus -lcilkrts -O2 -DCILK $(INTT) $(INTE) $(CODE) $(PD)
-PLFLAGS = -fcilkplus -lcilkrts
-
-else ifdef ONEAPI_ROOT
+ifdef ONEAPI_ROOT
 PCC = dpcpp
 PCFLAGS = -fopenmp -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
 
@@ -42,7 +37,8 @@ PCFLAGS = -fopenmp -O3 -DOPENMP $(INTT) $(INTE) $(CODE) $(PD)
 
 else
 PCC = g++
-PCFLAGS = -O2 $(INTT) $(INTE) $(CODE) $(PD)
+PCFLAGS = -fcilkplus -lcilkrts -O2 -DCILK $(INTT) $(INTE) $(CODE) $(PD)
+PLFLAGS = -fcilkplus -lcilkrts
 endif
 
 COMMON_FLAGS = -std=c++11 -pthread
