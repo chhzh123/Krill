@@ -33,7 +33,7 @@ def get_prop_class(job_prop,pb_name):
     res += "  inline {}* get_addr (int i) {{ return &(data[i * sj_num]); }}\n".format(type_name)
     res += "  inline {}* get_data () {{ return data; }}\n".format(type_name)
     res += "  inline void set (int i, {} val) {{ data[i * sj_num] = val; }}\n".format(type_name)
-    res += "  inline void set_all ({} val) {{ parallel_for (int i = 0; i < n; ++i) data[i * sj_num] = val; }}\n".format(type_name)
+    res += "  inline void set_all ({} val) {{ parallel_for (size_t i = 0; i < n; ++i) data[i * sj_num] = val; }}\n".format(type_name)
     res += "  inline void add (int i, {} val) {{ data[i * sj_num] += val; }}\n".format(type_name)
     res += "  friend class {}::PropertyManager;\n".format(pb_name) # friend class
     # data
@@ -103,7 +103,7 @@ def get_main_class(props):
                     res += "    auto lambda = [](int i) -> {} {{ return ".format(type_name)
                     res += initial_val[1].replace(initial_val[0],"i")
                     res += "; };\n"
-                    res += "    parallel_for (int i = 0; i < n; ++i) {\n"
+                    res += "    parallel_for (size_t i = 0; i < n; ++i) {\n"
                     res += "      auto val = lambda(i);\n"
                     res += "      for (int j = 0; j < {0}_size; ++j)\n".format(array_name)
                     res += "        {0}_all[i * {0}_size + j] = val;\n".format(array_name)
