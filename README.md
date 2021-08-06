@@ -34,7 +34,7 @@ Some basic functions should be overridden in the inherent classes, including
 * `initialize`: initialize the private property values of your job.
 * `clear`: if you create instances of some member data using dynamic allocation, you should free the memory in this function.
 
-The first three functions are the same as Ligra, and the latter three are used for concurrent graph processing, since we decouple the processing logics.
+The first three functions are the same as Ligra, and the latter three are used for concurrent graph processing, since we decouple the processing logic.
 All of them are pure virtual functions, which means compile error will occur if the functions are not be specified.
 
 A detailed template can be found in `apps/template-singleton.h`.
@@ -84,16 +84,18 @@ Please append your job header file in `KERNEL` variable, and the main program sh
 
 After organizing your jobs and modifying the makefile, you can compile the program and run for it!
 
-Just type `make` or `make -j` for compilation in the `apps` folder.
+Just type `make` or `make -j` for compilation in the `apps` folder. (If you need to make property fusion for multiple jobs, you need to add `LAYOUT=2` after the `make` command.)
 
 Python 3 and C++ Compilers are needed. For C++, we suppot
-* Intel [icpc](https://software.intel.com/en-us/c-compilers) compiler >= 18.0.0
-	* Note: Since Intel ICPC has been integrated into [oneAPI](https://software.intel.com/content/www/us/en/develop/tools/oneapi.html#gs.z7812c), the compiler is not thoroughly tested. Thus, using g++ with Cilk Plus is the most efficient way now.
 * g++ >= 5.3.0 with support of [Cilk Plus](https://www.cilkplus.org/) or [OpenMP](https://www.openmp.org/)
+* Intel [ICPC](https://software.intel.com/en-us/c-compilers) compiler >= 18.0.0
+	* Note: Since Intel ICPC has been integrated into [oneAPI](https://software.intel.com/content/www/us/en/develop/tools/oneapi.html#gs.z7812c), the compiler is not thoroughly tested. Thus, using g++ with Cilk Plus is the most efficient way now.
 
 Since template metaprogramming and some C++ 11 features are used in our system, the compiler needs to support the C++ 11 standard.
 
-To compile with g++ using Cilk Plus, define the environment variable `CILK`. To compile with icpc, define the environment variable `MKLROOT` and make sure CILK is not defined. To compile with OpenMP, define the environment variable `OPENMP` and make sure CILK and MKLROOT are not defined. To output the debugging message, define `DEBUG` variable.
+The default setting is to compile with g++ using Cilk Plus, you should not define `ONEAPI_ROOT` and `OPENMP` in the environment. To compile with Intel oneAPI compiler, define the environment variable `ONEAPI_ROOT`. To compile with OpenMP, define the environment variable `OPENMP` and make sure `ONEAPI_ROOT`is not defined. To output the debugging message, define `DEBUG` variable.
+
+(For reference, our experiments use g++ 7.5.0 with Cilk Plus.)
 
 ## Execution
 
@@ -109,7 +111,8 @@ The command line arguments used in our system include:
 * `-b`: if the input graph is stored in binary
 * `-rounds`: specify the number of rounds the program to run
 
-## Datasets
+## Experiments
+### Datasets
 
 The datasets used in our experiments can be found in the following links.
 
@@ -117,7 +120,7 @@ The datasets used in our experiments can be found in the following links.
 | :---: | :---:   | :---:         | :---:      | :---:  | :---: |
 | CP | cit-Patents | 6.0 M         | 16.5M      | http://snap.stanford.edu/data/cit-Patents.html | SNAP |
 | LJ | LiveJournal | 4.8 M         | 69 M       | http://snap.stanford.edu/data/soc-LiveJournal1.html | SNAP |
-| RM | rMat24      | 33.6 M        | 168 M      | https://graph500.org/ | - |
+| RMAT | rMat24      | 33.6 M        | 168 M      | https://graph500.org/ | - |
 | TW | Twitter     | 41.7 M        | 1.4 B      | https://sparse.tamu.edu/SNAP/twitter7 | MTX |
 | FT | Friendster  | 124 M         | 1.8 B      | http://snap.stanford.edu/data/com-Friendster.html | SNAP |
 
@@ -125,7 +128,6 @@ Notice the graph data needs to be transformed into the format of **[Problem Base
 
 Similarly, you need to type `make` in the `utils` folder to compile the facilities first.
 
-## Experiments
 ### Dataset generation
 We provide several useful commands in `experiments/Makefile` enabling you to generate the datasets.
 
@@ -133,7 +135,7 @@ To generate the required datasets for Krill and Ligra, please follow the instruc
 
 ```bash
 mkdir Dataset
-# suppose "Dataset" and "Krill" repo are in the same folder
+# suppose "Dataset" and the "Krill" repo are in the same folder
 cd Dataset
 
 # CP
@@ -168,10 +170,10 @@ make add_weights TW=1
 make add_weights FT=1
 ```
 
-To generate the datasets required for GraphM, please run preprocessing as shown below. It may takes hours for large datasets.
+To generate the datasets required for GraphM, please run preprocessing as shown below. It may take hours for large datasets.
 
 ```bash
-# run preprocess (generate binary file, transform to grid format, and relabel) for GraphM
+# run preprocess (generate binary files, transform to grid format, and relabel) for GraphM
 # both unweighted and weighted graphs should be generated first
 make run_preprocess LJ=1
 ```
@@ -181,19 +183,26 @@ make run_preprocess LJ=1
 To reproduce the experiments in our paper, you should make sure
 1. [Ligra](https://github.com/jshun/ligra) & [GraphM](https://github.com/chhzh123/GraphM) has been compiled in another folder at first.
 2. Python 3 is installed in your system, which is needed for bash script writing and result extraction.
-3. The datasets are downloaded, and preprocessed for GraphM.
+3. The datasets are downloaded and preprocessed for GraphM.
 4. The environment variables are properly defined, including `LIGRA_PATH`, `GRAPHM_PATH` and `DATASET_PATH`.
 
 Then follow the guidance below:
 
 ```bash
 # in your code repository
-cd experiments
+cd apps
+make LAYOUT=2 -j # for property fusion
+
+cd ../experiments
+# run all the experiments for all the datasets
+chmod +x run.sh
+./run.sh
+
 # this will run all the experiments for LiveJournal (LJ)
 # heter, homo1, homo2, mbfs, msssp
 make exp LJ=1
 
-# only run for single job, say PageRank
+# only run for a single job, say PageRank
 make pr LJ=1
 # only run for heter
 make heter LJ=1
@@ -208,3 +217,14 @@ make clean
 ```
 
 The raw profiling results can be found in the `profile` folder. If the programs run faultlessly, you will see the `.prof` results to be generated.
+
+Most of the experimental results in the paper can be retrived from the `.prof` file. The data source of each figure is listed below:
+* Figure 8: "Real time / Wall clock time (s)". For Krill without property buffers, you need to clean the binary, recompile using `make -j`, and run the experiments again. For GraphM, preprocessing time is also needed to be counted.
+* Figure 9: Need to set up the `DEBUG` compilation flag.
+* Figure 10: We use "L1 load" as the indicator of the number of memory accesses, which should be the number of load instructions issued by CPUs.
+* Figure 11: "LLC miss rate".
+* Figure 12: "LLC miss count".
+* Figure 13: Take out the execution time of each job from the log and calculate the response latency.
+* Figure 14: Use the `dynamic_batching` branch and run `./experiments/dynamic_batching.py`.
+* Figure 15: For the distributed version of Krill (which is based on [Gemini](https://github.com/thu-pacman/GeminiGraph)), please refer to [this repository](https://github.com/chhzh123/GeminiGraph).
+* Figure 16: Run `make multibfs` and `make multicore`.
