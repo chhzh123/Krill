@@ -5,6 +5,16 @@ Krill is an efficient graph system for processing **concurrent graph jobs**, whi
 
 Currently, we select [Ligra](https://github.com/jshun/ligra), a state-of-the-art shared-memory single graph processing framework, as our underlying infrastructure.
 
+For more information, please refer to our [SC'21 paper](https://dl.acm.org/doi/10.1145/3458817.3476159).
+```
+@inproceedings{chen2021krill,
+    author = {Chen, Hongzheng and Shen, Minghua and Xiao, Nong and Lu, Yutong},
+    title = {Krill: A Compiler and Runtime System for Concurrent Graph Processing},
+    booktitle = {Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis (SC)},
+    year = {2021}
+}
+```
+
 ## Getting Started
 
 To write a program to process concurrent graph jobs, you should follow the steps below.
@@ -218,7 +228,7 @@ make clean
 
 The raw profiling results can be found in the `profile` folder. If the programs run faultlessly, you will see the `.prof` results to be generated.
 
-Most of the experimental results in the paper can be retrived from the `.prof` file. The data source of each figure is listed below:
+Most of the experimental results in the [paper](https://dl.acm.org/doi/10.1145/3458817.3476159) can be retrived from the `.prof` file. The data source of each figure is listed below:
 * Figure 8: "Real time / Wall clock time (s)". For Krill without property buffers, you need to clean the binary, recompile using `make -j`, and run the experiments again. For GraphM, preprocessing time is also needed to be counted.
 * Figure 9: Need to set up the `DEBUG` compilation flag.
 * Figure 10: We use "L1 load" as the indicator of the number of memory accesses, which should be the number of load instructions issued by CPUs.
